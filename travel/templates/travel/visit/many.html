@@ -1,0 +1,44 @@
+{% extends "travel/base.html" %}
+{% block extra_head %}
+    {{ block.super }}
+    <style type="text/css" media="screen">
+        td { vertical-align: top; }
+        .right { text-align: right; }
+        .thinner input { width: 8em; }
+        textarea { height: 3em; width: 200px; }
+    </style>
+{% endblock extra_head %}
+{% block travel_heading %}Add Log Entries{% endblock %}
+{% block travel_content %}
+    <form action="" method="post" accept-charset="utf-8">
+    
+    {% for vtype,vforms in forms.iteritems %}
+    <h3>{{ vtype }}</h3>
+    <table style="max-width: 670px">
+        <thead>
+            <tr>
+                <th>Place</th>
+                <th class="thinner">Arrival</th>
+                <th class="thinner">Departure</th>
+                <th>Rating</th>
+                <th>Notes</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for form in vforms %}
+            <tr class="{% cycle 'even' 'odd' as row  %}">
+                <td>{{ form.instance }}</td>
+                <td class="thinner">{{ form.arrival }}</td>
+                <td class="thinner">{{ form.departure }}</td>
+                <td>{{ form.rating }}</td>
+                <td>{{ form.note }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endfor %}
+    
+    <p><input type="submit" name="complete" value="Save"></p>
+    </form>
+    
+{% endblock travel_content %}

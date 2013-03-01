@@ -1,0 +1,171 @@
+{% extends "travel/base.html" %}
+{% block subheader %}{{ block.super }} {# <span id="subheader-descr">{{ single_label }}</span> #}{% endblock subheader %}
+{% block travel_heading %}{{ place.name }}{% endblock %}
+{% block extra_head %}
+    <script type="text/javascript">
+        $(function() {
+            $("#tabs").tabs();
+        });
+    </script>
+{% endblock extra_head %}
+{% block travel_content %}
+    <div id="tabs">
+        <ul>
+            <li><a href="#details-tab">Details</a></li>
+            <li><a href="#related-tab">Related</a></li>
+        </ul>
+        <div id="details-tab">{% block tab1 %}
+            <table class="item-details">
+                <tr>
+                    <th>Official name</th>
+                    <td>
+                        {{ place.full_name }} |
+                        <a class="external" href="{{ place.wikipedia_search_url }}">Wikipedia Search</a>
+                        {% if place.flag %}
+                        <div style="position: relative">
+                            <a style="position: absolute; right: 0" href="{{ place.flag.width_512.url }}">
+                                <img style="border: 1px solid #ddd;" src="{{ place.flag.width_128.url }}" />
+                            </a>
+                        </div>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% if place.capital %}
+                <tr>
+                    <th>Capital</th>
+                    <td>
+                        {% if place.capital %}
+                        <a href="{{ place.capital.get_absolute_url }}">{{ place.capital.name }}</a> |
+                        <a class="mapit" href="{{ place.capital.google_maps_url }}">Map</a>
+
+                        {% else %}<em>Unknown</em>{% endif %}
+                    </td>
+                </tr>
+                {% endif %}
+                {% if place.continent %}
+                <tr>
+                    <th>Continent</th>
+                    <td>
+                        <a href="{{ place.continent.get_absolute_url }}">{{ place.continent }}</a>
+                    </td>
+                </tr>
+                {% endif %}
+                {% if place.country %}
+                <tr>
+                    <th>Country</th>
+                    <td>
+                        <a href="{{ place.country.get_absolute_url }}">{{ place.country }}</a>
+                    </td>
+                </tr>
+                {% endif %}
+                {% if place.state %}
+                <tr>
+                    <th>State</th>
+                    <td>
+                        <a href="{{ place.state.get_absolute_url }}">{{ place.state }}</a>
+                    </td>
+                </tr>
+                {% endif %}
+                {% if place.locality %}
+                <tr>
+                    <th>Location</th>
+                    <td>{{ place.locality }}</td>
+                </tr>
+                {% endif %}
+                <tr>
+                    <th>{% if not place.locality %}Location{% endif %}</th>
+                    <td>
+                        {% if place.lat and place.lon %}
+                        <span class="latlon">{{ place.lat }}&deg; Lat, {{ place.lon }}&deg; Lon</span><br>
+                        {% endif %}
+                        <a class="mapit" href="{{ place.google_maps_url }}">Google Maps</a>
+                    </td>
+                </tr>
+                {% if place.code %}
+                <tr>
+                    <th>Code</th>
+                    <td>{{ place.code }}</td>
+                </tr>
+                {% endif %}
+                {% block extra_details %}{% endblock extra_details %}
+            </table>
+        {% endblock tab1 %}
+        </div>
+        <div id="related-tab">{% block tab2 %}
+                <ul class="related-content">{% for rel in place.related_entities %}
+                    <li>
+                        <a href="{% url travel-entity-relationship place.type.abbr place.code rel.abbr %}">
+                            <span>{{ rel.count }}</span> {{ rel.text }}</a>
+                    </li>{% empty %}
+                    <li><em>No related content available</em></li>
+                    {% endfor %}
+                </ul>{% endblock tab2 %}
+        </div>
+    </div>
+    {% block detail_content %}{% endblock detail_content %}
+    {% if user.is_authenticated %}
+    <h2>Your Travel Log</h2>
+    {% with place.travellog_set.count as count %}
+    <p>
+        You have <strong>{{ count }} entr{{ count|pluralize:"y,ies" }}</strong> 
+        for {{ place }} 
+    </p>
+    <form action="" method="post" accept-charset="utf-8">
+        <fieldset id="log_entry">
+            <legend>Add a log entry</legend>
+            {% if form.errors %}
+            <div>
+                {{ form.errors }}
+            </div>
+            <pre>{{ form.errors }}</pre>
+                
+            {% endif %}
+            <table>
+                <tbody> {% for field in form %}
+                    <tr>
+                        <th>{{ field.label_tag }}</th>
+                        <td class="text">{{ field }}</td>
+                    </tr> {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td></td>
+                        <td>
+                            <input type="submit" value="Add Log Entry">                    
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </fieldset>
+    </form>
+    {% if count %}
+    <h3>Previous Log Entries</h3>
+    <table class="ui-widget  ui-widget-content">
+    <thead class="ui-widget-header">
+        <tr>
+            <th>Arrival</th>
+            <th>Departure</th>
+            <th>Rating</th>
+        </tr>
+    </thead>
+    <tbody> {% for entry in place.travellog_set.all %}
+        <tr  class="{% cycle 'odd' 'even'  %}">
+            <td>{{ entry.arrival|date:"D, j M y P" }}</td>
+            <td>{{ entry.departure|date:"D, j M y P" }}</td>
+            <td>{{ entry.get_rating_display }}</td>
+        </tr> {% endfor %}
+    </tbody>
+    </table>
+    {% endif %}
+    {% endwith %}
+    {% endif %}
+    
+    {# {% if user.is_superuser %} #}
+    {# <p> #}
+    {# <form action="{% url travel-flag-upload place.REF_KEY place.id %}" method="post"> #}
+    {#     <label>Flag URL:</label><input type="text" name="url" size="60" /> #}
+    {#     <input type="submit" value="Submit"> #}
+    {# </form> #}
+    {# </p> #}
+    {# {% endif %} #}
+{% endblock travel_content %}

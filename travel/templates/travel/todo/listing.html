@@ -1,0 +1,27 @@
+{% extends "travel/base.html" %}
+{% block title %}ToDo  Lists{% endblock title %}
+{% block travel_heading %}To-do Lists{% endblock %}
+{% block travel_content %}
+    <table class="ui-widget ui-widget-content">
+    <thead>
+        <tr class="ui-widget-header">
+            <th>To-do</th>
+            <th>Description</th>
+        </tr>
+    </thead>
+    <tbody>{% for todo in todos  %}
+        <tr class="{% cycle 'odd' 'even' %}">
+            <td><a href="{{ todo.get_absolute_url }}">{{ todo }}</a></td>
+            <td>
+                {{ todo.description }}{% if todo.is_private %}<sup>*</sup>{% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+    </table>
+    
+{% endblock travel_content %}
+
+
+
+

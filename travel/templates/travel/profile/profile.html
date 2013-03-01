@@ -1,0 +1,99 @@
+{% extends "travel/base.html" %}
+{% block extra_head %}
+    <style type="text/css" media="screen">
+        .flag {
+          -moz-box-shadow: 3px 3px 3px #ddd;
+          -webkit-box-shadow: 3px 3px 3px #ddd;
+          box-shadow: 3px 3px 3px #ddd;
+        }
+    </style>
+    <script type="text/javascript" charset="utf-8">
+        function stripe() {
+            $('#id_entries tr').removeClass('even');
+            $('#id_entries tr:visible:even').addClass('even');
+        }
+        
+        $(document).ready(function() {
+            $('#id_filter').change(function() {
+                var val = $(this).val();
+                var selector = '#id_entries tr'
+                if( val ) {
+                    $(selector).hide();
+                    selector += '.type-' + val;
+                }
+
+                var $what = $(selector);
+                var count = $what.length;
+                $('#id_count').text(count + ' entr' + (count > 1 ? 'ies' : 'y'));
+                $what.show();
+                stripe();
+            }).change();
+            stripe();
+        });
+        
+    </script>
+{% endblock extra_head %}
+{% block travel_heading %}Travelogue for {{ profile.user.username }}{% endblock %}
+{% block travel_content %}
+    {% if profile.is_public %}
+    {% with profile.history as history %}
+    <p>
+        <strong>Filter by:</strong>
+        <select id="id_filter">
+            <option value="">-- All --</option>
+            <option value="cn">Contintent</option>
+            <option value="co">Country</option>
+            <option value="st">State</option>
+            <option value="ap">Airport</option>
+            <option value="ct">City</option>
+            <option value="np">National Park</option>
+            <option value="lm">Landmark</option>
+            <option value="wh">World Heritage</option>
+        </select>
+        <span id="id_count"></span>
+    </p>
+    <table class="ui-widget ui-widget-content">
+        <thead>
+            <tr class="ui-widget-header">
+                <th></th>
+                <th>Type</th>
+                <th>Name</th>
+                <th>Recent Visit</th>
+                <th>First Visit</th>
+                <th>Entries</th>
+                <th>Rating</th>
+            </tr>
+        </thead>
+        <tbody id="id_entries"> {% for visit in history %}
+            <tr class="type-{{ visit.entity.type.abbr }}">
+                <td>{% if visit.entity.flag %}
+                    <img class="flag" src="{{ visit.entity.flag.width_32.url }}" />{% endif %}
+                </td>
+                <td>{{ visit.entity.type_detail }}</td>
+                <td>
+                    <a href="{{ visit.entity.get_absolute_url }}">
+                        {{ visit.entity }}</a>
+                </td>
+                <td>
+                    <nobr>{{ visit.most_recent_visit|date:"D, j M y" }}</nobr><br />
+                    <nobr>{{ visit.most_recent_visit|date:"P" }}</nobr>
+                </td>
+                <td>
+                    <nobr>{{ visit.first_visit|date:"D, j M y" }}</nobr><br />
+                    <nobr>{{ visit.first_visit|date:"P" }}</nobr>
+                </td>
+                <td>{{ visit.num_visits}}</td>
+                <td class="rating">{{ visit.get_rating_display }}</td>
+            </tr> {% endfor %}
+        </tbody>
+    </table>
+    {% endwith %}
+    
+    {% else %}
+    <p>
+        <strong>{{ profile.user.username }}</strong>&apos; is not open publicly
+        accessible.
+    </p>
+    {% endif %}
+    
+{% endblock travel_content %}

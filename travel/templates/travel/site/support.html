@@ -1,0 +1,13 @@
+{% extends "travel/base.html" %}
+{% block travel_heading %}Travelogue {{ title }}{% endblock %}
+{% block travel_content %}
+<form action="" method="post" accept-charset="utf-8">
+<fieldset>
+    <legend>{{ title }}</legend>
+    <div>{{ form.message.label_tag }}</div>
+    {{ form.message.errors }}
+    {{ form.message }}
+    <p><input type="submit" value="Submit"></p>
+</fieldset>
+</form>
+{% endblock travel_content %}

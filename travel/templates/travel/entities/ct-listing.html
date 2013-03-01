@@ -1,0 +1,16 @@
+{% extends "travel/entities/listing-base.html" %}
+{% block list_header %}
+    <th>Name</th>
+    <th>State</th>
+    <th>County</th>
+{% endblock list_header %}
+{% block listing %}
+    {% for place in places %}
+    <tr class="{% cycle 'odd' 'even' %}">
+        <td><a href="{{ place.get_absolute_url }}">{{ place.name }}</a></td>
+        <td>{{ place.state.name }}</td>
+        <td>{{ place.country }}</td>
+    </tr>
+    {% endfor %}
+{% endblock listing %}
+

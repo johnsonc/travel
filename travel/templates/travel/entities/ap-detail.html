@@ -1,0 +1,11 @@
+{% extends "travel/entities/detail-base.html" %}
+{% block extra_details %}
+    <tr>
+        <th>Flight Stats</th>
+        <td>
+            <a href="http://www.flightstats.com/go/Airport/airportDetails.do?airport={{ place.code }}">
+                <img src="https://www.flightstats.com/developers/bin/download/Syndication/link_to_us/flightstats_fly_smarter_100x26.gif" />
+            </a>
+        </td>
+    </tr>
+{% endblock extra_details %}
