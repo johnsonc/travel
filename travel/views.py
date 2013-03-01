@@ -1,8 +1,9 @@
-from django.contrib.auth.models import User
-from django.shortcuts import get_object_or_404
-from django.core.urlresolvers import reverse
-from django.contrib.auth.decorators import login_required
 from django import http
+from django.db import models
+from django.contrib.auth.models import User
+from django.core.urlresolvers import reverse
+from django.shortcuts import get_object_or_404
+from django.contrib.auth.decorators import login_required
 
 from jargon.shortcuts import request_to_response
 from travel import models as travel
