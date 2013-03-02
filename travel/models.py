@@ -244,7 +244,16 @@ class Entity(models.Model):
     #---------------------------------------------------------------------------
     @models.permalink
     def get_absolute_url(self):
-        return ('travel-entity', [self.type.abbr, self.code or self.id])
+        # url(r'^i/(\w+)/(\w+)/(\w+)/(\w+)/$' ...
+        type_abbr = self.type.abbr
+        if type_abbr in ('st', 'wh'):
+            name  = 'travel-entity-by-parent'
+            items = [self.country.type.abbr, self.country.code, type_abbr, self.code or self.id]
+        else:
+            name  = 'travel-entity'
+            items = [type_abbr, self.code or self.id]
+
+        return (name, items)
     
     #---------------------------------------------------------------------------
     def google_search_url(self):

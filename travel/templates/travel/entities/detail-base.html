@@ -94,7 +94,7 @@
         <div id="related-tab">{% block tab2 %}
                 <ul class="related-content">{% for rel in place.related_entities %}
                     <li>
-                        <a href="{% url travel-entity-relationship place.type.abbr place.code rel.abbr %}">
+                        <a href="{% url travel-entity-relationships place.type.abbr place.code rel.abbr %}">
                             <span>{{ rel.count }}</span> {{ rel.text }}</a>
                     </li>{% empty %}
                     <li><em>No related content available</em></li>

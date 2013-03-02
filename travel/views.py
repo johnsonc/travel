@@ -114,28 +114,44 @@ def flag_upload(request, ref, code):
 
 
 #-------------------------------------------------------------------------------
-def entity(request, ref, code):
-    place = _get_entity(ref, code)
+def _entity_base(request, entity):
     if request.method == 'POST':
-        form = forms.TravelLogForm(place, request.POST)
+        form = forms.TravelLogForm(entity, request.POST)
         if form.is_valid():
             form.save(request.user)
             return http.HttpResponseRedirect(request.path)
     else:
-        form = forms.TravelLogForm(place)
+        form = forms.TravelLogForm(entity)
         
     return request_to_response(
         request,
-        ['travel/entities/%s-detail.html' % ref, 'travel/entities/detail-base.html'],
-        {'place': place, 'form': form}
+        ['travel/entities/%s-detail.html' % entity.type.abbr, 'travel/entities/detail-base.html'],
+        {'place': entity, 'form': form}
     )
 
+
 #-------------------------------------------------------------------------------
-def entity_relationship(request, ref, code, rel):
+def entity(request, ref, code):
+    return _entity_base(request, _get_entity(ref, code))
+
+
+#-------------------------------------------------------------------------------
+def entity_by_parent(request, ref, ref_code, rel, code):
+    entity = get_object_or_404(
+        travel.Entity,
+        country__code=ref_code,
+        type__abbr=rel,
+        code=code
+    )
+    return _entity_base(request, entity)
+
+
+#-------------------------------------------------------------------------------
+def entity_relationships(request, ref, code, rel):
     place  = _get_entity(ref, code)
     etype  = get_object_or_404(travel.EntityType, abbr=rel)
     key    = travel.Entity.objects.RELATIONSHIP_MAP[ref]
     places = travel.Entity.objects.filter(models.Q(**{key: place}), type__abbr=rel)
     data   = {'type': etype, 'places': places, 'parent': place}
     return request_to_response(request, 'travel/entities/%s-listing.html' % rel, data)
-    
+
