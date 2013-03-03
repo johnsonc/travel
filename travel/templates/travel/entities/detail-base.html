@@ -131,9 +131,11 @@
         </div>
     </div>
     {% block detail_content %}{% endblock detail_content %}
+    
     {% if user.is_authenticated %}
     <h2>Your Travel Log</h2>
-    {% with place.travellog_set.count as count %}
+    
+    {% with history|length as count %}
     <p>
         You have <strong>{{ count }} entr{{ count|pluralize:"y,ies" }}</strong> 
         for {{ place }} 
@@ -172,7 +174,7 @@
             <th>Rating</th>
         </tr>
     </thead>
-    <tbody> {% for entry in place.travellog_set.all %}
+    <tbody> {% for entry in history %}
         <tr  class="{% cycle 'odd' 'even'  %}">
             <td>{{ entry.arrival|date:"D, j M y P" }}</td>
             <td>{{ entry.departure|date:"D, j M y P" }}</td>
@@ -185,11 +187,19 @@
     {% endif %}
     
     {% if user.is_superuser %}
-    <p>
-    <form action="{% url travel-flag-upload place.type.abbr place.id %}" method="post">
-        <label>Flag URL:</label><input type="text" name="url" size="60" />
-        <input type="submit" value="Submit">
-    </form>
-    </p>
+    <div style="background-color: #fffd9e; margin: 2em 0;border: 2px solid #800; padding: 4px; color: #800; font-style: italic;">
+        <form action="{% url travel-flag-upload place.type.abbr place.id %}" method="post">
+            <table>
+                <tr>
+                    <td style="text-align: right"><label>Flag URL:</label></td>
+                    <td><input  style="width:96%" type="text" name="url" size="60" /></td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td><input type="submit" value="Upload"></td>
+                </tr>
+            </table>
+        </form>
+    </div>
     {% endif %}
 {% endblock travel_content %}

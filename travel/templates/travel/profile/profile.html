@@ -52,7 +52,7 @@
         </select>
         <span id="id_count"></span>
     </p>
-    <table class="ui-widget ui-widget-content">
+    <table class="ui-widget ui-widget-content travelogue">
         <thead>
             <tr class="ui-widget-header">
                 <th></th>
@@ -60,16 +60,16 @@
                 <th>Name</th>
                 <th>Recent Visit</th>
                 <th>First Visit</th>
-                <th>Entries</th>
+                <th>Logs</th>
                 <th>Rating</th>
             </tr>
         </thead>
         <tbody id="id_entries"> {% for visit in history %}
-            <tr class="type-{{ visit.entity.type.abbr }}">
+            <tr class="type-{{ visit.entity.type.abbr }}" data-id="{{ visit.entity.id }}">
                 <td>{% if visit.entity.flag %}
                     <img class="flag" src="{{ visit.entity.flag.width_32.url }}" />{% endif %}
                 </td>
-                <td>{{ visit.entity.type_detail }}</td>
+                <td class="entitytype">{{ visit.entity.type_detail }}</td>
                 <td>
                     <a href="{{ visit.entity.get_absolute_url }}">
                         {{ visit.entity }}</a>

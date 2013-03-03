@@ -119,10 +119,15 @@ def _entity_base(request, entity):
     else:
         form = forms.TravelLogForm(entity)
         
+    if request.user.is_authenticated():
+        history = request.user.travellog_set.filter(entity=entity)
+    else:
+        history = []
+
     return request_to_response(
         request,
         ['travel/entities/%s-detail.html' % entity.type.abbr, 'travel/entities/detail-base.html'],
-        {'place': entity, 'form': form}
+        {'place': entity, 'form': form, 'history': history}
     )
 
 
