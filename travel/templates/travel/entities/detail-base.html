@@ -2,11 +2,40 @@
 {% block subheader %}{{ block.super }} {# <span id="subheader-descr">{{ single_label }}</span> #}{% endblock subheader %}
 {% block travel_heading %}{{ place.name }}{% endblock %}
 {% block extra_head %}
+    <link rel="stylesheet" href="/media/travel/css/travel.css" type="text/css" media="screen, print">
+    <script type="text/javascript" src="/media/travel/js/jquery-ui-timepicker-addon.js" charset="utf-8"></script>
     <script type="text/javascript">
         $(function() {
             $("#tabs").tabs();
+            $("#id_arrival,#id_departure").datetimepicker({
+                changeMonth: true,
+                changeYear: true,
+                numberOfMonths: 1,
+                showOn: "button",
+                minDate: "-100Y",
+                yearRange: "-40:+1",
+                buttonImage: "/media/travel/img/calendar2.png",
+                buttonImageOnly: true,
+                timeFormat: 'hh:mm tt',
+                hour: 12,
+                hourGrid: 6,
+                minuteGrid: 15
+            })
         });
     </script>
+    <style type="text/css" media="screen">
+        .ui-timepicker-div .ui-widget-header { margin-bottom: 8px; }
+        .ui-timepicker-div dl { text-align: left; }
+        .ui-timepicker-div dl dt { height: 25px; margin-bottom: -25px; }
+        .ui-timepicker-div dl dd { margin: 0 10px 10px 65px; }
+        .ui-timepicker-div td { font-size: 90%; }
+        .ui-tpicker-grid-label { background: none; border: none; margin: 0; padding: 0; }
+
+        .ui-timepicker-rtl{ direction: rtl; }
+        .ui-timepicker-rtl dl { text-align: right; }
+        .ui-timepicker-rtl dl dd { margin: 0 65px 10px 10px; }
+        .ui-datepicker-trigger { vertical-align: middle; margin-left: 2px; }
+    </style>
 {% endblock extra_head %}
 {% block travel_content %}
     <div id="tabs">
@@ -110,15 +139,11 @@
         You have <strong>{{ count }} entr{{ count|pluralize:"y,ies" }}</strong> 
         for {{ place }} 
     </p>
+    <h3>Add a log entry</h3>
     <form action="" method="post" accept-charset="utf-8">
-        <fieldset id="log_entry">
-            <legend>Add a log entry</legend>
+        <div id="log_entry">
             {% if form.errors %}
-            <div>
-                {{ form.errors }}
-            </div>
-            <pre>{{ form.errors }}</pre>
-                
+            <div>{{ form.errors }}</div>
             {% endif %}
             <table>
                 <tbody> {% for field in form %}
@@ -131,12 +156,12 @@
                     <tr>
                         <td></td>
                         <td>
-                            <input type="submit" value="Add Log Entry">                    
+                            <input type="submit" value="Save">
                         </td>
                     </tr>
                 </tfoot>
             </table>
-        </fieldset>
+        </div>
     </form>
     {% if count %}
     <h3>Previous Log Entries</h3>
@@ -160,12 +185,12 @@
     {% endwith %}
     {% endif %}
     
-    {# {% if user.is_superuser %} #}
-    {# <p> #}
-    {# <form action="{% url travel-flag-upload place.REF_KEY place.id %}" method="post"> #}
-    {#     <label>Flag URL:</label><input type="text" name="url" size="60" /> #}
-    {#     <input type="submit" value="Submit"> #}
-    {# </form> #}
-    {# </p> #}
-    {# {% endif %} #}
+    {% if user.is_superuser %}
+    <p>
+    <form action="{% url travel-flag-upload place.type.abbr place.id %}" method="post">
+        <label>Flag URL:</label><input type="text" name="url" size="60" />
+        <input type="submit" value="Submit">
+    </form>
+    </p>
+    {% endif %}
 {% endblock travel_content %}

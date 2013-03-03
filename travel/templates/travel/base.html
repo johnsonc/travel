@@ -19,7 +19,7 @@
     <!--[if lt IE 9]>
     <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
-    <script type="text/javascript" src="{{ MEDIA_URL }}js/jquery/jquery.min.js" charset="utf-8"></script>
+    <script type="text/javascript" src="{{ MEDIA_URL }}js/jquery/jquery-1.7.1.min.js" charset="utf-8"></script>
     <script type="text/javascript" src="{{ MEDIA_URL }}js/jquery/jquery-ui.custom.min.js" charset="utf-8"></script>
     {% block extra_head %}{% endblock extra_head %}
 </head>
@@ -30,17 +30,17 @@
 
 <div id="subheader" class="span-24 last">
     <a id="travelogue" href="/travel/"><span class="disappear">Free Travelogue</span></a>
-    <div style="float:right; border:red">
-        <script type="text/javascript"><!--
-            google_ad_client = "pub-1148881670940804";
-            /* 468x60, created 7/7/09 */
-            google_ad_slot = "8987698320";
-            google_ad_width = 468;
-            google_ad_height = 60;
-            //-->
-        </script>
-        <script type="text/javascript" src="http://pagead2.googlesyndication.com/pagead/show_ads.js"></script>
-    </div>
+    {# <div style="float:right; border:red"> #}
+    {#     <script type="text/javascript"><!-- #}
+    {#         google_ad_client = "pub-1148881670940804"; #}
+    {#         /* 468x60, created 7/7/09 */ #}
+    {#         google_ad_slot = "8987698320"; #}
+    {#         google_ad_width = 468; #}
+    {#         google_ad_height = 60; #}
+    {#         //--> #}
+    {#     </script> #}
+    {#     <script type="text/javascript" src="http://pagead2.googlesyndication.com/pagead/show_ads.js"></script> #}
+    {# </div> #}
     {% block extra_subheader %}{% endblock extra_subheader %}
 </div>
 
@@ -113,21 +113,21 @@
     </div>
 </div>
 {% block extra_span %}
-<div class="span-24 last">
-    <div style="width: 728px; margin: 1em auto;">
-        <script type="text/javascript"><!--
-        google_ad_client = "pub-1148881670940804";
-        /* 728x90, created 7/8/09 */
-        google_ad_slot = "9001250257";
-        google_ad_width = 728;
-        google_ad_height = 90;
-        //-->
-        </script>
-        <script type="text/javascript"
-        src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
-        </script>
-    </div>
-</div>
+{# <div class="span-24 last"> #}
+{#     <div style="width: 728px; margin: 1em auto;"> #}
+{#         <script type="text/javascript"><!-- #}
+{#         google_ad_client = "pub-1148881670940804"; #}
+{#         /* 728x90, created 7/8/09 */ #}
+{#         google_ad_slot = "9001250257"; #}
+{#         google_ad_width = 728; #}
+{#         google_ad_height = 90; #}
+{#         //--> #}
+{#         </script> #}
+{#         <script type="text/javascript" #}
+{#         src="http://pagead2.googlesyndication.com/pagead/show_ads.js"> #}
+{#         </script> #}
+{#     </div> #}
+{# </div> #}
 {% endblock %}
 <hr />
 <div id="footer">
