@@ -131,7 +131,7 @@ def entity(request, ref, code):
     entities = travel.Entity.objects.filter(type__abbr=ref, code=code)
     count = entities.count()
     if count == 1:
-        return _entity_base(request, entity)
+        return _entity_base(request, entities[0])
     elif count == 0:
         raise http.Http404('No entity matches the given query.')
     else:
