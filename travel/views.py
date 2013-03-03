@@ -12,11 +12,6 @@ from travel import utils
 
 
 #-------------------------------------------------------------------------------
-def _get_entity(ref, code):
-    return get_object_or_404(travel.Entity, type__abbr=ref, code=code)
-
-
-#-------------------------------------------------------------------------------
 @login_required
 def support_request(request, title):
     if request.method == 'POST': 
@@ -102,8 +97,9 @@ def by_locale(request, ref):
 
 #-------------------------------------------------------------------------------
 def flag_upload(request, ref, code):
+    entity = get_object_or_404(travel.Entity, type__abbr=ref, code=code)
     try:
-        utils.flag_from_wikimedia(_get_entity(ref, code), request.POST['url'])
+        utils.flag_from_wikimedia(entity, request.POST['url'])
     except Exception, why:
         msg = '%s' % why
     else:
@@ -132,7 +128,15 @@ def _entity_base(request, entity):
 
 #-------------------------------------------------------------------------------
 def entity(request, ref, code):
-    return _entity_base(request, _get_entity(ref, code))
+    entities = travel.Entity.objects.filter(type__abbr=ref, code=code)
+    count = entities.count()
+    if count == 1:
+        return _entity_base(request, entity)
+    elif count == 0:
+        raise http.Http404('No entity matches the given query.')
+    else:
+        data = {'results': entities}
+        return request_to_response(request, 'travel/search.html', data)
 
 
 #-------------------------------------------------------------------------------
@@ -148,7 +152,7 @@ def entity_by_parent(request, ref, ref_code, rel, code):
 
 #-------------------------------------------------------------------------------
 def entity_relationships(request, ref, code, rel):
-    place  = _get_entity(ref, code)
+    place  = get_object_or_404(travel.Entity, type__abbr=ref, code=code)
     etype  = get_object_or_404(travel.EntityType, abbr=rel)
     key    = travel.Entity.objects.RELATIONSHIP_MAP[ref]
     places = travel.Entity.objects.filter(models.Q(**{key: place}), type__abbr=rel)
