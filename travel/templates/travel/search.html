@@ -11,12 +11,13 @@
             <td>
                 <a href="{{ place.get_absolute_url }}">{{ place.full_name }}</a>
             </td>
-            <td>{{ place.type }}</td>
+            <td>{{ place.type_detail }}</td>
             <td>{{ place.code }}</td>
-            <td>{{ place.category }}</td>
             <td>{% if place.country %}
-                <img src="{{ place.country.flag.width_32.url }}" />
-                {{ place.country }}
+                <a href="{{ place.country.get_absolute_url }}">
+                    <img src="{{ place.country.flag.width_32.url }}" />
+                    {{ place.country }}
+                </a>
             {% endif %}
             </td>
         </tr>{% endfor %}

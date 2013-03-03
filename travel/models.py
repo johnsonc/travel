@@ -269,7 +269,7 @@ class Entity(models.Model):
         if self.type.abbr == 'st':
             return STATE_OPTS_DICT.get(self.category, self.type.title)
             
-        return self.type
+        return self.type.title
     
     #---------------------------------------------------------------------------
     @property
