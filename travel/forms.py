@@ -39,35 +39,34 @@ class SearchForm(forms.Form):
 
 
 #===============================================================================
-class TravelLogForm(forms.Form):
+class TravelLogForm(forms.ModelForm):
     arrival = DateUtilField(required=False)
     departure = DateUtilField(required=False)
     rating = forms.ChoiceField(choices=TravelLog.RATING_CHOICES, initial='3')
     note = TextField(required=False)
-    
-    #---------------------------------------------------------------------------
-    def __init__(self, instance, data=None, prefix=None):
-        super(TravelLogForm, self).__init__(data=data, prefix=prefix)
-        self.instance = instance
+
+    #===========================================================================
+    class Meta:
+        model = TravelLog
+        fields = ('arrival', 'departure', 'rating', 'note')
         
     #---------------------------------------------------------------------------
-    def save(self, user):
-        arrival = self.cleaned_data['arrival']
-        departure = self.cleaned_data['departure']
-        if arrival and not departure:
-            departure = arrival
+    def save(self, user=None, entity=None):
+        data = self.cleaned_data
+        if data['arrival'] and not data['departure']:
+            data['departure'] = data['arrival']
             
-        if departure and not arrival:
-            arrival = departure
+        if data['departure'] and not data['arrival']:
+            data['arrival'] = data['departure']
             
-        entry = TravelLog.objects.create(
-            arrival=arrival,
-            departure=departure,
-            rating=self.cleaned_data['rating'],
-            entity=self.instance,
-            user=user
-        )
-        
+        entry = super(TravelLogForm, self).save(commit=False)
+        if user:
+            entry.user = user
+            
+        if entity:
+            entry.entity = entity
+            
+        entry.save()
         note = self.cleaned_data['note']
         if note:
             entry.notes.create(type='B', text=note)

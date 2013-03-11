@@ -1,40 +1,14 @@
 {% extends "travel/base.html" %}
-{% block subheader %}{{ block.super }} {# <span id="subheader-descr">{{ single_label }}</span> #}{% endblock subheader %}
+{% block subheader %}{{ block.super }}{% endblock subheader %}
 {% block travel_heading %}{{ place.name }}{% endblock %}
 {% block extra_head %}
     <script type="text/javascript" src="{{ MEDIA_URL }}travel/js/jquery-ui-timepicker-addon.js" charset="utf-8"></script>
     <script type="text/javascript">
         $(function() {
             $("#tabs").tabs();
-            $("#id_arrival,#id_departure").datetimepicker({
-                changeMonth: true,
-                changeYear: true,
-                numberOfMonths: 1,
-                showOn: "button",
-                minDate: "-100Y",
-                yearRange: "-40:+1",
-                buttonImage: "/media/travel/img/calendar2.png",
-                buttonImageOnly: true,
-                timeFormat: 'hh:mm tt',
-                hour: 12,
-                hourGrid: 6,
-                minuteGrid: 15
-            })
+            log_entry_prep();
         });
     </script>
-    <style type="text/css" media="screen">
-        .ui-timepicker-div .ui-widget-header { margin-bottom: 8px; }
-        .ui-timepicker-div dl { text-align: left; }
-        .ui-timepicker-div dl dt { height: 25px; margin-bottom: -25px; }
-        .ui-timepicker-div dl dd { margin: 0 10px 10px 65px; }
-        .ui-timepicker-div td { font-size: 90%; }
-        .ui-tpicker-grid-label { background: none; border: none; margin: 0; padding: 0; }
-
-        .ui-timepicker-rtl{ direction: rtl; }
-        .ui-timepicker-rtl dl { text-align: right; }
-        .ui-timepicker-rtl dl dd { margin: 0 65px 10px 10px; }
-        .ui-datepicker-trigger { vertical-align: middle; margin-left: 2px; }
-    </style>
 {% endblock extra_head %}
 {% block travel_content %}
     <div id="tabs">
@@ -94,15 +68,10 @@
                     </td>
                 </tr>
                 {% endif %}
-                {% if place.locality %}
                 <tr>
                     <th>Location</th>
-                    <td>{{ place.locality }}</td>
-                </tr>
-                {% endif %}
-                <tr>
-                    <th>{% if not place.locality %}Location{% endif %}</th>
                     <td>
+                        {% if place.locality %}{{ place.locality }}<br>{% endif %}
                         {% if place.lat and place.lon %}
                         <span class="latlon">{{ place.lat }}&deg; Lat, {{ place.lon }}&deg; Lon</span><br>
                         {% endif %}
@@ -141,29 +110,8 @@
         for {{ place }} 
     </p>
     <h3>Add a log entry</h3>
-    <form action="" method="post" accept-charset="utf-8">
-        <div id="log_entry">
-            {% if form.errors %}
-            <div>{{ form.errors }}</div>
-            {% endif %}
-            <table>
-                <tbody> {% for field in form %}
-                    <tr>
-                        <th>{{ field.label_tag }}</th>
-                        <td class="text">{{ field }}</td>
-                    </tr> {% endfor %}
-                </tbody>
-                <tfoot>
-                    <tr>
-                        <td></td>
-                        <td>
-                            <input type="submit" value="Save">
-                        </td>
-                    </tr>
-                </tfoot>
-            </table>
-        </div>
-    </form>
+    {% include "travel/_log-entry-form.html" %}
+    
     {% if count %}
     <h3>Previous Log Entries</h3>
     <table class="ui-widget  ui-widget-content">
@@ -172,6 +120,7 @@
             <th>Arrival</th>
             <th>Departure</th>
             <th>Rating</th>
+            <th style="width:24px"></th>
         </tr>
     </thead>
     <tbody> {% for entry in history %}
@@ -179,6 +128,10 @@
             <td>{{ entry.arrival|date:"D, j M y P" }}</td>
             <td>{{ entry.departure|date:"D, j M y P" }}</td>
             <td>{{ entry.get_rating_display }}</td>
+            <td>
+                <a title="Edit this log entry" href="{{ entry.get_absolute_url }}">
+                    <img src="{{ MEDIA_URL }}img/icons/24/edit.png"></a>
+            </td>
         </tr> {% endfor %}
     </tbody>
     </table>

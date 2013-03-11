@@ -176,7 +176,7 @@ class EntityManager(models.Manager):
     RELATIONSHIP_MAP = {
         'co': 'country',
         'st': 'state',
-        'cn': 'contintent',
+        'cn': 'continent',
     }
     
     #---------------------------------------------------------------------------
@@ -195,12 +195,11 @@ class EntityManager(models.Manager):
         if relationship:
             cursor = connection.cursor()
             cursor.execute(
-                '''    SELECT et.`abbr`, COUNT(t.`type_id`)
-                         FROM `travel_entity` AS t
-                   INNER JOIN `travel_entitytype` AS et
-                           ON t.`type_id` = et.id 
-                        WHERE t.`%s_id` = %%s
-                     GROUP BY t.`type_id` ''' % (relationship,),
+                '''SELECT et.`abbr`, COUNT(t.`type_id`)
+                     FROM `travel_entity` AS t
+               INNER JOIN `travel_entitytype` AS et ON t.`type_id` = et.id 
+                    WHERE t.`%s_id` = %%s
+                 GROUP BY t.`type_id` ''' % (relationship,),
                 [entity.id]
             )
             return cursor.fetchall()
@@ -229,6 +228,7 @@ class Entity(models.Model):
     objects = EntityManager()
     
     RELATED_DETAILS = {
+        'co': 'Countries',
         'st': 'States, provinces, territories, etc',
         'ct': 'Cities',
         'ap': 'Airports',
@@ -246,14 +246,13 @@ class Entity(models.Model):
     def get_absolute_url(self):
         # url(r'^i/(\w+)/(\w+)/(\w+)/(\w+)/$' ...
         type_abbr = self.type.abbr
-        if type_abbr in ('st', 'wh'):
-            name  = 'travel-entity-by-parent'
-            items = [self.country.type.abbr, self.country.code, type_abbr, self.code or self.id]
-        else:
-            name  = 'travel-entity'
-            items = [type_abbr, self.code or self.id]
-
-        return (name, items)
+        code = (
+            '%s-%s' % (self.country.code, self.code or self.id)
+            if type_abbr in ('st', 'wh')
+            else self.code or self.id
+        )
+        
+        return ('travel-entity', [type_abbr, code])
     
     #---------------------------------------------------------------------------
     def google_search_url(self):
@@ -274,9 +273,10 @@ class Entity(models.Model):
     #---------------------------------------------------------------------------
     @property
     def related_entities(self):
+        rels = Entity.objects.related_entities(self)
         return [
             {'abbr': abbr, 'text': self.RELATED_DETAILS[abbr], 'count': cnt}
-            for abbr, cnt in Entity.objects.related_entities(self)
+            for abbr, cnt in rels
         ]
 
 
@@ -327,5 +327,8 @@ class TravelLog(models.Model):
     def __unicode__(self):
         return u'%s | %s' % (self.entity, self.user)
 
-
+    #---------------------------------------------------------------------------
+    @models.permalink
+    def get_absolute_url(self):
+        return ('travel-log-entry', [self.user.username, self.id])
         

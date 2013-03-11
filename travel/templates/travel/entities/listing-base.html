@@ -1,16 +1,14 @@
 {% extends "travel/base.html" %}
 {% block title %}{{ single_label}} Listing{% endblock title %}
 {% block subheader %}{{ block.super }} {# <span id="subheader-descr">Listing</span> #}{% endblock subheader %}
-{% block travel_heading %}{{ type }} listing{% endblock %}
+{% block travel_heading %}{{ type }} listing
+    {% if parent %}for <a href="{{ parent.get_absolute_url }}">
+        <span class="flag-bg" style="background-image: url({{ parent.flag.width_32.url }});">{{ parent }}</span></a>
+    {% endif %}
+{% endblock %}
 {% block travel_content %}
     <p>
-        {% if parent and parent.flag %}
-        <img class="flag_icon" src="{{ parent.flag.width_32.url }}" />
-        {% endif %}
-        <em>
-            {{ places|length }} {{ plural_label }} 
-            {% if parent %}for <strong><a href="{{ parent.get_absolute_url }}">{{ parent }}</a></strong>{% else %}total{% endif %}
-        </em>
+        Total: {{ places|length }} {{ plural_label }} 
     </p>
     {% load pagination_tags jargon %}
     {% autopaginate places 100 %}

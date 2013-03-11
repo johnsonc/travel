@@ -1,0 +1,23 @@
+<form action="" method="post" accept-charset="utf-8">
+    <div id="log_entry">
+        {% if form.errors %}
+        <div>{{ form.errors }}</div>
+        {% endif %}
+        <table>
+            <tbody> {% for field in form %}
+                <tr>
+                    <th>{{ field.label_tag }}</th>
+                    <td class="text">{{ field }}</td>
+                </tr> {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td></td>
+                    <td>
+                        <input type="submit" value="Save">
+                    </td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</form>

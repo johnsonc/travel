@@ -1,0 +1,20 @@
+{% extends "travel/base.html" %}
+{% block travel_heading %}
+    {% if form %}Your log entry for {{ entry.entity.name }}
+    {% else %}Log entry for {{ entry.user.username }}{% endif %}
+{% endblock %}
+{% block extra_head %}
+    <script type="text/javascript" src="{{ MEDIA_URL }}travel/js/jquery-ui-timepicker-addon.js" charset="utf-8"></script>
+    <script type="text/javascript">
+        $(function() {
+            $("#tabs").tabs();
+            log_entry_prep();
+        });
+    </script>
+{% endblock extra_head %}
+{% block travel_content %}
+    {% if form %}
+    {% include "travel/_log-entry-form.html" %}
+    {% else %}
+    {% endif %}
+{% endblock travel_content %}

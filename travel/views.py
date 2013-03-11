@@ -13,6 +13,12 @@ from travel import utils
 
 #-------------------------------------------------------------------------------
 @login_required
+def crash(request):
+    raise StandardError, 'You asked for it'
+
+
+#-------------------------------------------------------------------------------
+@login_required
 def support_request(request, title):
     if request.method == 'POST': 
         form = forms.SupportForm(request.POST)
@@ -109,15 +115,17 @@ def flag_upload(request, ref, code):
     return http.HttpResponseRedirect(request.path)
 
 
+
+
 #-------------------------------------------------------------------------------
 def _entity_base(request, entity):
     if request.method == 'POST':
-        form = forms.TravelLogForm(entity, request.POST)
+        form = forms.TravelLogForm(request.POST)
         if form.is_valid():
-            form.save(request.user)
+            form.save(request.user, entity)
             return http.HttpResponseRedirect(request.path)
     else:
-        form = forms.TravelLogForm(entity)
+        form = forms.TravelLogForm()
         
     if request.user.is_authenticated():
         history = request.user.travellog_set.filter(entity=entity)
@@ -132,16 +140,13 @@ def _entity_base(request, entity):
 
 
 #-------------------------------------------------------------------------------
-def entity(request, ref, code):
-    entities = travel.Entity.objects.filter(type__abbr=ref, code=code)
-    count = entities.count()
-    if count == 1:
-        return _entity_base(request, entities[0])
-    elif count == 0:
-        raise http.Http404('No entity matches the given query.')
+def entity(request, ref, code, aux=None):
+    if aux:
+        entity = get_object_or_404(travel.Entity, type__abbr=ref, country__code=code, code=aux)
     else:
-        data = {'results': entities}
-        return request_to_response(request, 'travel/search.html', data)
+        entity = get_object_or_404(travel.Entity, type__abbr=ref, code=code)
+
+    return _entity_base(request, entity)
 
 
 #-------------------------------------------------------------------------------
@@ -157,10 +162,37 @@ def entity_by_parent(request, ref, ref_code, rel, code):
 
 #-------------------------------------------------------------------------------
 def entity_relationships(request, ref, code, rel):
-    place  = get_object_or_404(travel.Entity, type__abbr=ref, code=code)
+    places = travel.Entity.objects.filter(type__abbr=ref, code=code)
+    count  = places.count()
+    
+    if count == 0:
+        raise http.Http404('No entity matches the given query.')
+    if count > 1:
+        return request_to_response(request, 'travel/search.html', {'results': places})
+        
+    place  = places[0]
     etype  = get_object_or_404(travel.EntityType, abbr=rel)
     key    = travel.Entity.objects.RELATIONSHIP_MAP[ref]
     places = travel.Entity.objects.filter(models.Q(**{key: place}), type__abbr=rel)
     data   = {'type': etype, 'places': places, 'parent': place}
     return request_to_response(request, 'travel/entities/%s-listing.html' % rel, data)
 
+
+#-------------------------------------------------------------------------------
+def log_entry(request, username, pk):
+    entry = get_object_or_404(travel.TravelLog, user__username=username, pk=pk)
+    if request.user == entry.user:
+        if request.method == 'POST':
+            form = forms.TravelLogForm(request.POST, instance=entry)
+            import jargon.debug; jargon.debug.set_trace()
+            if form.is_valid():
+                form.save()
+                return http.HttpResponseRedirect(request.path)
+        else:
+            form = forms.TravelLogForm(instance=entry)
+    else:
+        form = None
+    
+    data = {'entry': entry, 'form':  form}
+    return request_to_response(request, 'travel/log-entry.html', data)
+    
