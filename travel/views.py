@@ -13,12 +13,6 @@ from travel import utils
 
 #-------------------------------------------------------------------------------
 @login_required
-def crash(request):
-    raise StandardError, 'You asked for it'
-
-
-#-------------------------------------------------------------------------------
-@login_required
 def support_request(request, title):
     if request.method == 'POST': 
         form = forms.SupportForm(request.POST)
@@ -142,9 +136,17 @@ def _entity_base(request, entity):
 #-------------------------------------------------------------------------------
 def entity(request, ref, code, aux=None):
     if aux:
-        entity = get_object_or_404(travel.Entity, type__abbr=ref, country__code=code, code=aux)
+        entity = travel.Entity.objects.filter(type__abbr=ref, country__code=code, code=aux)
     else:
-        entity = get_object_or_404(travel.Entity, type__abbr=ref, code=code)
+        entity = travel.Entity.objects.filter(type__abbr=ref, code=code)
+        
+    n = len(entity)
+    if n == 0:
+        raise http.Http404
+    elif n > 1:
+        return request_to_response(request, 'travel/search.html', {'results': entity})
+    else:
+        entity = entity[0]
 
     return _entity_base(request, entity)
 
