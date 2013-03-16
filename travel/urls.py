@@ -17,8 +17,6 @@ urlpatterns = patterns('',
     url(r'^site/problem/$', views.support_request, kwargs={'title': 'Site Problem'}, name='travel-problem'),
     url(r'^site/thanks/$', to_template('travel/site/thank_you.html'), name='travel-thanks'),
 
-    url(r'^flag/(\w+)/(\d+)/$', views.flag_upload, name='travel-flag-upload'),
-
     url(r'^profile/$', views.all_profiles, name='travel-profiles'),
     url(r'^profiles/([^/]+)/$', views.profile, name='travel-profile'),
     url(r'^profiles/([^/]+)/log/(\d+)/$', views.log_entry, name='travel-log-entry'),

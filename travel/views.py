@@ -96,22 +96,6 @@ def by_locale(request, ref):
 
 
 #-------------------------------------------------------------------------------
-def flag_upload(request, ref, code):
-    entity = get_object_or_404(travel.Entity, type__abbr=ref, code=code)
-    try:
-        utils.flag_from_wikimedia(entity, request.POST['url'])
-    except Exception, why:
-        msg = '%s' % why
-    else:
-        msg = 'Successfully added flag images'
-        
-    request.user.message_set.create(message=msg)
-    return http.HttpResponseRedirect(request.path)
-
-
-
-
-#-------------------------------------------------------------------------------
 def _entity_base(request, entity):
     if request.method == 'POST':
         form = forms.TravelLogForm(request.POST)

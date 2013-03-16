@@ -1,4 +1,5 @@
 from datetime import datetime
+from urllib import quote_plus
 
 from django.db import models, connection
 from django.contrib.auth.models import User
@@ -219,7 +220,7 @@ class Entity(models.Model):
     category  = models.CharField(blank=True, max_length=4)
     locality  = models.CharField(max_length=50, blank=True)
 
-    flag      = models.ForeignKey(Flag, null=True, blank=True)
+    flag      = models.ForeignKey(Flag, null=True, blank=True,on_delete=models.SET_NULL)
     capital   = models.ForeignKey('self', related_name='capital_set',   blank=True, null=True)
     state     = models.ForeignKey('self', related_name='state_set',     blank=True, null=True)
     country   = models.ForeignKey('self', related_name='country_set',   blank=True, null=True)
@@ -237,6 +238,10 @@ class Entity(models.Model):
         'wh': 'World Heriage Sites',
     }
     
+    #===========================================================================
+    class Meta:
+        ordering = ('name',)
+
     #---------------------------------------------------------------------------
     def __unicode__(self):
         return self.name
@@ -255,13 +260,9 @@ class Entity(models.Model):
         return ('travel-entity', [type_abbr, code])
     
     #---------------------------------------------------------------------------
-    def google_search_url(self):
-        return ''
-    
-    #---------------------------------------------------------------------------
     def wikipedia_search_url(self):
-        return ''
-    
+        return WIKIPEDIA_URL % quote_plus(self.full_name.encode('utf8'))
+
     #---------------------------------------------------------------------------
     @property
     def type_detail(self):
@@ -278,6 +279,25 @@ class Entity(models.Model):
             {'abbr': abbr, 'text': self.RELATED_DETAILS[abbr], 'count': cnt}
             for abbr, cnt in rels
         ]
+        
+    #---------------------------------------------------------------------------
+    @property
+    def flag_dir(self):
+        return '%s' % (self.type.abbr,)
+    
+    #---------------------------------------------------------------------------
+    @property
+    def lower(self):
+        return self.code.lower()
+        
+    #---------------------------------------------------------------------------
+    @property
+    def google_maps_url(self):
+        if self.lat or self.lon:
+            return GOOGLE_MAPS_LL % (self.lat, self.lon)
+        else:
+            return GOOGLE_MAPS % (quote_plus(self.name.encode('UTF8')),)
+
 
 
 #===============================================================================

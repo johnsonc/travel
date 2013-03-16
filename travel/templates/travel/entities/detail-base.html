@@ -141,7 +141,7 @@
     
     {% if user.is_superuser %}
     <div style="background-color: #fffd9e; margin: 2em 0;border: 2px solid #800; padding: 4px; color: #800; font-style: italic;">
-        <form action="{% url travel-flag-upload place.type.abbr place.id %}" method="post">
+        <form action="{% url travel-flag-upload place.id %}" method="post">
             <table>
                 <tr>
                     <td style="text-align: right"><label>Flag URL:</label></td>
