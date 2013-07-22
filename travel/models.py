@@ -182,7 +182,11 @@ class EntityManager(models.Manager):
     
     #---------------------------------------------------------------------------
     def search(self, term, type=None):
-        qs = self.filter(type=type) if type else self.all()
+        term = term.strip()
+        qs = self.filter(type__abbr=type) if type else self.all()
+        if not term:
+            return qs
+        
         return qs.filter(
             models.Q(name__icontains=term)      |
             models.Q(full_name__icontains=term) |

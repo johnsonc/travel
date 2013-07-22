@@ -7,6 +7,8 @@ from django.db.models import Q
 from django.contrib.contenttypes.models import ContentType
 
 from jargon.forms import TextField, DateUtilField
+from jargon.apps.annotation.models import Annotation
+
 from travel.models import TravelLog
 
 
@@ -34,7 +36,7 @@ class SearchForm(forms.Form):
         ('wh', 'World Heritage Site'),
     )
 
-    travel_search = SearchField(label='Search')
+    travel_search = SearchField(label='Search', required=False)
     type = forms.ChoiceField(choices=TYPE_OPTIONS, required=False)
 
 
@@ -69,7 +71,7 @@ class TravelLogForm(forms.ModelForm):
         entry.save()
         note = self.cleaned_data['note']
         if note:
-            entry.notes.create(type='B', text=note)
+            entry.notes.create(format=Annotation.Format.BASIC, text=note)
             
         return entry
 
