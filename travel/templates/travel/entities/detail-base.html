@@ -6,7 +6,7 @@
     <script type="text/javascript">
         $(function() {
             $("#tabs").tabs();
-            log_entry_prep();
+            Travelogue.log_entry_prep();
         });
     </script>
 {% endblock extra_head %}
@@ -73,9 +73,10 @@
                     <td>
                         {% if place.locality %}{{ place.locality }}<br>{% endif %}
                         {% if place.lat and place.lon %}
-                        <span class="latlon">{{ place.lat }}&deg; Lat, {{ place.lon }}&deg; Lon</span><br>
+                        <a class="latlon mapit" href="{{ place.google_maps_url }}">
+                            {{ place.lat }}&deg; Lat, {{ place.lon }}&deg; Lon</a>
+                        <span class="latlon"></span>
                         {% endif %}
-                        <a class="mapit" href="{{ place.google_maps_url }}">Google Maps</a>
                     </td>
                 </tr>
                 {% if place.code %}

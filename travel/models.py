@@ -147,6 +147,19 @@ class Profile(models.Model):
         return TravelLog.objects.history(self.user)
         
     #---------------------------------------------------------------------------
+    def history_details(self):
+        history = list(self.history())
+        countries = sorted(
+            set([(h.entity.name, h.entity.code) for h in history if h.entity.type.abbr == 'co']),
+            key=lambda e: e[0]
+        )
+        
+        return {
+            'history': history,
+            'countries': countries
+        }
+        
+    #---------------------------------------------------------------------------
     is_public    = property(lambda self: self.access == self.Access.PUBLIC)
     is_private   = property(lambda self: self.access == self.Access.PRIVATE)
     is_protected = property(lambda self: self.access == self.Access.PROTECTED)
@@ -222,7 +235,7 @@ class Entity(models.Model):
     lat       = models.DecimalField(max_digits=7, decimal_places=4, default='0.0')
     lon       = models.DecimalField(max_digits=7, decimal_places=4, default='0.0')
     category  = models.CharField(blank=True, max_length=4)
-    locality  = models.CharField(max_length=50, blank=True)
+    locality  = models.CharField(max_length=256, blank=True)
 
     flag      = models.ForeignKey(Flag, null=True, blank=True,on_delete=models.SET_NULL)
     capital   = models.ForeignKey('self', related_name='capital_set',   blank=True, null=True)
@@ -322,6 +335,7 @@ class TravelLogManager(models.Manager):
         )
 
 
+
 #===============================================================================
 class TravelLog(models.Model):
     
@@ -333,8 +347,8 @@ class TravelLog(models.Model):
         (5, mark_safe(STAR * 1)),
     )
     
-    arrival = models.DateTimeField(default=datetime.now)
-    departure = models.DateTimeField(default=datetime.now)
+    arrival = models.DateTimeField()
+    departure = models.DateTimeField(blank=True, null=True)
     rating = models.PositiveSmallIntegerField(choices=RATING_CHOICES, default=3)
     user = models.ForeignKey(User, related_name='travellog_set')
     notes = generic.GenericRelation(Annotation)
@@ -355,4 +369,13 @@ class TravelLog(models.Model):
     @models.permalink
     def get_absolute_url(self):
         return ('travel-log-entry', [self.user.username, self.id])
+    
+    #---------------------------------------------------------------------------
+    def save(self, *args, **kws):
+        if not self.arrival:
+            self.arrival = self.departure if self.departure else datetime.now()
+            
+        if self.arrival and self.departure and (self.departure < self.arrival):
+            self.arrival = self.departure
         
+        return super(TravelLog, self).save(*args, **kws)

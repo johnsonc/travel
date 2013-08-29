@@ -6,10 +6,37 @@ from django.forms import fields
 from django.db.models import Q
 from django.contrib.contenttypes.models import ContentType
 
-from jargon.forms import TextField, DateUtilField
+from jargon.forms import TextField
+from jargon.utils.dates import parse as dtparse
 from jargon.apps.annotation.models import Annotation
 
 from travel.models import TravelLog
+
+
+#===============================================================================
+class DateUtilField(forms.Field):
+    default_error_messages = {
+        'invalid': u'Enter a valid date/time. Try using YYYY/MM/DD HH:MM:SS',
+    }
+
+    #---------------------------------------------------------------------------
+    def clean(self, value):
+        """
+        Validates that the input can be converted to a datetime. Returns a
+        Python datetime.datetime object.
+        """
+        super(DateUtilField, self).clean(value)
+        if value in fields.EMPTY_VALUES:
+            return None
+        elif isinstance(value, datetime):
+            return value
+        elif isinstance(value, date):
+            return datetime(value.year, value.month, value.day)
+
+        try:
+            return dtparse(value)
+        except:
+            raise forms.ValidationError(self.error_messages['invalid'])
 
 
 #===============================================================================
@@ -55,12 +82,6 @@ class TravelLogForm(forms.ModelForm):
     #---------------------------------------------------------------------------
     def save(self, user=None, entity=None):
         data = self.cleaned_data
-        if data['arrival'] and not data['departure']:
-            data['departure'] = data['arrival']
-            
-        if data['departure'] and not data['arrival']:
-            data['arrival'] = data['departure']
-            
         entry = super(TravelLogForm, self).save(commit=False)
         if user:
             entry.user = user
@@ -69,7 +90,7 @@ class TravelLogForm(forms.ModelForm):
             entry.entity = entity
             
         entry.save()
-        note = self.cleaned_data['note']
+        note = data['note']
         if note:
             entry.notes.create(format=Annotation.Format.BASIC, text=note)
             
