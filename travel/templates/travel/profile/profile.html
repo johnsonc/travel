@@ -49,12 +49,12 @@
                         {{ entity }}</a>
                 </td>
                 <td>
-                    <nobr>{{ visit.most_recent_visit|date:"D, j M y" }}</nobr><br />
-                    <nobr>{{ visit.most_recent_visit|date:"P" }}</nobr>
+                    <nobr>{{ visit.most_recent_visit|date:"M j, Y" }}</nobr><br />
+                    <nobr>{{ visit.most_recent_visit|date:"D, P" }}</nobr>
                 </td>
                 <td>
-                    <nobr>{{ visit.first_visit|date:"D, j M y" }}</nobr><br />
-                    <nobr>{{ visit.first_visit|date:"P" }}</nobr>
+                    <nobr>{{ visit.first_visit|date:"M j, Y" }}</nobr><br />
+                    <nobr>{{ visit.first_visit|date:"D, P" }}</nobr>
                 </td>
                 <td>{{ visit.num_visits}}</td>
                 <td class="rating">{{ visit.get_rating_display }}</td>
@@ -71,6 +71,6 @@
 {% endblock travel_content %}
 {% block extra_body %}
     <script type="text/javascript" charset="utf-8">
-        $('.filter_ctrl').change(Travelogue.profile_filter).change();
+        Travelogue.init_profile_filter('.filter_ctrl');
     </script>
 {% endblock extra_body %}
