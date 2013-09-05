@@ -8,20 +8,20 @@
         <strong>Show</strong>
         <select id="id_filter" class="filter_ctrl">
             <option value="">-- All entries --</option>
-            <option value=".type-cn">Continents</option>
-            <option value=".type-co">Countries</option>
-            <option value=".type-st">States</option>
-            <option value=".type-ap">Airports</option>
-            <option value=".type-ct">Cities</option>
-            <option value=".type-np">National Parks</option>
-            <option value=".type-lm">Landmarks</option>
-            <option value=".type-wh">World Heritage sites</option>
+            <option value="type-cn">Continents</option>
+            <option value="type-co">Countries</option>
+            <option value="type-st">States</option>
+            <option value="type-ap">Airports</option>
+            <option value="type-ct">Cities</option>
+            <option value="type-np">National Parks</option>
+            <option value="type-lm">Landmarks</option>
+            <option value="type-wh">World Heritage sites</option>
         </select>
         {% with history_details.countries as co_filter %}
         <strong>in</strong>
         <select id="id_country" class="filter_ctrl">
             <option value="">-- All countries --</option> {% for co in co_filter %}
-            <option value=".co-{{ co.1}}">{{ co.0 }}</option>{% endfor %}
+            <option value="co-{{ co.1}}">{{ co.0 }}</option>{% endfor %}
         </select>
         {% endwith %}
         <span id="id_count"></span>
@@ -71,6 +71,6 @@
 {% endblock travel_content %}
 {% block extra_body %}
     <script type="text/javascript" charset="utf-8">
-        Travelogue.init_profile_filter('.filter_ctrl');
+        Travelogue.init_profile_filter();
     </script>
 {% endblock extra_body %}
