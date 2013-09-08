@@ -1,7 +1,8 @@
 {% extends "travel/base.html" %}
 {% block travel_heading %}
-    {% if form %}Your log entry for {{ entry.entity.name }}
-    {% else %}Log entry for {{ entry.user.username }}{% endif %}
+    {% if form %}Your log entry for
+    {% else %}Log entry for{% endif %}
+    <a href="{{ entry.entity.get_absolute_url }}">{{ entry.entity.name }}</a>
 {% endblock %}
 {% block extra_head %}
     <script type="text/javascript" src="{{ MEDIA_URL }}js/jquery-ui-timepicker-addon.js" charset="utf-8"></script>

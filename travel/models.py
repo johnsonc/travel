@@ -281,6 +281,13 @@ class Entity(models.Model):
         return WIKIPEDIA_URL % quote_plus(self.full_name.encode('utf8'))
 
     #---------------------------------------------------------------------------
+    def get_continent(self):
+        if self.continent:
+            return self.continent
+        elif self.country:
+            return self.country.continent
+            
+    #---------------------------------------------------------------------------
     @property
     def type_detail(self):
         if self.type.abbr == 'st':
@@ -379,3 +386,20 @@ class TravelLog(models.Model):
             self.arrival = self.departure
         
         return super(TravelLog, self).save(*args, **kws)
+    
+    #---------------------------------------------------------------------------
+    def update_notes(self, note):
+        if note:
+            if self.notes:
+                self.notes.text = note
+                self.notes.save()
+            else:
+                self.notes = Markup.objects.create(format=Markup.Format.BASIC, text=note)
+                self.save()
+        else:
+            if self.notes:
+                self.notes.delete()
+            
+            self.notes = None
+            self.save()
+    

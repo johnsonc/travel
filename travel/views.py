@@ -97,17 +97,17 @@ def by_locale(request, ref):
 
 #-------------------------------------------------------------------------------
 def _entity_base(request, entity):
-    if request.method == 'POST':
-        form = forms.TravelLogForm(request.POST)
-        if form.is_valid():
-            form.save(request.user, entity)
-            return http.HttpResponseRedirect(request.path)
-    else:
-        form = forms.TravelLogForm()
-        
     if request.user.is_authenticated():
         history = request.user.travellog_set.filter(entity=entity)
+        if request.method == 'POST':
+            form = forms.TravelLogForm(request.POST)
+            if form.is_valid():
+                form.save(request.user, entity)
+                return http.HttpResponseRedirect(request.path)
+        else:
+            form = forms.TravelLogForm()
     else:
+        form = None
         history = []
 
     return request_to_response(
@@ -170,9 +170,9 @@ def log_entry(request, username, pk):
     if request.user == entry.user:
         if request.method == 'POST':
             form = forms.TravelLogForm(request.POST, instance=entry)
-            import jargon.debug; jargon.debug.set_trace()
+            #import jargon.debug; jargon.debug.set_trace()
             if form.is_valid():
-                form.save()
+                form.save(user=request.user)
                 return http.HttpResponseRedirect(request.path)
         else:
             form = forms.TravelLogForm(instance=entry)

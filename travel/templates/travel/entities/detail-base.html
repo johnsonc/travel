@@ -44,14 +44,7 @@
                     </td>
                 </tr>
                 {% endif %}
-                {% if place.continent %}
-                <tr>
-                    <th>Continent</th>
-                    <td>
-                        <a href="{{ place.continent.get_absolute_url }}">{{ place.continent }}</a>
-                    </td>
-                </tr>
-                {% endif %}
+
                 {% if place.country %}
                 <tr>
                     <th>Country</th>
@@ -60,6 +53,18 @@
                     </td>
                 </tr>
                 {% endif %}
+                
+                {% with place.get_continent as continent %}
+                {% if continent %}
+                <tr>
+                    <th>Continent</th>
+                    <td>
+                        <a href="{{ continent.get_absolute_url }}">{{ continent }}</a>
+                    </td>
+                </tr>
+                {% endif %}
+                {% endwith %}
+                
                 {% if place.state %}
                 <tr>
                     <th>State</th>
@@ -68,6 +73,8 @@
                     </td>
                 </tr>
                 {% endif %}
+                
+                {% if place.locality or place.lat %}
                 <tr>
                     <th>Location</th>
                     <td>
@@ -79,6 +86,8 @@
                         {% endif %}
                     </td>
                 </tr>
+                {% endif %}
+                
                 {% if place.code %}
                 <tr>
                     <th>Code</th>
@@ -125,7 +134,7 @@
         </tr>
     </thead>
     <tbody> {% for entry in history %}
-        <tr  class="{% cycle 'odd' 'even'  %}">
+        <tr class="{% cycle 'odd' 'even' as zebra %}">
             <td>{{ entry.arrival|date:"D, j M y P" }}</td>
             <td>{{ entry.departure|date:"D, j M y P" }}</td>
             <td>{{ entry.get_rating_display }}</td>
@@ -133,7 +142,15 @@
                 <a title="Edit this log entry" href="{{ entry.get_absolute_url }}">
                     <img src="{{ MEDIA_URL }}img/icons/24/edit.png"></a>
             </td>
-        </tr> {% endfor %}
+        </tr>
+        {% if entry.notes %}
+        <tr class="{{ zebra }}">
+            <td colspan="4">
+                <blockquote>
+                {{ entry.notes.safe_html }}
+                </blockquote>
+            </td>
+        </tr>{% endif %} {% endfor %}
     </tbody>
     </table>
     {% endif %}

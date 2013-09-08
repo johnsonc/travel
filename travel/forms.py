@@ -83,6 +83,13 @@ class TravelLogForm(forms.ModelForm):
     class Meta:
         model = TravelLog
         fields = ('arrival', 'departure', 'rating', 'note')
+    
+    #---------------------------------------------------------------------------
+    def __init__(self, *args, **kws):
+        super(TravelLogForm, self).__init__(*args, **kws)
+        instance = kws.get('instance', None)
+        if instance and instance.notes:
+            self.fields['note'].initial = instance.notes.text
         
     #---------------------------------------------------------------------------
     def save(self, user=None, entity=None):
@@ -95,10 +102,7 @@ class TravelLogForm(forms.ModelForm):
             entry.entity = entity
             
         entry.save()
-        note = data['note']
-        if note:
-            entry.notes = Markup.objects.create(format=Markup.Format.BASIC, text=note)
-            entry.save()
+        entry.update_notes(data.get('note', ''))
             
         return entry
 
