@@ -11,6 +11,8 @@
     <!--[if IE]><link rel="stylesheet" href="{{ MEDIA_URL }}css/blueprint/ie.css" type="text/css" media="screen, projection"><![endif]-->
     <link rel="stylesheet" href="{{ MEDIA_URL }}js/jquery/css/custom.css" type="text/css">
     <link rel="stylesheet" href="{{ MEDIA_URL }}css/travel.css" type="text/css" media="screen, print">
+    <link href='http://fonts.googleapis.com/css?family=Limelight' rel='stylesheet' type='text/css'>
+    {# <link href='http://fonts.googleapis.com/css?family=Ropa+Sans:400italic' rel='stylesheet' type='text/css'> #}
     <!--[if lt IE 9]>
     <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
@@ -21,8 +23,19 @@
     {% block extra_head %}{% endblock extra_head %}
 </head>
 <body><div id="main-content" class="container{# showgrid #}">
-<div id="subheader" class="span-24 last">
-    <a id="travelogue" href="/"><span class="disappear">Free Travelogue</span></a>
+<div id="subheader" class="span-24 last clearfix">
+    <p style="float: right; font-size: 1.125em;">
+        {% if user.is_authenticated %}
+        <a href="{% url acct-logout %}">Log out, <span style="color: #b85700">{{ user.username }}</span></a>
+        <a href="{% url travel-profile user.username %}" class="ui-state-default button">My travelogue</a>
+        {% else %}
+        <a style="font-size: 1em" href="{% url acct-login %}?next={{ request.path }}">Log in</a>
+        <a href="{% url registration-register %}" class="ui-state-default button">Register</a>
+        {% endif %}
+    </p>
+    <p class="logo">
+        <a id="travelogue" href="/">Free Travelogue</a>
+    </p>
     {% block extra_subheader %}{% endblock extra_subheader %}
 </div>
 <div class="span-24 last">
@@ -47,20 +60,6 @@
     </div>
     <div class="span-6 last" id="sidebar">
         <div class="box ui-corner-all ui-widget-content">
-            <h3 class="caps">Profile</h3>
-            <ul>
-                {% if user.is_authenticated %}
-                <li><a href="{% url acct-logout %}">Log out, <span style="color: #b85700">{{ user.username }}</span></a></li>
-                <li><a href="{% url travel-profile user.username %}">My travelogue</a></li>
-                {% else %}
-                <li><a style="font-size: 1.25em" href="{% url acct-login %}?next={{ request.path }}">Log in</a></li>
-                <li><a href="{% url registration-register %}">Sign up</a></li>
-                {% endif %}
-                {% block extra_nav %}{% endblock extra_nav %}
-            </ul>
-        </div>
-        <div class="box ui-corner-all ui-widget-content">
-            <h3 title="Search all location types" class="caps">Search</h3>
             <form action="{% url travel-search %}" method="get" accept-charset="utf-8">
                 <div>
                     <span class="text shortfield">{{ search_form.travel_search }}</span>

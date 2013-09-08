@@ -11,6 +11,7 @@ ul { list-style-type: square; }
     text-align: right;
 }
 #subheader-descr { border-bottom: 1px solid #A48F5F; padding-left: 4em; }
+/*
 #subheader a {
     background: url(/media/img/travelogue.jpg);
     width: 328px;
@@ -20,7 +21,24 @@ ul { list-style-type: square; }
     color: transparent;
     position: absolute;
 }
+*/
 
+.logo {
+    /*font-family: 'Ropa Sans', sans-serif;*/
+    font-family: 'Limelight', cursive;
+    color: #8d5828;
+    padding-left: 128px;
+    font-size: 3em;
+    font-style: italic;
+    font-variant: small-caps;
+    background: url(/media/img/travelogue.png) no-repeat;
+    height: 128px;
+    display: table-cell;
+    vertical-align: bottom;
+} 
+.logo a {
+    color: #8d5828;
+}
 .disappear { position: absolute; left: -9999px; }
 #subheader #subheader-descr {
     margin-right: 8px;
@@ -96,8 +114,6 @@ hr { clear: both; }
 .ui-widget a  { color: #b85700; }
 .ui-widget a:hover { text-decoration: underline; }
 
-.get-started { text-align: center; }
-.get-started a { padding: .4em 2em .4em 2em; text-decoration: none; margin-right: 2em; }
 #tabs { margin-bottom: 1em; }
 #tabs a:hover { text-decoration: underline; }
 
@@ -193,7 +209,8 @@ img.flag {
     filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#d1903e', endColorstr='#c88632',GradientType=0 );
 }
  /* f4f0ec faf8f7 */
-.ui-widget-content {
+a.button, .ui-widget-content {
+    border: 1px solid #e0cfc2;
     background: #f4f0ec;
     background: -moz-linear-gradient(top,  #faf8f7 0%, #f4f0ec 100%);
     background: -webkit-linear-gradient(top,  #faf8f7 0%,#f4f0ec 100%);
@@ -216,4 +233,16 @@ img.flag {
 
 table.ui-widget-content {
     background: #f1ebdf;
+}
+
+input[type="search"], a.button {
+    -moz-border-radius: 6px;
+    -webkit-border-radius: 6px;
+    border-radius: 6px;
+}
+
+a.button {
+    padding: .4em 1em .4em 1em;
+    text-decoration: none;
+    margin-left: 2em;
 }

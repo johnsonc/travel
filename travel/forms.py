@@ -8,7 +8,7 @@ from django.contrib.contenttypes.models import ContentType
 
 from jargon.forms import TextField
 from jargon.utils.dates import parse as dtparse
-from jargon.apps.annotation.models import Annotation
+from jargon.apps.annotation.models import Markup
 
 from travel.models import TravelLog
 
@@ -47,6 +47,11 @@ class SearchInput(forms.TextInput):
 #===============================================================================
 class SearchField(forms.CharField):
     widget = SearchInput
+    
+    #---------------------------------------------------------------------------
+    def widget_attrs(self, widget):
+        return {'placeholder': 'Search'}
+    
     
 
 #===============================================================================
@@ -92,7 +97,8 @@ class TravelLogForm(forms.ModelForm):
         entry.save()
         note = data['note']
         if note:
-            entry.notes.create(format=Annotation.Format.BASIC, text=note)
+            entry.notes = Markup.objects.create(format=Markup.Format.BASIC, text=note)
+            entry.save()
             
         return entry
 

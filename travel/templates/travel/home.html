@@ -20,8 +20,8 @@
     </p>
 
     <br />{% if not user.is_authenticated %}
-    <p class="get-started">
-        <a href="{% url registration-register %}" class="ui-state-default ui-corner-all">Sign Up!</a>
-        <a href="{% url acct-login %}" class="ui-state-default ui-corner-all">Log in</a>
+    <p class="center">
+        <a href="{% url registration-register %}" class="ui-state-default button">Register</a>
+        <a href="{% url acct-login %}" class="ui-state-default button">Log in</a>
     </p>{% endif %}
 {% endblock travel_content %}

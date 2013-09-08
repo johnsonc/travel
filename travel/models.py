@@ -9,7 +9,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from path import path
 from jargon.db.fields import ChoiceEnumeration
-from jargon.apps.annotation.models import Annotation
+from jargon.apps.annotation.models import Markup
 
 GOOGLE_MAPS       = 'http://maps.google.com/maps?q=%s'
 GOOGLE_MAPS_LL    = 'http://maps.google.com/maps?q=%s,+%s&iwloc=A&z=10'
@@ -351,7 +351,7 @@ class TravelLog(models.Model):
     departure = models.DateTimeField(blank=True, null=True)
     rating = models.PositiveSmallIntegerField(choices=RATING_CHOICES, default=3)
     user = models.ForeignKey(User, related_name='travellog_set')
-    notes = generic.GenericRelation(Annotation)
+    notes = models.ForeignKey(Markup, null=True, blank=True)
     entity = models.ForeignKey(Entity)
     
     objects = TravelLogManager()
