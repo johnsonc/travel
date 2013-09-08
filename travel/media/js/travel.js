@@ -74,7 +74,7 @@
                 showOn: "button",
                 minDate: "-100Y",
                 yearRange: "-40:+1",
-                buttonImage: "/media/travel/img/calendar2.png",
+                buttonImage: "/media/img/calendar2.png",
                 buttonImageOnly: true,
                 dateFormat: 'yy-mm-dd',
                 timeFormat: 'hh:mm t',
