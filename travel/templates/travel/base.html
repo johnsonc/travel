@@ -6,10 +6,13 @@
     <meta name="keywords" content="travel,travelogue,journal,log,history,location" />
     <meta name="description" content="Keep a journal of your travels, present, past, and future" />
     <meta name="verify-v1" content="e28oOj/CWSIssFH+HHVxW1uSB4WrHdP2Fw3Z7H2eV/g=" >
+    <link rel="stylesheet" href="{{ MEDIA_URL }}bootstrap/css/bootstrap.css" type="text/css" media="screen, projection">
+    {% comment %}
     <link rel="stylesheet" href="{{ MEDIA_URL }}css/blueprint/screen.css" type="text/css" media="screen, projection">
     <link rel="stylesheet" href="{{ MEDIA_URL }}css/blueprint/print.css" type="text/css" media="print"> 
     <!--[if IE]><link rel="stylesheet" href="{{ MEDIA_URL }}css/blueprint/ie.css" type="text/css" media="screen, projection"><![endif]-->
     <link rel="stylesheet" href="{{ MEDIA_URL }}js/jquery/css/custom.css" type="text/css">
+    {% endcomment %}
     <link rel="stylesheet" href="{{ MEDIA_URL }}css/travel.css" type="text/css" media="screen, print">
     <link href='http://fonts.googleapis.com/css?family=Limelight' rel='stylesheet' type='text/css'>
     {# <link href='http://fonts.googleapis.com/css?family=Ropa+Sans:400italic' rel='stylesheet' type='text/css'> #}
@@ -22,15 +25,15 @@
     <script type="text/javascript" src="{{ MEDIA_URL }}js/travel.js" charset="utf-8"></script>
     {% block extra_head %}{% endblock extra_head %}
 </head>
-<body><div id="main-content" class="container{# showgrid #}">
-<div id="subheader" class="span-24 last clearfix">
-    <p style="float: right; font-size: 1.125em;">
+<body>
+<div id="subheader" class="">
+    <p>
         {% if user.is_authenticated %}
-        <a href="{% url acct-logout %}">Log out, <span style="color: #b85700">{{ user.username }}</span></a>
-        <a href="{% url travel-profile user.username %}" class="ui-state-default button">My travelogue</a>
+        <a href="{% url acct-logout %}">Log out, {{ user.username }}</a>
+        <a href="{% url travel-profile user.username %}">My travelogue</a>
         {% else %}
-        <a style="font-size: 1em" href="{% url acct-login %}?next={{ request.path }}">Log in</a>
-        <a href="{% url registration-register %}" class="ui-state-default button">Register</a>
+        <a href="{% url acct-login %}?next={{ request.path }}">Log in</a>
+        <a href="{% url registration-register %}">Register</a>
         {% endif %}
     </p>
     <p class="logo">
@@ -38,18 +41,18 @@
     </p>
     {% block extra_subheader %}{% endblock extra_subheader %}
 </div>
-<div class="span-24 last">
-    <div class="span-17 append-1" id="content">
+<div class="">
+    <div class="" id="content">
         {% block main_content %}
-        <div class="ui-widget">
-            <h1 class="ui-corner-all ui-state-default" style="padding: 8px;">
+        <div class="">
+            <h1 class="">
             {% block travel_heading %}{% endblock %}
             </h1>
         </div>
         {% if messages %} {% block user_messages %}
-        <div class="ui-widget" style="margin: 1em">
-            <div style="padding: 0.7em; margin-bottom: 1em" class="ui-state-highlight ui-corner-all">
-                <ul style="margin: 0" id="user-messages" > {% for message in messages %}
+        <div class="">
+            <div class="">
+                <ul id="user-messages" > {% for message in messages %}
                     <li>{{ message }}</li> {% endfor %}
                 </ul>
             </div>
@@ -58,8 +61,8 @@
         {% block travel_content %}{% endblock travel_content %}
         {% endblock main_content %}
     </div>
-    <div class="span-6 last" id="sidebar">
-        <div class="box ui-corner-all ui-widget-content">
+    <div class="" id="sidebar">
+        <div class="box">
             <form action="{% url travel-search %}" method="get" accept-charset="utf-8">
                 <div>
                     <span class="text shortfield">{{ search_form.travel_search }}</span>
@@ -71,7 +74,7 @@
             </form>
         </div>
 
-        <div class="box ui-corner-all ui-widget-content" >
+        <div class="box" >
             <h3 class="caps">Browse</h3>
             <ul title="Locations of the world">
                 <li><a title="Countries of the world" href="{% url travel-by-locale 'co' %}">Countries</a>
@@ -95,7 +98,7 @@
 {% block extra_span %}{% endblock %}
 <hr />
 <div id="footer">
-    <div class="span-5 colborder">
+    <div class="">
     {% block footer-details %}
         <ul>
             <li><a title="About this site" class="quiet" href="{% url travel-about %}">About</a></li>
@@ -104,24 +107,24 @@
         </ul>
     {% endblock %}
     </div>
-    <div class="prepend-top push-3 span-8 last">
+    <div class="">
         <span class="quiet">Copyright &copy; 2013 david krauth</span>
         {# <a href="#" class="quiet">Privacy Policy</a> |  #}
         {# <a href="#" class="quiet">Security Policy</a> #}
     </div>
 </div>
-</div>
 {% block extra_body %}{% endblock extra_body %}
 {% block google_analytics %}
     <script type="text/javascript">
-    var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
-    document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+        var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+        document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+        </script>
+        <script type="text/javascript">
+        try {
+        var pageTracker = _gat._getTracker("UA-6693026-6");
+        pageTracker._trackPageview();
+        } catch(err) {}
     </script>
-    <script type="text/javascript">
-    try {
-    var pageTracker = _gat._getTracker("UA-6693026-6");
-    pageTracker._trackPageview();
-    } catch(err) {}</script>
 {% endblock %}
 </body>
 </html>

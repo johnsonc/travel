@@ -10,21 +10,8 @@ ul { list-style-type: square; }
     height: 128px;
     text-align: right;
 }
-#subheader-descr { border-bottom: 1px solid #A48F5F; padding-left: 4em; }
-/*
-#subheader a {
-    background: url(/media/img/travelogue.jpg);
-    width: 328px;
-    height: 128px;
-    bottom: 0px;
-    left: 0px;
-    color: transparent;
-    position: absolute;
-}
-*/
 
 .logo {
-    /*font-family: 'Ropa Sans', sans-serif;*/
     font-family: 'Limelight', cursive;
     color: #8d5828;
     padding-left: 128px;
@@ -36,9 +23,7 @@ ul { list-style-type: square; }
     display: table-cell;
     vertical-align: bottom;
 } 
-.logo a {
-    color: #8d5828;
-}
+.logo a { color: #8d5828; }
 .disappear { position: absolute; left: -9999px; }
 #subheader #subheader-descr {
     margin-right: 8px;
@@ -111,8 +96,6 @@ hr { clear: both; }
 .item-details th { width: 135px; text-align: right; vertical-align: top; }
 .item-details td { margin: 0; padding-left: 10px;}
 .item-details td ul { padding-left: 1em; margin-bottom: 4px; list-style-type: square; }
-.ui-widget a  { color: #b85700; }
-.ui-widget a:hover { text-decoration: underline; }
 
 #tabs { margin-bottom: 1em; }
 #tabs a:hover { text-decoration: underline; }
@@ -125,13 +108,9 @@ hr { clear: both; }
 .rating { color: #6c3617; }
 .latlon { font-family: "Courier New", Courier, monospace; }
 
-.ui-tabs-panel { padding: 1em; }
-.ui-tabs-panel > table { margin: 0; }
-
 /* pagination */
 .pagination .disabled { color: #999; }
 .pagination .current { font-weight: bold; }
-
 .pagination { margin: 0 0 1em 0; padding: 0; height: 20px; }
     .pagination ul {
         border: 0;
@@ -174,18 +153,6 @@ hr { clear: both; }
 .travelogue td.rating { font-size:smaller; }
 .travelogue td.entitytype { width: 80px; }
 
-.ui-timepicker-div .ui-widget-header { margin-bottom: 8px; }
-.ui-timepicker-div dl { text-align: left; }
-.ui-timepicker-div dl dt { height: 25px; margin-bottom: -25px; }
-.ui-timepicker-div dl dd { margin: 0 10px 10px 65px; }
-.ui-timepicker-div td { font-size: 90%; }
-.ui-tpicker-grid-label { background: none; border: none; margin: 0; padding: 0; }
-
-.ui-timepicker-rtl{ direction: rtl; }
-.ui-timepicker-rtl dl { text-align: right; }
-.ui-timepicker-rtl dl dd { margin: 0 65px 10px 10px; }
-.ui-datepicker-trigger { vertical-align: middle; margin-left: 2px; }
-
 .flag-bg { 
     background-repeat: no-repeat;
     background-position: center right;
@@ -198,6 +165,22 @@ img.flag {
   box-shadow: 3px 3px 3px #ddd;
 }
 
+.ui-widget a  { color: #b85700; }
+.ui-widget a:hover { text-decoration: underline; }
+.ui-tabs-panel { padding: 1em; }
+.ui-tabs-panel > table { margin: 0; }
+
+.ui-timepicker-div .ui-widget-header { margin-bottom: 8px; }
+.ui-timepicker-div dl { text-align: left; }
+.ui-timepicker-div dl dt { height: 25px; margin-bottom: -25px; }
+.ui-timepicker-div dl dd { margin: 0 10px 10px 65px; }
+.ui-timepicker-div td { font-size: 90%; }
+.ui-tpicker-grid-label { background: none; border: none; margin: 0; padding: 0; }
+
+.ui-timepicker-rtl{ direction: rtl; }
+.ui-timepicker-rtl dl { text-align: right; }
+.ui-timepicker-rtl dl dd { margin: 0 65px 10px 10px; }
+.ui-datepicker-trigger { vertical-align: middle; margin-left: 2px; }
 
 .ui-widget-header {
     background: #d1903e;
