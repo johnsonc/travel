@@ -1,0 +1,16 @@
+{% extends "travel/base.html" %}
+{% block travel_heading %}About Free Travelogue{% endblock %}
+{% block travel_content %}
+    <p>
+        <img src="{{ MEDIA_URL }}img/clouds.jpg" style="float: right" />
+        <strong>Features</strong>
+    </p>
+    
+    <ul style="list-style-type: circle">
+        <li>Keep a mini-journal for any place you've visited</li>
+        <li>Create to-do lists</li>
+        <li>Group log entries together as trips</li>
+        <li>Follow your friend's travels</li>
+        <li>Find facts, maps, and photos for hundreds of places</li>
+    </ul>
+{% endblock travel_content %}

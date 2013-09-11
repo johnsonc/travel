@@ -89,6 +89,32 @@ def search(request):
 
 
 #-------------------------------------------------------------------------------
+def search_advanced(request):
+    'travel-search-advanced'
+    data = {'results': [], 'search': ''}
+    if request.method == 'POST':
+        search = request.POST.get('search').strip()
+        if search:
+            lines = [line.strip() for line in search.splitlines()]
+            data['search'] = '\n'.join(lines)
+            q = models.Q()
+            for term in lines:
+                print term
+                q |= (
+                    models.Q(name__icontains=term)      |
+                    models.Q(full_name__icontains=term) |
+                    models.Q(locality__icontains=term)  |
+                    models.Q(code__iexact=term)
+                )
+                
+            qs = travel.Entity.objects.filter(q)
+            print qs.count()
+            data['results'] = qs
+        
+    return request_to_response(request, 'travel/search-advanced.html', data)
+    
+
+#-------------------------------------------------------------------------------
 def by_locale(request, ref):
     etype = get_object_or_404(travel.EntityType, abbr=ref)
     data = {'type': etype, 'places': etype.entity_set.all()}

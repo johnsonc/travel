@@ -307,7 +307,13 @@ class Entity(models.Model):
     #---------------------------------------------------------------------------
     @property
     def flag_dir(self):
-        return '%s' % (self.type.abbr,)
+        abbr = self.type.abbr
+        if abbr == 'co':
+            return '%s' % (self.type.abbr,)
+        elif abbr == 'st' and self.country:
+            return '%s/%s' % (self.type.abbr, self.country.code.lower())
+        return ''
+        
     
     #---------------------------------------------------------------------------
     @property

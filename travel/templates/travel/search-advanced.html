@@ -1,0 +1,35 @@
+{% extends "travel/base.html" %}
+{% block travel_heading %}Search Results{% endblock %}
+{% block travel_content %}
+    <form action="" method="post" accept-charset="utf-8">
+        <p>
+            <textarea name="search" rows="12" cols="40">{{ search }}</textarea><br>
+            <input type="submit" value="search">
+        </p>
+    </form>
+
+    {% if results %}
+    <table>
+    <tbody>{% for place in results %}
+        <tr>
+            <td style="width:36px">{% if place.flag %}
+                <img src="{{ place.flag.width_32.url }}" />{% endif %}
+            </td>
+            <td>
+                <a href="{{ place.get_absolute_url }}">{{ place.full_name }}</a>
+            </td>
+            <td>{{ place.type_detail }}</td>
+            <td>{{ place.code }}</td>
+            <td>{% if place.country %}
+                <a href="{{ place.country.get_absolute_url }}">
+                    <img src="{{ place.country.flag.width_32.url }}" />
+                    {{ place.country }}
+                </a>
+            {% endif %}
+            </td>
+        </tr>{% endfor %}
+    </tbody>
+    </table>
+    {% endif %}
+        
+{% endblock travel_content %}
