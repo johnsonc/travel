@@ -1,6 +1,13 @@
 {% extends "travel/base.html" %}
 {% block subheader %}{{ block.super }}{% endblock subheader %}
-{% block travel_heading %}{{ place.name }}{% endblock %}
+{% block travel_heading %}
+    {% if user.is_superuser %}
+    <a href="{{ place.get_edit_url }}" style="float:right">
+        <img src="{{ MEDIA_URL }}/img/icons/24/edit.png">
+    </a>
+    {% endif %}
+    {{ place.name }}
+{% endblock %}
 {% block extra_head %}
     <script type="text/javascript" src="{{ MEDIA_URL }}js/jquery-ui-timepicker-addon.js" charset="utf-8"></script>
     <script type="text/javascript">
@@ -17,19 +24,21 @@
             <li><a href="#related-tab">Related</a></li>
         </ul>
         <div id="details-tab">{% block tab1 %}
+            {% if place.flag %}
+            <div style="position: relative">
+                <a style="position: absolute; right: 0" href="{{ place.flag.width_512.url }}">
+                    <img style="border: 1px solid #ddd;" src="{{ place.flag.width_128.url }}" />
+                </a>
+            </div>
+            <table class="item-details" style="padding-right: 128px">
+            {% else %}
             <table class="item-details">
+            {% endif %}
                 <tr>
                     <th>Official name</th>
                     <td>
                         {{ place.full_name }} |
-                        <a class="external" href="{{ place.wikipedia_search_url }}">Wikipedia Search</a>
-                        {% if place.flag %}
-                        <div style="position: relative">
-                            <a style="position: absolute; right: 0" href="{{ place.flag.width_512.url }}">
-                                <img style="border: 1px solid #ddd;" src="{{ place.flag.width_128.url }}" />
-                            </a>
-                        </div>
-                        {% endif %}
+                        <a class="external" href="{{ place.wikipedia_search_url }}">Wikipedia</a>
                     </td>
                 </tr>
                 {% if place.capital %}
@@ -155,22 +164,5 @@
     </table>
     {% endif %}
     {% endwith %}
-    {% endif %}
-    
-    {% if user.is_superuser %}
-    <div style="background-color: #fffd9e; margin: 2em 0;border: 2px solid #800; padding: 4px; color: #800; font-style: italic;">
-        <form action="{% url travel-flag-upload place.id %}" method="post">
-            <table>
-                <tr>
-                    <td style="text-align: right"><label>Flag URL:</label></td>
-                    <td><input  style="width:96%" type="text" name="url" size="60" /></td>
-                </tr>
-                <tr>
-                    <td></td>
-                    <td><input type="submit" value="Upload"></td>
-                </tr>
-            </table>
-        </form>
-    </div>
     {% endif %}
 {% endblock travel_content %}

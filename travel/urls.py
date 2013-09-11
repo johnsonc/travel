@@ -14,6 +14,7 @@ urlpatterns = patterns('',
     url(r'^i/(\w+)/(\w+)/(\w+)/$', views.entity_relationships, name='travel-entity-relationships'),
     url(r'^i/(\w+)/(\w+)/(\w+)/(\w+)/$', views.entity_by_parent, name='travel-entity-by-parent'),
 
+    url(r'^edit/i/(\w+)/(\w+)(?:-(\w+))?/$', views.entity_edit, name='travel-entity-edit'),
     url(r'^site/request/$', views.support_request, kwargs={'title': 'Feature Request'}, name='travel-request'),
     url(r'^site/problem/$', views.support_request, kwargs={'title': 'Site Problem'}, name='travel-problem'),
     url(r'^site/thanks/$', to_template('travel/site/thank_you.html'), name='travel-thanks'),

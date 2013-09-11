@@ -1,3 +1,4 @@
+import re
 from datetime import datetime, date
 
 from django import forms
@@ -10,7 +11,8 @@ from jargon.forms import TextField
 from jargon.utils.dates import parse as dtparse
 from jargon.apps.annotation.models import Markup
 
-from travel.models import TravelLog
+from travel import models as travel
+from path import path
 
 
 #===============================================================================
@@ -76,12 +78,12 @@ class SearchForm(forms.Form):
 class TravelLogForm(forms.ModelForm):
     arrival = DateUtilField(required=False)
     departure = DateUtilField(required=False)
-    rating = forms.ChoiceField(choices=TravelLog.RATING_CHOICES, initial='3')
+    rating = forms.ChoiceField(choices=travel.TravelLog.RATING_CHOICES, initial='3')
     note = TextField(required=False)
 
     #===========================================================================
     class Meta:
-        model = TravelLog
+        model = travel.TravelLog
         fields = ('arrival', 'departure', 'rating', 'note')
     
     #---------------------------------------------------------------------------
@@ -110,4 +112,92 @@ class TravelLogForm(forms.ModelForm):
 #===============================================================================
 class SupportForm(forms.Form):
     message = TextField(label='Description:')
+
+
+_flag_url_re =  re.compile(r'(.*)/(\d+)px(.*)')
+
+
+#===============================================================================
+class EntityForm(forms.ModelForm):
+    flag_data = forms.CharField(label="New Flag URL", required=False)
     
+    #===========================================================================
+    class Meta:
+        model = travel.Entity
+        fields = (
+            'name',
+            'full_name',
+            'lat',
+            'lon',
+            'locality',
+            'flag_data'
+        )
+        
+    #---------------------------------------------------------------------------
+    def __init__(self, *args, **kws):
+        super(EntityForm, self).__init__(*args, **kws)
+        if self.instance.type.abbr not in ('co', 'st'):
+            del self.fields['flag_data']
+            
+    #---------------------------------------------------------------------------
+    def clean_flag_data(self):
+        import requests
+        url = self.cleaned_data['flag_data']
+        print 'url', url
+        # 'http://upload.wikimedia.org/wikipedia/commons/thumb/b/bc/Flag_of_Wyoming.svg/120px-Flag_of_Wyoming.svg.png'
+
+        ref         = self.instance.code.lower()
+        base_dir    = path(self.instance.flag_dir)
+        parent_dir  = base_dir / ref
+        static_root = path(settings.STATIC_ROOT)
+        flag_path   = travel.BASE_FLAG_DIR / parent_dir / ('%s-%%s.png' % (ref,))
+
+        abs_dir = static_root / travel.BASE_FLAG_DIR / parent_dir
+        if not abs_dir.exists():
+            abs_dir.makedirs()
+
+        data = {
+            'sizes':     {},
+            'url':       url,
+            'ref':       self.instance.code.lower(),
+            'base_dir':  path(self.instance.flag_dir),
+            'flag_path': travel.BASE_FLAG_DIR / parent_dir / ('%s-%%s.png' % (ref,)),
+        }
+
+        for size in ('16', '32', '64', '128', '256', '512'):
+            size_url = _flag_url_re.sub(r'\1/%spx\3' % size, url)
+            # print size, size_url
+            r = requests.get(size_url)
+            if r.status_code != 200:
+                raise forms.ValidationError('Status %s (%s)' % (r.status_code, size_url))
+
+            data['sizes'][static_root / (flag_path % size)] = r.content
+
+        return data
+        
+    #---------------------------------------------------------------------------
+    def save(self):
+        super(EntityForm, self).save()
+        data = self.cleaned_data.get('flag_data')
+        if data:
+            for fn, bytes in data['sizes'].iteritems():
+                with open(fn, 'wb') as fp:
+                    fp.write(bytes)
+
+            flag_path      = data['flag_path']
+            flag           = self.instance.flag or travel.Flag()
+            flag.source    = data['url']
+            flag.base_dir  = data['base_dir']
+            flag.ref       = data['ref']
+            flag.width_16  = flag_path %  16
+            flag.width_32  = flag_path %  32
+            flag.width_64  = flag_path %  64
+            flag.width_128 = flag_path % 128
+            flag.width_256 = flag_path % 256
+            flag.width_512 = flag_path % 512
+
+            flag.save()
+            if not self.instance.flag:
+                self.instance.flag = flag
+                self.instance.save()
+        

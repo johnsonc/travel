@@ -264,9 +264,7 @@ class Entity(models.Model):
         return self.name
     
     #---------------------------------------------------------------------------
-    @models.permalink
-    def get_absolute_url(self):
-        # url(r'^i/(\w+)/(\w+)/(\w+)/(\w+)/$' ...
+    def _permalink_url(self, name):
         type_abbr = self.type.abbr
         code = (
             '%s-%s' % (self.country.code, self.code or self.id)
@@ -274,7 +272,19 @@ class Entity(models.Model):
             else self.code or self.id
         )
         
-        return ('travel-entity', [type_abbr, code])
+        return (name, [type_abbr, code])
+        
+    #---------------------------------------------------------------------------
+    @models.permalink
+    def get_absolute_url(self):
+        # url(r'^i/(\w+)/(\w+)/(\w+)/(\w+)/$'
+        return self._permalink_url('travel-entity')
+
+    #---------------------------------------------------------------------------
+    @models.permalink
+    def get_edit_url(self):
+        # url(r'^edit/i/(\w+)/(\w+)/(\w+)/(\w+)/$'
+        return self._permalink_url('travel-entity-edit')
     
     #---------------------------------------------------------------------------
     def wikipedia_search_url(self):
