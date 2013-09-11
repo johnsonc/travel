@@ -136,11 +136,12 @@ class EntityForm(forms.ModelForm):
             
     #---------------------------------------------------------------------------
     def clean_flag_data(self):
-        url = self.cleaned_data['flag_data']
-        try:
-            return WikiFlagUtil.create(url, self.instance)
-        except ValueError, why:
-            raise forms.ValidationError(why)
+        url = self.cleaned_data.get('flag_data', None)
+        if url:
+            try:
+                return WikiFlagUtil.create(url, self.instance)
+            except ValueError, why:
+                raise forms.ValidationError(why)
 
     #---------------------------------------------------------------------------
     def save(self):
