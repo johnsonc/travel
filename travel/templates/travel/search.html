@@ -2,10 +2,11 @@
 {% block travel_heading %}Search Results{% endblock %}
 {% block travel_content %}
     {% if results %}
-    <table>
+    {% include "travel/search/results.html" %}
+    <table class="ui-widget ui-widget-content">
     <tbody>{% for place in results %}
-        <tr>
-            <td style="width:36px">{% if place.flag %}
+        <tr class="{% cycle 'odd' 'even' %}">
+            <td style="width:36px;height:36px">{% if place.flag %}
                 <img src="{{ place.flag.width_32.url }}" />{% endif %}
             </td>
             <td>
@@ -13,13 +14,16 @@
             </td>
             <td>{{ place.type_detail }}</td>
             <td>{{ place.code }}</td>
-            <td>{% if place.country %}
+            {% if place.country %}
+            <td>
                 <a href="{{ place.country.get_absolute_url }}">
-                    <img src="{{ place.country.flag.width_32.url }}" />
-                    {{ place.country }}
-                </a>
-            {% endif %}
+                    {{ place.country }}</a>
             </td>
+            <td>
+                <img src="{{ place.country.flag.width_32.url }}">
+            </td>
+            {% else %}<td colspan="2"></td>
+            {% endif %}
         </tr>{% endfor %}
     </tbody>
     </table>

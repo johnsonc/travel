@@ -7,6 +7,8 @@
         <tr class="ui-widget-header">
             <th>To-do</th>
             <th>Description</th>
+            <th>Entries</th>
+            <td>Updated</td>
         </tr>
     </thead>
     <tbody>{% for todo in todos  %}
@@ -15,6 +17,8 @@
             <td>
                 {{ todo.description }}{% if todo.is_private %}<sup>*</sup>{% endif %}
             </td>
+            <td>{{ todo.entities.count }}</td>
+            <td>{{ todo.last_update }}</td>
         </tr>
         {% endfor %}
     </tbody>

@@ -21,8 +21,9 @@
     <thead>
         <tr class="ui-widget-header">
             <th>Status</th>
-            <th></th>
             <th>Entity</th>
+            <th>Visits</th>
+            <th></th>
         </tr>
     </thead>
     <tbody>
@@ -31,11 +32,12 @@
             <td>
                 <img src="{{ MEDIA_URL }}img/icons/32/{{ logged|yesno:"accept,block" }}.png" />
             </td>
-            <td class="flag-32">{% if obj.flag %}
-                <img src="{{ obj.flag.width_32.url }}" />{% endif %}
-            </td>
             <td>
                 <a href="{{ obj.get_absolute_url }}">{{ obj }}</a>
+            </td>
+            <td>{{ logged }}</td>
+            <td class="flag-32">{% if obj.flag %}
+                <img src="{{ obj.flag.width_32.url }}" />{% endif %}
             </td>
         </tr>
         {% endfor %}
