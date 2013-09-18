@@ -85,7 +85,7 @@ def search(request):
         data['results']       = travel.Entity.objects.search(q, mtype)
         data['travel_search'] = q
 
-    return request_to_response(request, 'travel/search.html', data)
+    return request_to_response(request, 'travel/search/search.html', data)
 
 
 #-------------------------------------------------------------------------------
@@ -111,7 +111,7 @@ def search_advanced(request):
             print qs.count()
             data['results'] = qs
         
-    return request_to_response(request, 'travel/search-advanced.html', data)
+    return request_to_response(request, 'travel/search/advanced.html', data)
     
 
 #-------------------------------------------------------------------------------
@@ -171,7 +171,7 @@ def _handle_entity(request, ref, code, aux, handler):
     if n == 0:
         raise http.Http404
     elif n > 1:
-        return request_to_response(request, 'travel/search.html', {'results': entity})
+        return request_to_response(request, 'travel/search/search.html', {'results': entity})
     else:
         return handler(request, entity[0])
 
@@ -209,7 +209,7 @@ def entity_relationships(request, ref, code, rel):
     if count == 0:
         raise http.Http404('No entity matches the given query.')
     if count > 1:
-        return request_to_response(request, 'travel/search.html', {'results': places})
+        return request_to_response(request, 'travel/search/search.html', {'results': places})
         
     place  = places[0]
     etype  = get_object_or_404(travel.EntityType, abbr=rel)
