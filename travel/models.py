@@ -70,6 +70,7 @@ class ToDoList(models.Model):
     description = models.TextField(blank=True)
     subscribers = models.ManyToManyField(User, related_name='todo_subscriber_set')
     entities = models.ManyToManyField('Entity', related_name='todo_list_set')
+    last_update = models.DateTimeField(auto_now=True)
     
     objects = ToDoListManager()
 
@@ -264,17 +265,29 @@ class Entity(models.Model):
         return self.name
     
     #---------------------------------------------------------------------------
+    def _permalink_url(self, name):
+        type_abbr = self.type.abbr
+        code = self.code or self.id
+        if type_abbr in ('st', 'wh'):
+            code = (
+                '%s-%s' % (self.country.code, code)
+                if self.country
+                else code
+            )
+        
+        return (name, [type_abbr, code])
+        
+    #---------------------------------------------------------------------------
     @models.permalink
     def get_absolute_url(self):
-        # url(r'^i/(\w+)/(\w+)/(\w+)/(\w+)/$' ...
-        type_abbr = self.type.abbr
-        code = (
-            '%s-%s' % (self.country.code, self.code or self.id)
-            if type_abbr in ('st', 'wh')
-            else self.code or self.id
-        )
-        
-        return ('travel-entity', [type_abbr, code])
+        # url(r'^i/(\w+)/(\w+)/(\w+)/(\w+)/$'
+        return self._permalink_url('travel-entity')
+
+    #---------------------------------------------------------------------------
+    @models.permalink
+    def get_edit_url(self):
+        # url(r'^edit/i/(\w+)/(\w+)/(\w+)/(\w+)/$'
+        return self._permalink_url('travel-entity-edit')
     
     #---------------------------------------------------------------------------
     def wikipedia_search_url(self):

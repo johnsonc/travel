@@ -11,16 +11,16 @@
     <link rel="stylesheet" href="{{ MEDIA_URL }}css/blueprint/screen.css" type="text/css" media="screen, projection">
     <link rel="stylesheet" href="{{ MEDIA_URL }}css/blueprint/print.css" type="text/css" media="print"> 
     <!--[if IE]><link rel="stylesheet" href="{{ MEDIA_URL }}css/blueprint/ie.css" type="text/css" media="screen, projection"><![endif]-->
-    <link rel="stylesheet" href="{{ MEDIA_URL }}js/jquery/css/custom.css" type="text/css">
     {% endcomment %}
+    <link rel="stylesheet" href="{{ MEDIA_URL }}js/jquery/css/humanity/jquery-ui-1.10.3.custom.css" type="text/css">
     <link rel="stylesheet" href="{{ MEDIA_URL }}css/travel.css" type="text/css" media="screen, print">
     <link href='http://fonts.googleapis.com/css?family=Limelight' rel='stylesheet' type='text/css'>
     {# <link href='http://fonts.googleapis.com/css?family=Ropa+Sans:400italic' rel='stylesheet' type='text/css'> #}
     <!--[if lt IE 9]>
     <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
-    <script type="text/javascript" src="{{ MEDIA_URL }}js/jquery/jquery-1.7.1.min.js" charset="utf-8"></script>
-    <script type="text/javascript" src="{{ MEDIA_URL }}js/jquery/jquery-ui.custom.min.js" charset="utf-8"></script>
+    <script type="text/javascript" src="{{ MEDIA_URL }}js/jquery/jquery-1.9.1.min.js" charset="utf-8"></script>
+    <script type="text/javascript" src="{{ MEDIA_URL }}js/jquery/jquery-ui-1.10.3.custom.min.js" charset="utf-8"></script>
     <script type="text/javascript" src="{{ MEDIA_URL }}js/lodash.min.js" charset="utf-8"></script>
     <script type="text/javascript" src="{{ MEDIA_URL }}js/travel.js" charset="utf-8"></script>
     {% block extra_head %}{% endblock extra_head %}
@@ -121,9 +121,10 @@
         </script>
         <script type="text/javascript">
         try {
-        var pageTracker = _gat._getTracker("UA-6693026-6");
-        pageTracker._trackPageview();
-        } catch(err) {}
+            var pageTracker = _gat._getTracker("UA-6693026-6");
+            pageTracker._trackPageview();
+        }
+        catch(err) {}
     </script>
 {% endblock %}
 </body>

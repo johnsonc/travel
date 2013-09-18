@@ -10,8 +10,8 @@ from jargon.forms import TextField
 from jargon.utils.dates import parse as dtparse
 from jargon.apps.annotation.models import Markup
 
-from travel.models import TravelLog
-
+from travel import models as travel
+from travel.utils import WikiFlagUtil
 
 #===============================================================================
 class DateUtilField(forms.Field):
@@ -76,12 +76,12 @@ class SearchForm(forms.Form):
 class TravelLogForm(forms.ModelForm):
     arrival = DateUtilField(required=False)
     departure = DateUtilField(required=False)
-    rating = forms.ChoiceField(choices=TravelLog.RATING_CHOICES, initial='3')
+    rating = forms.ChoiceField(choices=travel.TravelLog.RATING_CHOICES, initial='3')
     note = TextField(required=False)
 
     #===========================================================================
     class Meta:
-        model = TravelLog
+        model = travel.TravelLog
         fields = ('arrival', 'departure', 'rating', 'note')
     
     #---------------------------------------------------------------------------
@@ -110,4 +110,42 @@ class TravelLogForm(forms.ModelForm):
 #===============================================================================
 class SupportForm(forms.Form):
     message = TextField(label='Description:')
+
+
+#===============================================================================
+class EntityForm(forms.ModelForm):
+    flag_data = forms.CharField(label="New Flag URL", required=False)
     
+    #===========================================================================
+    class Meta:
+        model = travel.Entity
+        fields = (
+            'name',
+            'full_name',
+            'lat',
+            'lon',
+            'locality',
+            'flag_data'
+        )
+        
+    #---------------------------------------------------------------------------
+    def __init__(self, *args, **kws):
+        super(EntityForm, self).__init__(*args, **kws)
+        if self.instance.type.abbr not in ('co', 'st'):
+            del self.fields['flag_data']
+            
+    #---------------------------------------------------------------------------
+    def clean_flag_data(self):
+        url = self.cleaned_data.get('flag_data', None)
+        if url:
+            try:
+                return WikiFlagUtil.create(url, self.instance)
+            except ValueError, why:
+                raise forms.ValidationError(why)
+
+    #---------------------------------------------------------------------------
+    def save(self):
+        super(EntityForm, self).save()
+        flag_data = self.cleaned_data.get('flag_data')
+        if flag_data:
+            flag_data.save()

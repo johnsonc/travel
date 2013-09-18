@@ -14,9 +14,7 @@
     {% autopaginate places 100 %}
     {% memoize pagination %}{% paginate %}{% endmemoize %}
     
-    
-    {% load travel_tags %}
-    <table class="">
+    <table class="ui-widget ui-widget-content">
         <thead>
             <tr class="">
                 {% block list_header %}{% endblock list_header %}

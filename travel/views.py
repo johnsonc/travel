@@ -85,7 +85,7 @@ def search(request):
         data['results']       = travel.Entity.objects.search(q, mtype)
         data['travel_search'] = q
 
-    return request_to_response(request, 'travel/search.html', data)
+    return request_to_response(request, 'travel/search/search.html', data)
 
 
 #-------------------------------------------------------------------------------
@@ -111,7 +111,7 @@ def search_advanced(request):
             print qs.count()
             data['results'] = qs
         
-    return request_to_response(request, 'travel/search-advanced.html', data)
+    return request_to_response(request, 'travel/search/advanced.html', data)
     
 
 #-------------------------------------------------------------------------------
@@ -144,21 +144,50 @@ def _entity_base(request, entity):
 
 
 #-------------------------------------------------------------------------------
-def entity(request, ref, code, aux=None):
+def _entity_edit(request, entity):
+    if request.method == 'POST':
+        form = forms.EntityForm(request.POST, instance=entity)
+        if form.is_valid():
+            form.save()
+            return http.HttpResponseRedirect(entity.get_absolute_url())
+    else:
+        form = forms.EntityForm(instance=entity)
+        
+    return request_to_response(
+        request,
+        'travel/entities/edit.html',
+        {'place': entity, 'form': form}
+    )
+
+
+#-------------------------------------------------------------------------------
+def _handle_entity(request, ref, code, aux, handler):
     if aux:
         entity = travel.Entity.objects.filter(type__abbr=ref, country__code=code, code=aux)
     else:
         entity = travel.Entity.objects.filter(type__abbr=ref, code=code)
-        
+
     n = len(entity)
     if n == 0:
         raise http.Http404
     elif n > 1:
-        return request_to_response(request, 'travel/search.html', {'results': entity})
+        return request_to_response(request, 'travel/search/search.html', {'results': entity})
     else:
-        entity = entity[0]
+        return handler(request, entity[0])
 
-    return _entity_base(request, entity)
+
+#-------------------------------------------------------------------------------
+def entity(request, ref, code, aux=None):
+    return _handle_entity(request, ref, code, aux, _entity_base)
+
+
+#-------------------------------------------------------------------------------
+@login_required
+def entity_edit(request, ref, code, aux=None):
+    if not request.user.is_superuser:
+        return _handle_entity(request, ref, code, aux, _entity_base)
+        
+    return _handle_entity(request, ref, code, aux, _entity_edit)
 
 
 #-------------------------------------------------------------------------------
@@ -180,7 +209,7 @@ def entity_relationships(request, ref, code, rel):
     if count == 0:
         raise http.Http404('No entity matches the given query.')
     if count > 1:
-        return request_to_response(request, 'travel/search.html', {'results': places})
+        return request_to_response(request, 'travel/search/search.html', {'results': places})
         
     place  = places[0]
     etype  = get_object_or_404(travel.EntityType, abbr=rel)
