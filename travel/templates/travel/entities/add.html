@@ -1,0 +1,31 @@
+{% extends "travel/base.html" %}
+{% block subheader %}{{ block.super }}{% endblock subheader %}
+{% block travel_heading %}{{ place.name }}{% endblock %}
+{% block extra_head %}
+    <style type="text/css" media="screen">
+        form table th { text-align: right; width: 20%; }
+        form table td { width: 80%; }
+        form table td input[type=text] { width: 100%; }
+        #id_lat, #id_lon { width: 5em; }
+    </style>
+{% endblock extra_head %}
+{% block travel_content %}
+    <p>
+        <img style="border: 1px solid #ddd;" src="{{ place.flag.width_128.url }}">
+    </p>
+    {% if user.is_superuser %}
+    <form method="post">
+        <table>
+            <tbody>
+                {{ form }}
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="2" class="center"><input type="submit" value="Save"></td>
+                </tr>
+                
+            </tfoot>
+        </table>
+    </form>
+    {% endif %}
+{% endblock travel_content %}

@@ -2,7 +2,7 @@
 {% block subheader %}{{ block.super }} {# <span id="subheader-descr">To-do List</span> #}{% endblock subheader %}
 {% block extra_head %}{{ block.super }}
     <style type="text/css" media="screen">
-        .todo-summary em { font-size: 1.25em; color: #37811f; font-weight: bold;}
+        .todo-summary strong { color: #37811f; }
         .todo-result tbody tr td:first-child { width: 40px; }
         .flag-32 { width: 36px; }
         .flag-32 img { box-shadow: 1px 2px 6px #777;}
@@ -10,14 +10,14 @@
 {% endblock extra_head %}
 {% block travel_heading %}To-Do: {{ todo.title }}{% endblock %}
 {% block travel_content %}
-    <h3>{{ todo.description }}</h3>
+    <p>{{ todo.description }}</p>
     {% if user.is_authenticated %}
     <p class="todo-summary">
-        You have completed <em>{{ stats.done }}</em> of <em>{{ stats.total }}</em>
+        You have completed <strong>{{ stats.done }}</strong> of <strong>{{ stats.total }}</strong>
         entries for this To-Do list.
     </p>
     {% endif %}
-    <table class="todo-result">
+    <table class="todo-result table table-striped">
     <thead>
         <tr class="">
             <th>Status</th>
@@ -28,7 +28,7 @@
     </thead>
     <tbody>
         {% for obj,logged in entities %}
-        <tr class="{% cycle 'odd' 'even' %}">
+        <tr>
             <td>
                 <img src="{{ MEDIA_URL }}img/icons/32/{{ logged|yesno:"accept,block" }}.png" />
             </td>

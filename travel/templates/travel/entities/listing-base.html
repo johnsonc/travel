@@ -3,7 +3,7 @@
 {% block subheader %}{{ block.super }} {# <span id="subheader-descr">Listing</span> #}{% endblock subheader %}
 {% block travel_heading %}{{ type }} listing
     {% if parent %}for <a href="{{ parent.get_absolute_url }}">
-        <span class="flag-bg" style="background-image: url({{ parent.flag.width_32.url }});">{{ parent }}</span></a>
+        <span class="flag-bg" style="background: url({{ parent.flag.width_32.url }}) no-repeat right center; padding-right: 36px">{{ parent }}</span></a>
     {% endif %}
 {% endblock %}
 {% block travel_content %}
@@ -14,10 +14,10 @@
     {% autopaginate places 100 %}
     {% memoize pagination %}{% paginate %}{% endmemoize %}
     
-    <table class="ui-widget ui-widget-content">
+    <table class="table table-hover table-striped table-condensed">
         <thead>
-            <tr class="">
-                {% block list_header %}{% endblock list_header %}
+            <tr>
+            {% block list_header %}{% endblock list_header %}
             </tr>
         </thead>
         <tbody> 

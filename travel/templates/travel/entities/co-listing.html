@@ -2,7 +2,7 @@
 {% block list_header %}
     <th>Flag</th>
     <th>
-        Name / <em>Official Name</em>
+        Name / Official Name
     </th>
     <th>Code</th>
     <th>Capital</th>
@@ -10,7 +10,7 @@
 {% endblock list_header %}
 {% block listing %}
     {% for place in places %}
-    <tr class="{% cycle 'odd' 'even' %}">
+    <tr>
         <td>{% if place.flag.width_32 %}
             <img class="flag_icon" src="{{ place.flag.width_32.url }}" />
         {% endif %}</td>

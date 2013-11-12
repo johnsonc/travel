@@ -4,7 +4,7 @@ from travel import views
 
 
 urlpatterns = patterns('',
-    url(r'^$', to_template('travel/home.html'), name='travel-home'),
+    url(r'^$', views.home, name='travel-home'),
     url(r'^about/$', to_template('travel/about.html'), name='travel-about'),
     url(r'^search/$', views.search, name='travel-search'),
     url(r'^search/advanced/$', views.search_advanced, name='travel-search-advanced'),
@@ -14,6 +14,7 @@ urlpatterns = patterns('',
     url(r'^i/(\w+)/(\w+)/(\w+)/$', views.entity_relationships, name='travel-entity-relationships'),
     url(r'^i/(\w+)/(\w+)/(\w+)/(\w+)/$', views.entity_by_parent, name='travel-entity-by-parent'),
 
+    url(r'^add/$', views.add_entity, name='travel-entity-add'),
     url(r'^edit/i/(\w+)/(\w+)(?:-(\w+))?/$', views.entity_edit, name='travel-entity-edit'),
     url(r'^site/request/$', views.support_request, kwargs={'title': 'Feature Request'}, name='travel-request'),
     url(r'^site/problem/$', views.support_request, kwargs={'title': 'Site Problem'}, name='travel-problem'),

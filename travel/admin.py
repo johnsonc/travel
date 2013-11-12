@@ -140,7 +140,6 @@ class TravelLogAdmin(admin.ModelAdmin):
     list_display = ( 
         'id',
         'arrival',
-        'departure',
         'rating',
         'user',
         'entity',

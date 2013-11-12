@@ -14,9 +14,9 @@
     };
     
     var on_filter_change = function() {
-        var bits = [],
-            filt = $('#id_filter').val(),
-            co   = $('#id_country').val();
+        var bits = [];
+        var filt = document.getElementById('id_filter').value;
+        var co   = document.getElementById('id_country').value;
         
         if(filt) {
             bits.push(filt);
@@ -67,21 +67,6 @@
     
     return {
         log_entry_prep: function() {
-            $("#id_arrival,#id_departure").datetimepicker({
-                changeMonth: true,
-                changeYear: true,
-                numberOfMonths: 1,
-                showOn: "button",
-                minDate: "-100Y",
-                yearRange: "-40:+1",
-                buttonImage: "/media/img/calendar2.png",
-                buttonImageOnly: true,
-                dateFormat: 'yy-mm-dd',
-                timeFormat: 'hh:mm t',
-                hour: 12,
-                hourGrid: 4,
-                minuteGrid: 15
-            })
         },
         
         init_profile_filter: function() {

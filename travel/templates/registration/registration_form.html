@@ -1,0 +1,39 @@
+{% extends "travel/base.html" %}
+{% block title %}Account Registration{% endblock %}
+{% block travel_heading %}Registration{% endblock travel_heading %}
+{% block travel_content %}
+    <h2>All registration information is required</h2>
+    <form class="form-signin" action="" method="POST" accept-charset="utf-8">
+        {% csrf_token %}
+        {% if form.errors %}
+        <p class="error">
+            {% if form.non_field_errors %}
+            {{ form.non_field_errors|join:" " }}<br>
+            {% endif %}
+            Please correct any errors to continue.
+        </p>
+        {% endif %}
+
+        <input autofocus id="id_username" class="form-control" type="text" name="username" maxlength="30" placeholder="User Name">
+        {% if form.username.errors %}
+        <span class="form-field-error">{{ form.username.errors.0 }}</span>
+        {% endif %}
+
+        <input id="id_email" class="form-control" type="email" name="email" maxlength="30" placeholder="Email">
+        {% if form.username.errors %}
+        <span class="form-field-error">{{ form.username.errors.0 }}</span>
+        {% endif %}
+
+        <input type="password" name="password" class="form-control" id="id_password" placeholder="Password"> 
+        {% if form.password.errors %}
+        <span class="form-field-error">{{ form.password.errors.0 }}</span>
+        {% endif %}
+
+        <input type="password" name="password2" class="form-control" id="id_password2" placeholder="Confirm Password"> 
+        {% if form.password2.errors %}
+        <span class="form-field-error">{{ form.password2.errors.0 }}</span>
+        {% endif %}
+
+        <p><button class="btn btn-primary btn-block" type="submit">Register</button></p>
+    </form>
+{% endblock %}

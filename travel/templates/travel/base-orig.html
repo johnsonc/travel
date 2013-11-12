@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Free Travelogue {% block title %}{% endblock %}</title>
+    <meta name="keywords" content="travel,travelogue,journal,log,history,location" />
+    <meta name="description" content="Keep a journal of your travels, present, past, and future" />
+    <meta name="verify-v1" content="e28oOj/CWSIssFH+HHVxW1uSB4WrHdP2Fw3Z7H2eV/g=" >
+    <link rel="stylesheet" href="{{ MEDIA_URL }}bootstrap/css/bootstrap.css" type="text/css" media="screen, projection">
+    {% comment %}
+    <link rel="stylesheet" href="{{ MEDIA_URL }}css/blueprint/screen.css" type="text/css" media="screen, projection">
+    <link rel="stylesheet" href="{{ MEDIA_URL }}css/blueprint/print.css" type="text/css" media="print"> 
+    <!--[if IE]><link rel="stylesheet" href="{{ MEDIA_URL }}css/blueprint/ie.css" type="text/css" media="screen, projection"><![endif]-->
+    {% endcomment %}
+    <link rel="stylesheet" href="{{ MEDIA_URL }}js/jquery/css/humanity/jquery-ui-1.10.3.custom.css" type="text/css">
+    <link rel="stylesheet" href="{{ MEDIA_URL }}css/travel.css" type="text/css" media="screen, print">
+    <link href='http://fonts.googleapis.com/css?family=Limelight' rel='stylesheet' type='text/css'>
+    {# <link href='http://fonts.googleapis.com/css?family=Ropa+Sans:400italic' rel='stylesheet' type='text/css'> #}
+    <!--[if lt IE 9]>
+    <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <script type="text/javascript" src="{{ MEDIA_URL }}js/jquery/jquery-1.9.1.min.js" charset="utf-8"></script>
+    <script type="text/javascript" src="{{ MEDIA_URL }}js/jquery/jquery-ui-1.10.3.custom.min.js" charset="utf-8"></script>
+    <script type="text/javascript" src="{{ MEDIA_URL }}js/lodash.min.js" charset="utf-8"></script>
+    <script type="text/javascript" src="{{ MEDIA_URL }}js/travel.js" charset="utf-8"></script>
+    {% block extra_head %}{% endblock extra_head %}
+</head>
+<body>
+<div id="subheader" class="">
+    <p>
+        {% if user.is_authenticated %}
+        <a href="{% url acct-logout %}">Log out, {{ user.username }}</a>
+        <a href="{% url travel-profile user.username %}">My travelogue</a>
+        {% else %}
+        <a href="{% url acct-login %}?next={{ request.path }}">Log in</a>
+        <a href="{% url registration-register %}">Register</a>
+        {% endif %}
+    </p>
+    <p class="logo">
+        <a id="travelogue" href="/">Free Travelogue</a>
+    </p>
+    {% block extra_subheader %}{% endblock extra_subheader %}
+</div>
+<div class="">
+    <div class="" id="content">
+        {% block main_content %}
+        <div class="">
+            <h1 class="">
+            {% block travel_heading %}{% endblock %}
+            </h1>
+        </div>
+        {% if messages %} {% block user_messages %}
+        <div class="">
+            <div class="">
+                <ul id="user-messages" > {% for message in messages %}
+                    <li>{{ message }}</li> {% endfor %}
+                </ul>
+            </div>
+        </div>
+        {% endblock %} {% endif %}
+        {% block travel_content %}{% endblock travel_content %}
+        {% endblock main_content %}
+    </div>
+    <div class="" id="sidebar">
+        <div class="box">
+            <form action="{% url travel-search %}" method="get" accept-charset="utf-8">
+                <div>
+                    <span class="text shortfield">{{ search_form.travel_search }}</span>
+                </div>
+                <div class="form-row">
+                    {{ search_form.type }}
+                    <input type="submit" value="Go" />
+                </div>
+            </form>
+        </div>
+
+        <div class="box" >
+            <h3 class="caps">Browse</h3>
+            <ul title="Locations of the world">
+                <li><a title="Countries of the world" href="{% url travel-by-locale 'co' %}">Countries</a>
+                <li><a title="States, provinces, territories of the world" href="{% url travel-by-locale 'st' %}">States</a>
+                <li><a title="Cities of the world" href="{% url travel-by-locale 'ct' %}">Cities</a>
+                <li><a title="Airports of the world" href="{% url travel-by-locale 'ap' %}">Airports</a>
+                <li><a title="Nation parks of the world" href="{% url travel-by-locale 'np' %}">National Parks</a>
+                <li><a title="Landmarks of the world" href="{% url travel-by-locale 'lm' %}">Landmarks</a>
+                <li><a title="Continents of the world" href="{% url travel-by-locale 'cn' %}">Continents</a>
+                <li><a title="World Heritage sites of the world" href="{% url travel-by-locale 'wh' %}">World Heritage Sites</a>
+            </ul>    
+
+            <hr />
+            <ul>
+                <li><a href="{% url travel-todos %}">To-do lists</a></li>
+                <li><a href="{% url travel-profiles %}">Profiles</a></li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% block extra_span %}{% endblock %}
+<hr />
+<div id="footer">
+    <div class="">
+    {% block footer-details %}
+        <ul>
+            <li><a title="About this site" class="quiet" href="{% url travel-about %}">About</a></li>
+            <li><a title="Member request form" class="quiet" href="{% url travel-request %}">Submit a request</a></li>
+            <li><a title="Member problem form" class="quiet" href="{% url travel-problem %}">Report a problem</a></li>
+        </ul>
+    {% endblock %}
+    </div>
+    <div class="">
+        <span class="quiet">Copyright &copy; 2013 david krauth</span>
+        {# <a href="#" class="quiet">Privacy Policy</a> |  #}
+        {# <a href="#" class="quiet">Security Policy</a> #}
+    </div>
+</div>
+{% block extra_body %}{% endblock extra_body %}
+{% block google_analytics %}
+    <script type="text/javascript">
+        var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+        document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+        </script>
+        <script type="text/javascript">
+        try {
+            var pageTracker = _gat._getTracker("UA-6693026-6");
+            pageTracker._trackPageview();
+        }
+        catch(err) {}
+    </script>
+{% endblock %}
+</body>
+</html>

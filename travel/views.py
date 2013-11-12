@@ -26,6 +26,15 @@ def support_request(request, title):
     return request_to_response(request, 'travel/site/support.html', data)
 
 
+
+#-------------------------------------------------------------------------------
+def home(request):
+    # if request.user.is_authenticated:
+    #     profile = get_object_or_404(travel.Profile, user=request.user)
+    #     return request_to_response(request, 'travel/profile/profile.html', {'profile': profile})
+    # else:
+    return request_to_response(request, 'travel/home.html')
+
 #-------------------------------------------------------------------------------
 def all_profiles(request):
     data = {'profiles': travel.Profile.objects.public()}
@@ -80,10 +89,15 @@ def search(request):
     search_form = forms.SearchForm(request.GET)
     data        = {'search_form': search_form}
     if search_form.is_valid():
-        q                     = search_form.cleaned_data['travel_search']
+        q                     = search_form.cleaned_data['search']
         mtype                 = search_form.cleaned_data['type']
-        data['results']       = travel.Entity.objects.search(q, mtype)
-        data['travel_search'] = q
+        data['results'] = travel.Entity.objects.search(q, mtype)
+        data['search']  = q
+        data['checklist'] = (
+            travel.TravelLog.objects.checklist(request.user)
+            if request.user.is_authenticated()
+            else {}
+        )
 
     return request_to_response(request, 'travel/search/search.html', data)
 
@@ -236,4 +250,20 @@ def log_entry(request, username, pk):
     
     data = {'entry': entry, 'form':  form}
     return request_to_response(request, 'travel/log-entry.html', data)
+
+
+#-------------------------------------------------------------------------------
+@login_required
+def add_entity(request):
+    if not request.user.is_superuser:
+        return http.HttpResponseForbidden()
     
+    if request.method == 'POST':
+        form = forms.EntityForm(request.POST)
+        if form.is_valid():
+            entity = form.save()
+            return http.HttpResponseRedirect(entity.get_absolute_url())
+    else:
+        form = forms.EntityForm()
+        
+    return request_to_response(request, 'travel/entities/add.html', {'form': form})

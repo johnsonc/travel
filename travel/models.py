@@ -224,11 +224,15 @@ class EntityManager(models.Manager):
             return cursor.fetchall()
             
         return ()
+        
+    #---------------------------------------------------------------------------
+    def countries(self):
+        return self.filter(type__abbr='co')
 
 
 #===============================================================================
 class Entity(models.Model):
-    old_id    = models.IntegerField()
+    old_id    = models.IntegerField(default=0)
     type      = models.ForeignKey(EntityType)
     code      = models.CharField(max_length=6, db_index=True)
     name      = models.CharField(max_length=175)
@@ -350,14 +354,20 @@ class TravelLogManager(models.Manager):
     def history(self, user):
         return self.raw(
             '''SELECT   *, 
-                        MAX(departure) AS most_recent_visit,
-                        MIN(departure) AS first_visit,
+                        MAX(arrival) AS most_recent_visit,
+                        MIN(arrival) AS first_visit,
                         COUNT(entity_id) AS num_visits
                  FROM   `travel_travellog`
                 WHERE   `user_id` = %s
              GROUP BY   `entity_id`
              ORDER BY   most_recent_visit DESC''',
              [user.id]
+        )
+        
+    #---------------------------------------------------------------------------
+    def checklist(self, user):
+        return dict(
+            self.filter(user=user).values_list('entity').annotate(count=models.Count('entity'))
         )
 
 
@@ -374,7 +384,6 @@ class TravelLog(models.Model):
     )
     
     arrival = models.DateTimeField()
-    departure = models.DateTimeField(blank=True, null=True)
     rating = models.PositiveSmallIntegerField(choices=RATING_CHOICES, default=3)
     user = models.ForeignKey(User, related_name='travellog_set')
     notes = models.ForeignKey(Markup, null=True, blank=True)
@@ -385,7 +394,7 @@ class TravelLog(models.Model):
     #===========================================================================
     class Meta:
         get_latest_by = ('arrival',)
-        ordering = ('-departure',)
+        ordering = ('-arrival',)
 
     #---------------------------------------------------------------------------
     def __unicode__(self):
@@ -398,12 +407,7 @@ class TravelLog(models.Model):
     
     #---------------------------------------------------------------------------
     def save(self, *args, **kws):
-        if not self.arrival:
-            self.arrival = self.departure if self.departure else datetime.now()
-            
-        if self.arrival and self.departure and (self.departure < self.arrival):
-            self.arrival = self.departure
-        
+        self.arrival = self.arrival or datetime.now()
         return super(TravelLog, self).save(*args, **kws)
     
     #---------------------------------------------------------------------------

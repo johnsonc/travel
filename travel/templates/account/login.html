@@ -1,0 +1,32 @@
+{% extends "travel/base.html" %}
+{% block title %}Account Login{% endblock %}
+{% block travel_heading %}Account Login{% endblock travel_heading %}
+{% block travel_content %}
+{% with form as login_form %}
+    <form class="form-signin" action="{% url acct-login %}?next={{ next|default:"/" }}" method="POST" accept-charset="utf-8">
+        {% csrf_token %}
+        {% if login_form.errors %}
+        <p class="error">
+            {% if login_form.non_field_errors %}
+            {{ login_form.non_field_errors|join:" " }} <br />
+            {% endif %}
+            Please correct any errors to continue.
+        </p>
+        {% endif %}
+        <input autofocus id="id_username" class="form-control" type="text" name="username" maxlength="30" placeholder="User Name">
+        {% if login_form.username.errors %}
+        <span class="form-field-error">{{ login_form.username.errors.0 }}</span>
+        {% endif %}
+        <input type="password" name="password" class="form-control" id="id_password" placeholder="Password"> 
+        {% if login_form.password.errors %}
+        <span class="form-field-error">{{ login_form.password.errors.0 }}</span>
+        {% endif %}
+        <label class="checkbox" for="id_remember">
+            <input type="checkbox" name="remember" id="id_remember">
+            Remember Me
+        </label>
+        <p><button class="btn btn-primary btn-block" type="submit">Log in</button></p>
+        <p class="text-center"><em><a href="{% url password-reset %}">Forgot your password?</a></em></p>
+    </form>
+{% endwith %}
+{% endblock %}

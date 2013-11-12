@@ -2,7 +2,7 @@
 {% block title %}ToDo  Lists{% endblock title %}
 {% block travel_heading %}To-do Lists{% endblock %}
 {% block travel_content %}
-    <table class="">
+    <table class="table table-hover table-striped table-condensed">
     <thead>
         <tr class="">
             <th>To-do</th>
@@ -12,7 +12,7 @@
         </tr>
     </thead>
     <tbody>{% for todo in todos  %}
-        <tr class="{% cycle 'odd' 'even' %}">
+        <tr>
             <td><a href="{{ todo.get_absolute_url }}">{{ todo }}</a></td>
             <td>
                 {{ todo.description }}{% if todo.is_private %}<sup>*</sup>{% endif %}
@@ -23,9 +23,4 @@
         {% endfor %}
     </tbody>
     </table>
-    
 {% endblock travel_content %}
-
-
-
-

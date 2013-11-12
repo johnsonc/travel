@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title></title>
+    <!--[if IE]>
+    <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <style type="text/css" media="screen">
+    </style>
+</head>
+<body>
+    <form>
+        <input type="text" name="input" value="" id="input">
+        <button>Go</button>
+    </form>
+    <pre id="output"></pre>
+    <script type="text/javascript">
+        ;(function() {
+            var print = (function() {
+                var outp = document.getElementById('output');
+                return function() {
+                    var text = Array.prototype.slice.call(arguments).join(' ');
+                    outp.textContent = text + '\n' + outp.textContent;
+                }
+            }());
+
+            var clean_num = function(n) {
+                return n.toFixed(3).replace(/\.0+$/, '');
+            };
+            
+            var conversion = function(in_label, out_label, func) {
+                return function(in_value, unit) {
+                    var out_value = func(in_value);
+                    print(in_value, in_label, '=', clean_num(out_value), out_label);
+                };
+            }
+            
+            var ConversionMapper = (function() {
+                var mapper = {};
+                Array.prototype.slice.call(arguments).forEach(function(row) {
+                    var labels = row[0],
+                        keys   = row[1],
+                        func   = conversion(labels[0], labels[1], row[2]);
+                        
+                    var key, end;
+                    while(keys.length) {
+                        key = keys.shift();
+                        end = key.length - 1;
+                        if(key.charAt(end) == '+') {
+                            key = key.substring(0, end);
+                            keys.push(key + 's');
+                        }
+                        if(mapper.hasOwnProperty(key)) {
+                            console.warn(key, 'already registered!');
+                        }
+                        mapper[key] = func;
+                    }
+                });
+                return mapper;
+            }(
+                [ ['Fahrenheit', 'Celsius'],
+                  ['f', 'fahr', 'fahrenheit'],
+                  function(f) { return (f - 32) * 5 / 9; } ],
+                [ ['Celsius', 'Fahrenheit'],
+                  ['c', 'cel',  'celsius'],
+                  function(c) { return c * 1.8 + 32 } ],
+                [ ['Kilometers', 'Miles'],
+                  ['km+',  'kilometer+'],
+                  function(k) { return k * 0.6214; } ],
+                [ ['Miles', 'Kilometers'],
+                  ['mi',   'mile+'],
+                  function(m) { return m * 1.609; } ],
+                [ ['Meters', 'Feet'],
+                  ['mt+', 'meter+', 'metre+'],
+                  function(m) { return m * 3.281; } ],
+                [ ['Feet', 'Meters'],
+                  ['ft+', 'feet', 'foot', "'"],
+                  function(ft) { return ft * 0.3048; } ],
+                [ ['Inches', 'Centimeters'],
+                  ['in+', 'inch+', 'inches', '"'],
+                  function(i) { return i * 2.54; } ],
+                [ ['Centimeters', 'Inches'],
+                  ['cm+', 'centimeter+', 'centimetre+'],
+                  function(cm) { return cm * 0.3937; } ],
+                [ ['Kilograms', 'Pounds'],
+                  ['kg+', 'kilogram+'],
+                  function(k) { return kg * 2.205; } ],
+                [ ['Pounds', 'Kilograms'],
+                  ['lb+', 'pound+'],
+                  function(p) { return p * 0.4536; } ],
+                [ ['Grams', 'Ounces'],
+                  ['gr+', 'gram+'],
+                  function(g) { return g * 0.03527; } ],
+                [ ['Ounces', 'Grams'],
+                  ['oz+', 'ounce+'],
+                  function(o) { return o * 28.35; } ],
+                [ ['Gallons', 'Liters'],
+                  ['ga+', 'gal+', 'gallon+'],
+                  function(g) { return g * 4.546; } ],
+                [ ['Liters', 'Gallons'],
+                  ['lt+', 'ltr+', 'liter+', 'litre+'],
+                  function(l) { return l * 0.2642; } ]
+                
+                /*  
+                [ ['', ''],
+                  [''],
+                  function() { return ; } ]
+                */
+            ));
+
+            
+            (function() {
+                var inp = document.getElementById('input');
+                var regex = /^((?:[-+])?(?:\d+(?:\.\d*)?|\.\d+)) *([^0-9]+)/;
+                
+                inp.nextElementSibling.onclick = function() {
+                    var match = inp.value.match(regex), unit;
+                    console.log('clicked', inp.value, match);
+                    if(match && match.length == 3) {
+                        unit = match[2].trim().toLowerCase();
+                        if(ConversionMapper[unit]) {
+                            ConversionMapper[unit](parseFloat(match[1]));
+                        }
+                        inp.style.borderColor = '';
+                    
+                    }
+                    else {
+                        print('No Match');
+                        inp.style.borderColor = '#c00';
+                    }
+                    return false;
+                };
+            }());
+            
+        }());
+    </script>
+</body>
+</html>

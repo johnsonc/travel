@@ -1,168 +1,146 @@
 {% extends "travel/base.html" %}
 {% block subheader %}{{ block.super }}{% endblock subheader %}
 {% block travel_heading %}
-    {% if user.is_superuser %}
-    <a href="{{ place.get_edit_url }}" style="float:right">
-        <img src="{{ MEDIA_URL }}/img/icons/24/edit.png">
-    </a>
+    {% if place.flag %}
+        <a class="pull-right" href="{{ place.flag.width_512.url }}">
+            <img style="box-shadow: 4px 4px 4px rgba(0,0,0,.25)" src="{{ place.flag.width_128.url }}"></a>
     {% endif %}
-    {{ place.name }}
+    
+    {{ place.name }} {% if user.is_superuser %}<a href="{{ place.get_edit_url }}">
+        <img src="{{ MEDIA_URL }}/img/icons/24/edit.png"></a>{% endif %}
 {% endblock %}
 {% block extra_head %}
-    <script type="text/javascript" src="{{ MEDIA_URL }}js/jquery-.js" charset="utf-8"></script>
-    <script type="text/javascript">
-        $(function() {
-            $("#tabs").tabs();
-            Travelogue.log_entry_prep();
-        });
-    </script>
+    <style type="text/css" media="screen">
+        .related-content { padding-left: 1em; }
+    </style>
 {% endblock extra_head %}
 {% block travel_content %}
-    <div id="tabs">
-        <ul>
-            <li><a href="#details-tab">Details</a></li>
-            <li><a href="#related-tab">Related</a></li>
-        </ul>
-        <div id="details-tab">{% block tab1 %}
-            {% if place.flag %}
-            <div style="position: relative">
-                <a style="position: absolute; right: 0" href="{{ place.flag.width_512.url }}">
-                    <img style="border: 1px solid #ddd;" src="{{ place.flag.width_128.url }}" />
-                </a>
-            </div>
-            <table class="item-details" style="padding-right: 128px">
-            {% else %}
-            <table class="item-details">
+    <dl class="dl-horizontal">
+        <dt>Official name</dt>
+        <dd>
+            {{ place.full_name }} |
+            <a class="external" href="{{ place.wikipedia_search_url }}">Wikipedia</a>
+        </dd>
+        
+        {% if place.capital %}
+        <dt>Capital</dt>
+        <dd>
+            <a href="{{ place.capital.get_absolute_url }}">{{ place.capital.name }}</a> |
+            <a class="mapit" href="{{ place.capital.google_maps_url }}">Map</a>
+        </dd>
+        {% endif %}
+
+        {% if place.country %}
+        <dt>Country</dt>
+        <dd>
+            <a href="{{ place.country.get_absolute_url }}">{{ place.country }}</a>
+        </dd>
+        {% endif %}
+        
+        {% with place.get_continent as continent %}
+        {% if continent %}
+        <dt>Continent</dt>
+        <dd>
+            <a href="{{ continent.get_absolute_url }}">{{ continent }}</a>
+        </dd>
+        {% endif %}
+        {% endwith %}
+        
+        {% if place.state %}
+        <dt>State</dt>
+        <dd>
+            <a href="{{ place.state.get_absolute_url }}">{{ place.state }}</a>
+        </dd>
+        {% endif %}
+        
+        {% if place.locality or place.lat %}
+        <dt>Location</dt>
+        <dd>
+            {% if place.locality %}{{ place.locality }}<br>{% endif %}
+            {% if place.lat and place.lon %}
+            <a class="latlon mapit" href="{{ place.google_maps_url }}">
+                {{ place.lat }}&deg; Lat, {{ place.lon }}&deg; Lon</a>
+            <span class="latlon"></span>
             {% endif %}
-                <tr>
-                    <th>Official name</th>
-                    <td>
-                        {{ place.full_name }} |
-                        <a class="external" href="{{ place.wikipedia_search_url }}">Wikipedia</a>
-                    </td>
-                </tr>
-                {% if place.capital %}
-                <tr>
-                    <th>Capital</th>
-                    <td>
-                        {% if place.capital %}
-                        <a href="{{ place.capital.get_absolute_url }}">{{ place.capital.name }}</a> |
-                        <a class="mapit" href="{{ place.capital.google_maps_url }}">Map</a>
-
-                        {% else %}<em>Unknown</em>{% endif %}
-                    </td>
-                </tr>
-                {% endif %}
-
-                {% if place.country %}
-                <tr>
-                    <th>Country</th>
-                    <td>
-                        <a href="{{ place.country.get_absolute_url }}">{{ place.country }}</a>
-                    </td>
-                </tr>
-                {% endif %}
-                
-                {% with place.get_continent as continent %}
-                {% if continent %}
-                <tr>
-                    <th>Continent</th>
-                    <td>
-                        <a href="{{ continent.get_absolute_url }}">{{ continent }}</a>
-                    </td>
-                </tr>
-                {% endif %}
-                {% endwith %}
-                
-                {% if place.state %}
-                <tr>
-                    <th>State</th>
-                    <td>
-                        <a href="{{ place.state.get_absolute_url }}">{{ place.state }}</a>
-                    </td>
-                </tr>
-                {% endif %}
-                
-                {% if place.locality or place.lat %}
-                <tr>
-                    <th>Location</th>
-                    <td>
-                        {% if place.locality %}{{ place.locality }}<br>{% endif %}
-                        {% if place.lat and place.lon %}
-                        <a class="latlon mapit" href="{{ place.google_maps_url }}">
-                            {{ place.lat }}&deg; Lat, {{ place.lon }}&deg; Lon</a>
-                        <span class="latlon"></span>
-                        {% endif %}
-                    </td>
-                </tr>
-                {% endif %}
-                
-                {% if place.code %}
-                <tr>
-                    <th>Code</th>
-                    <td>{{ place.code }}</td>
-                </tr>
-                {% endif %}
-                {% block extra_details %}{% endblock extra_details %}
-            </table>
-        {% endblock tab1 %}
-        </div>
-        <div id="related-tab">{% block tab2 %}
-                <ul class="related-content">{% for rel in place.related_entities %}
-                    <li>
-                        <a href="{% url travel-entity-relationships place.type.abbr place.code rel.abbr %}">
-                            <span>{{ rel.count }}</span> {{ rel.text }}</a>
-                    </li>{% empty %}
-                    <li><em>No related content available</em></li>
-                    {% endfor %}
-                </ul>{% endblock tab2 %}
-        </div>
-    </div>
+        </dd>
+        {% endif %}
+        
+        {% if place.code %}
+        <dt>Code</dt>
+        <dd>{{ place.code }}</dd>
+        {% endif %}
+        
+        {% with place.related_entities as related %}
+        {% if related %}
+        <dt>Related</dt>
+        <dd id="related">{% block related %}
+            <ul class="related-content">{% for rel in place.related_entities %}
+                <li>
+                    <a href="{% url travel-entity-relationships place.type.abbr place.code rel.abbr %}">
+                        <span>{{ rel.count }}</span> {{ rel.text }}</a>
+                </li>
+                {% endfor %}
+            </ul>{% endblock related %}
+        </dd>
+        {% endif %}
+        {% endwith %}
+    </dl>
     {% block detail_content %}{% endblock detail_content %}
     
     {% if user.is_authenticated %}
-    <h2>Your Travel Log</h2>
-    
     {% with history|length as count %}
-    <p>
-        You have <strong>{{ count }} entr{{ count|pluralize:"y,ies" }}</strong> 
-        for {{ place }} 
-    </p>
-    <h3>Add a log entry</h3>
-    {% include "travel/_log-entry-form.html" %}
+    
+    <h2>Your Travel Log <small><span class="label label-default">{{ count }} entr{{ count|pluralize:"y,ies" }}</span></small></h2>
+    
+    <div class="panel panel-default">
+        <div class="panel-heading">Add a log entry</div>
+        <div class="panel-body">
+            {% include "travel/_log-entry-form.html" %}
+        </div>
+    </div>
     
     {% if count %}
-    <h3>Previous Log Entries</h3>
-    <table class="">
-    <thead class="">
-        <tr>
-            <th>Arrival</th>
-            <th>Departure</th>
-            <th>Rating</th>
-            <th style="width:24px"></th>
-        </tr>
-    </thead>
-    <tbody> {% for entry in history %}
-        <tr class="{% cycle 'odd' 'even' as zebra %}">
-            <td>{{ entry.arrival|date:"D, j M y P" }}</td>
-            <td>{{ entry.departure|date:"D, j M y P" }}</td>
-            <td>{{ entry.get_rating_display }}</td>
-            <td>
-                <a title="Edit this log entry" href="{{ entry.get_absolute_url }}">
-                    <img src="{{ MEDIA_URL }}img/icons/24/edit.png"></a>
-            </td>
-        </tr>
-        {% if entry.notes %}
-        <tr class="{{ zebra }}">
-            <td colspan="4">
-                <blockquote>
-                {{ entry.notes.safe_html }}
-                </blockquote>
-            </td>
-        </tr>{% endif %} {% endfor %}
-    </tbody>
-    </table>
+    <div class="panel panel-default">
+        <div class="panel-heading">Previous Log Entries</div>
+        <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Rating</th>
+                <th>Edit?</th>
+            </tr>
+        </thead>
+        <tbody> {% for entry in history %}
+            <tr class="{% cycle 'odd' 'even' as zebra %}">
+                <td>{{ entry.arrival|date:"D, j M y" }}</td>
+                <td>{{ entry.arrival|date:"P" }}</td>
+                <td>{{ entry.get_rating_display }}</td>
+                <td>
+                    <a title="Edit this log entry" href="{{ entry.get_absolute_url }}">
+                        <img src="{{ MEDIA_URL }}img/icons/24/edit.png"></a>
+                </td>
+            </tr>
+            {% if entry.notes %}
+            <tr class="{{ zebra }}">
+                <td colspan="4">
+                    <blockquote>
+                    {{ entry.notes.safe_html }}
+                    </blockquote>
+                </td>
+            </tr>{% endif %} {% endfor %}
+        </tbody>
+        </table>
+    </div>
     {% endif %}
+    
     {% endwith %}
     {% endif %}
 {% endblock travel_content %}
+{% block end_body %}
+    <script type="text/javascript">
+        $(function() {
+            Travelogue.log_entry_prep();
+        });
+    </script>
+{% endblock end_body %}

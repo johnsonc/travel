@@ -18,8 +18,7 @@
         <thead>
             <tr>
                 <th>Place</th>
-                <th class="thinner">Arrival</th>
-                <th class="thinner">Departure</th>
+                <th class="thinner">When</th>
                 <th>Rating</th>
                 <th>Notes</th>
             </tr>
@@ -29,7 +28,6 @@
             <tr class="{% cycle 'even' 'odd' as row  %}">
                 <td>{{ form.instance }}</td>
                 <td class="thinner">{{ form.arrival }}</td>
-                <td class="thinner">{{ form.departure }}</td>
                 <td>{{ form.rating }}</td>
                 <td>{{ form.note }}</td>
             </tr>

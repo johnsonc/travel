@@ -11,7 +11,7 @@ from jargon.utils.dates import parse as dtparse
 from jargon.apps.annotation.models import Markup
 
 from travel import models as travel
-from travel.utils import WikiFlagUtil
+from travel import utils
 
 #===============================================================================
 class DateUtilField(forms.Field):
@@ -68,21 +68,35 @@ class SearchForm(forms.Form):
         ('wh', 'World Heritage Site'),
     )
 
-    travel_search = SearchField(label='Search', required=False)
+    search = SearchField(label='Search', required=False)
     type = forms.ChoiceField(choices=TYPE_OPTIONS, required=False)
 
 
 #===============================================================================
+class WidgetAttrsMixin(object):
+    
+    #---------------------------------------------------------------------------
+    def widget_attrs(self, widget):
+        attrs = super(WidgetAttrsMixin, self).widget_attrs(widget)
+        attrs.update({'class' : 'form-control input-sm'})
+        return attrs
+
+
+#===============================================================================
+class TravelDateUtilField(WidgetAttrsMixin, DateUtilField): pass
+class TravelRating(WidgetAttrsMixin, forms.ChoiceField): pass
+class TravelNote(WidgetAttrsMixin, TextField): pass
+
+#===============================================================================
 class TravelLogForm(forms.ModelForm):
-    arrival = DateUtilField(required=False)
-    departure = DateUtilField(required=False)
-    rating = forms.ChoiceField(choices=travel.TravelLog.RATING_CHOICES, initial='3')
-    note = TextField(required=False)
+    arrival = TravelDateUtilField(required=False)
+    rating = TravelRating(choices=travel.TravelLog.RATING_CHOICES, initial='3')
+    note = TravelNote(required=False)
 
     #===========================================================================
     class Meta:
         model = travel.TravelLog
-        fields = ('arrival', 'departure', 'rating', 'note')
+        fields = ('arrival', 'rating', 'note')
     
     #---------------------------------------------------------------------------
     def __init__(self, *args, **kws):
@@ -114,14 +128,16 @@ class SupportForm(forms.Form):
 
 #===============================================================================
 class EntityForm(forms.ModelForm):
-    flag_data = forms.CharField(label="New Flag URL", required=False)
+    flag_data = forms.CharField(label='Flag URL', required=False)
     
     #===========================================================================
     class Meta:
         model = travel.Entity
         fields = (
+            'type',
             'name',
             'full_name',
+            'code',
             'lat',
             'lon',
             'locality',
@@ -131,21 +147,26 @@ class EntityForm(forms.ModelForm):
     #---------------------------------------------------------------------------
     def __init__(self, *args, **kws):
         super(EntityForm, self).__init__(*args, **kws)
-        if self.instance.type.abbr not in ('co', 'st'):
-            del self.fields['flag_data']
-            
+        if self.instance.id:
+            del self.fields['type']
+            if self.instance.type.abbr not in ('co', 'st'):
+                del self.fields['flag_data']
+        
     #---------------------------------------------------------------------------
     def clean_flag_data(self):
         url = self.cleaned_data.get('flag_data', None)
         if url:
             try:
-                return WikiFlagUtil.create(url, self.instance)
+                return url, utils.get_flags_by_size(url)
             except ValueError, why:
                 raise forms.ValidationError(why)
 
     #---------------------------------------------------------------------------
     def save(self):
-        super(EntityForm, self).save()
+        instance = super(EntityForm, self).save()
         flag_data = self.cleaned_data.get('flag_data')
         if flag_data:
-            flag_data.save()
+            url, sizes = flag_data
+            utils.create_flags(instance, url, sizes)
+            
+        return instance
