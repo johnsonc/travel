@@ -39,3 +39,4 @@ body {
 }
 
 tbody tr.even td { background-color: #f9f9f9; }
+img.flag { box-shadow: 1px 1px 4px rgba(0, 0, 0, 0.5); }
