@@ -363,7 +363,19 @@ class TravelLogManager(models.Manager):
              ORDER BY   most_recent_visit DESC''',
              [user.id]
         )
-        
+
+    #---------------------------------------------------------------------------
+    def recent_countries(self, user):
+        return self.raw(
+            '''SELECT   tl.*, MIN(tl.arrival) AS most_recent_visit
+                 FROM   `travel_travellog` tl
+           INNER JOIN   `travel_entity` e on tl.entity_id = e.id
+                WHERE   `user_id` = %s AND `e`.`type_id` = 2
+             GROUP BY   `entity_id`
+             ORDER BY   most_recent_visit DESC''',
+             [user.id]
+        )
+    
     #---------------------------------------------------------------------------
     def checklist(self, user):
         return dict(

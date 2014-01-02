@@ -6,33 +6,33 @@
     <form class="form-signin" action="" method="POST" accept-charset="utf-8">
         {% csrf_token %}
         {% if form.errors %}
-        <p class="error">
-            {% if form.non_field_errors %}
-            {{ form.non_field_errors|join:" " }}<br>
-            {% endif %}
+        <p class="text-danger">
             Please correct any errors to continue.
         </p>
         {% endif %}
+        {% if form.non_field_errors %}
+        <p class="text-danger">{{ form.non_field_errors|join:". " }}.</p>
+        {% endif %}
 
-        <input autofocus id="id_username" class="form-control" type="text" name="username" maxlength="30" placeholder="User Name">
         {% if form.username.errors %}
-        <span class="form-field-error">{{ form.username.errors.0 }}</span>
+        <span class="text-danger">{{ form.username.errors|join:". " }}</span>
         {% endif %}
+        <input autofocus id="id_username" class="form-control" type="text" name="username" maxlength="30" placeholder="User Name" value="{{ form.username.value }}">
 
-        <input id="id_email" class="form-control" type="email" name="email" maxlength="30" placeholder="Email">
-        {% if form.username.errors %}
-        <span class="form-field-error">{{ form.username.errors.0 }}</span>
+        {% if form.email.errors %}
+        <span class="text-danger">{{ form.email.errors|join:", " }}</span>
         {% endif %}
+        <input id="id_email" class="form-control" type="email" name="email" maxlength="30" placeholder="Email" value="{{ form.email.value }}">
 
-        <input type="password" name="password" class="form-control" id="id_password" placeholder="Password"> 
-        {% if form.password.errors %}
-        <span class="form-field-error">{{ form.password.errors.0 }}</span>
+        {% if form.password1.errors %}
+        <span class="text-danger">{{ form.password1.errors|join:". " }}</span>
         {% endif %}
+        <input type="password" name="password1" class="form-control" id="id_password1" placeholder="Password"> 
 
-        <input type="password" name="password2" class="form-control" id="id_password2" placeholder="Confirm Password"> 
         {% if form.password2.errors %}
-        <span class="form-field-error">{{ form.password2.errors.0 }}</span>
+        <span class="text-danger">{{ form.password2.errors|join:". " }}</span>
         {% endif %}
+        <input type="password" name="password2" class="form-control" id="id_password2" placeholder="Confirm Password"> 
 
         <p><button class="btn btn-primary btn-block" type="submit">Register</button></p>
     </form>
