@@ -17,12 +17,12 @@
         {% if form.username.errors %}
         <span class="text-danger">{{ form.username.errors|join:". " }}</span>
         {% endif %}
-        <input autofocus id="id_username" class="form-control" type="text" name="username" maxlength="30" placeholder="User Name" value="{{ form.username.value }}">
+        <input autofocus id="id_username" class="form-control" type="text" name="username" maxlength="30" placeholder="User Name" value="{{ form.username.value|default:"" }}">
 
         {% if form.email.errors %}
         <span class="text-danger">{{ form.email.errors|join:", " }}</span>
         {% endif %}
-        <input id="id_email" class="form-control" type="email" name="email" maxlength="30" placeholder="Email" value="{{ form.email.value }}">
+        <input id="id_email" class="form-control" type="email" name="email" maxlength="30" placeholder="Email" value="{{ form.email.value|default:"" }}">
 
         {% if form.password1.errors %}
         <span class="text-danger">{{ form.password1.errors|join:". " }}</span>
