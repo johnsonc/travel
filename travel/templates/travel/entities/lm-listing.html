@@ -12,16 +12,14 @@
             <a href="{{ place.get_absolute_url }}">{{ place.name }}</a>
         </td>
         <td>{{ place.locality }}</td>
-        <td>
-            {% if place.state %}<a href="{{ place.state.get_absolute_url}}">
-                <img src="{{ place.state.flag.width_16.url }}" />
-                {{ place.state.name }}</a>
-            {% else %}Unknown
-            {% endif %}
+        <td>{% if place.state %}
+            <a href="{{ place.state.get_absolute_url}}">
+                <img class="flag" src="{{ place.state.flag.width_32.url }}" />
+                {{ place.state.name }}</a>{% endif %}
         </td>
         <td>
             <a href="{{ place.country.get_absolute_url }}">
-                <img src="{{ place.country.flag.width_16.url }}" />
+                <img src="{{ place.country.flag.width_32.url }}" />
                 {{ place.country.name }}</a>
         </td>
     </tr>

@@ -11,7 +11,7 @@
 <tbody>{% for place in results %}
     <tr>
         <td style="width:36px;height:36px">{% if place.flag %}
-            <img src="{{ place.flag.width_32.url }}" />{% endif %}
+            <img class="flag" src="{{ place.flag.width_32.url }}" />{% endif %}
         </td>
         <td>
             <a href="{{ place.get_absolute_url }}">{{ place.full_name }}</a>
@@ -24,7 +24,7 @@
                 {{ place.country }}</a>
         </td>
         <td>
-            <img src="{{ place.country.flag.width_32.url }}">
+            <img class="flag" src="{{ place.country.flag.width_32.url }}">
         </td>
         {% else %}<td colspan="2"></td>
         {% endif %}

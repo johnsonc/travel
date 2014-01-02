@@ -10,20 +10,20 @@
     {% for place in places %}
     <tr class="{% cycle 'odd' 'even' %}">
         <td>{% if place.flag %}
-            <img class="flag_icon" src="{{ place.flag.width_32.url }}" />
+            <img class="flag" src="{{ place.flag.width_32.url }}" />
         {% endif %}</td>
         <td>
             <a href="{{ place.get_absolute_url }}">
                 {% firstof place.name place.full_name %}</a>
         </td>
-        <td>{{ place.get_type_display }}</td>
+        <td>{{ place.type_detail }}</td>
         <td>
             <a href="{{ place.capital.get_absolute_url }}">
                 {{ place.capital.name }}</a>
         </td>
         <td>
             <a href="{{ place.country.get_absolute_url }}">
-                <img src="{{ place.country.flag.width_16.url }}" />
+                <img class="flag" src="{{ place.country.flag.width_16.url }}" />
                 {{ place.country.name }}</a>
         </td>
     </tr>

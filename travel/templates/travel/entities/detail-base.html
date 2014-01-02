@@ -3,7 +3,7 @@
 {% block travel_heading %}
     {% if place.flag %}
         <a class="pull-right" href="{{ place.flag.width_512.url }}">
-            <img style="box-shadow: 4px 4px 4px rgba(0,0,0,.25)" src="{{ place.flag.width_128.url }}"></a>
+            <img class="flag" src="{{ place.flag.width_128.url }}"></a>
     {% endif %}
     
     {{ place.name }} {% if user.is_superuser %}<a href="{{ place.get_edit_url }}">
@@ -19,7 +19,8 @@
         <dt>Official name</dt>
         <dd>
             {{ place.full_name }} |
-            <a class="external" href="{{ place.wikipedia_search_url }}">Wikipedia</a>
+            <a class="external" href="{{ place.external_url }}">{{ place.external_url_name }} <small class="glyphicon glyphicon-new-window"></small></a>
+            
         </dd>
         
         {% if place.capital %}
@@ -84,8 +85,10 @@
         </dd>
         {% endif %}
         {% endwith %}
+        
+        {% block extra_details %}{% endblock extra_details %}
     </dl>
-    {% block detail_content %}{% endblock detail_content %}
+    
     
     {% if user.is_authenticated %}
     {% with history|length as count %}

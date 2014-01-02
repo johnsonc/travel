@@ -150,9 +150,10 @@ def _entity_base(request, entity):
         form = None
         history = []
 
+    template = 'travel/entities/%s-detail.html' % entity.type.abbr
     return request_to_response(
         request,
-        ['travel/entities/%s-detail.html' % entity.type.abbr, 'travel/entities/detail-base.html'],
+        [template, 'travel/entities/detail-base.html'],
         {'place': entity, 'form': form, 'history': history}
     )
 

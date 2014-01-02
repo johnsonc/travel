@@ -11,13 +11,20 @@ from path import path
 from jargon.db.fields import ChoiceEnumeration
 from jargon.apps.annotation.models import Markup
 
-GOOGLE_MAPS       = 'http://maps.google.com/maps?q=%s'
-GOOGLE_MAPS_LL    = 'http://maps.google.com/maps?q=%s,+%s&iwloc=A&z=10'
-GOOGLE_SEARCH_URL = 'http://www.google.com/search?as_q=%s'
-WIKIPEDIA_URL     = 'http://en.wikipedia.org/wiki/Special:Search?search=%s&go=Go'
-BASE_FLAG_DIR     = path('img/flags')
-STAR              = mark_safe('&#9733;')
+GOOGLE_MAPS        = 'http://maps.google.com/maps?q=%s'
+GOOGLE_MAPS_LL     = 'http://maps.google.com/maps?q=%s,+%s&iwloc=A&z=10'
+GOOGLE_SEARCH_URL  = 'http://www.google.com/search?as_q=%s'
+WIKIPEDIA_URL      = 'http://en.wikipedia.org/wiki/Special:Search?search=%s&go=Go'
+WORLD_HERITAGE_URL = 'http://whc.unesco.org/en/list/%s'
 
+BASE_FLAG_DIR = path('img/flags')
+STAR          = mark_safe('&#9733;')
+
+_world_heritage_category = {
+    'C': 'Cultural',
+    'N': 'Natural',
+    'M': 'Mixed'
+}
 
 #-------------------------------------------------------------------------------
 def flag_upload(size):
@@ -230,6 +237,22 @@ class EntityManager(models.Manager):
         return self.filter(type__abbr='co')
 
 
+#-------------------------------------------------------------------------------
+def wikipedia_url(entity):
+    return WIKIPEDIA_URL % quote_plus(entity.full_name.encode('utf8'))
+
+
+#-------------------------------------------------------------------------------
+def world_heritage_url(entity):
+    return WORLD_HERITAGE_URL % entity.code
+
+
+_default_external_handler = ('Wikipedia', wikipedia_url)
+_external_url_handlers = {
+    'wh': ('UNESCO', world_heritage_url)
+}
+
+
 #===============================================================================
 class Entity(models.Model):
     old_id    = models.IntegerField(default=0)
@@ -298,12 +321,32 @@ class Entity(models.Model):
         return WIKIPEDIA_URL % quote_plus(self.full_name.encode('utf8'))
 
     #---------------------------------------------------------------------------
+    def _external_handler(self):
+        return _external_url_handlers.get(self.type.abbr, _default_external_handler)
+        
+    #---------------------------------------------------------------------------
+    def external_url(self):
+        handler = self._external_handler()[1]
+        return handler(self)
+
+    #---------------------------------------------------------------------------
+    def external_url_name(self):
+        return self._external_handler()[0]
+
+    #---------------------------------------------------------------------------
+    def category_detail(self):
+        if self.type.abbr == 'wh':
+            return _world_heritage_category[self.category]
+            
+        return self.category
+
+    #---------------------------------------------------------------------------
     def get_continent(self):
         if self.continent:
             return self.continent
         elif self.country:
             return self.country.continent
-            
+
     #---------------------------------------------------------------------------
     @property
     def type_detail(self):

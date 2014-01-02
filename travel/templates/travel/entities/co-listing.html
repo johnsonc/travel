@@ -12,7 +12,7 @@
     {% for place in places %}
     <tr>
         <td>{% if place.flag.width_32 %}
-            <img class="flag_icon" src="{{ place.flag.width_32.url }}" />
+            <img class="flag" src="{{ place.flag.width_32.url }}" />
         {% endif %}</td>
         <td>
             <a href="{{ place.get_absolute_url }}">{{ place.name }}</a><br>

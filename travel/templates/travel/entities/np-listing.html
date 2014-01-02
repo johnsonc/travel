@@ -12,7 +12,7 @@
         </td>
         <td>
             {% if place.state %}<a href="{{ place.state.get_absolute_url}}">
-                <img src="{{ place.state.flag.width_16.url }}" />
+                <img class="flag" src="{{ place.state.flag.width_32.url }}" />
                 {{ place.state.name }}
             </a>
             {% else %}Unknown
@@ -20,7 +20,7 @@
         </td>
         <td>
             <a href="{{ place.country.get_absolute_url }}">
-                <img src="{{ place.country.flag.width_16.url }}" />
+                <img src="{{ place.country.flag.width_32.url }}" />
                 {{ place.country.name }}</a>
         </td>
     </tr>
