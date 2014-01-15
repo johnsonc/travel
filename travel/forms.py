@@ -11,7 +11,7 @@ from jargon.utils.dates import parse as dtparse
 from jargon.apps.annotation.models import Markup
 
 from travel import models as travel
-from travel import utils
+
 
 #===============================================================================
 class DateUtilField(forms.Field):
@@ -155,7 +155,7 @@ class EntityForm(forms.ModelForm):
         url = self.cleaned_data.get('flag_data', None)
         if url:
             try:
-                return url, utils.get_flags_by_size(url)
+                return url, travel.Flag.objects.get_wiki_flags_by_size(url)
             except ValueError, why:
                 raise forms.ValidationError(why)
 
@@ -165,6 +165,6 @@ class EntityForm(forms.ModelForm):
         flag_data = self.cleaned_data.get('flag_data')
         if flag_data:
             url, sizes = flag_data
-            utils.create_flags(instance, url, sizes)
+            instance.update_flags(url, sizes)
             
         return instance

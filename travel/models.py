@@ -1,6 +1,8 @@
+import re
 from datetime import datetime
 from urllib import quote_plus
 
+from django.conf import settings
 from django.db import models, connection
 from django.contrib.auth.models import User
 from django.contrib.contenttypes import generic
@@ -36,6 +38,31 @@ def flag_upload(size):
 
 
 #===============================================================================
+class FlagManager(models.Manager):
+    
+    flag_url_re =  re.compile(r'(.*)/(\d+)px(.*)')
+
+    #---------------------------------------------------------------------------
+    def get_wiki_flags_by_size(self, url, sizes=None):
+        '''Typical url format:
+        
+        http://upload.wikimedia.org/wikipedia/commons/thumb/x/yz/Flag_of_XYZ.svg/120px-Flag_of_XYZ.svg.png'''
+        import requests
+
+        sizes = sizes or ('16', '32', '64', '128', '256', '512')
+        data = {}
+        for size in sizes:
+            size_url = self.flag_url_re.sub(r'\1/%spx\3' % size, url)
+            r = requests.get(size_url)
+            if r.status_code != 200:
+                raise ValueError('Status %s (%s)' % (r.status_code, size_url))
+
+            data[size] = r.content
+
+        return data
+
+
+#===============================================================================
 class Flag(models.Model):
     source = models.CharField(max_length=255)
     base_dir = models.CharField(max_length=8)
@@ -46,6 +73,38 @@ class Flag(models.Model):
     width_128 = models.ImageField(upload_to=flag_upload(128), null=True)
     width_256 = models.ImageField(upload_to=flag_upload(256), null=True)
     width_512 = models.ImageField(upload_to=flag_upload(512), null=True)
+
+    objects = FlagManager()
+    
+    #---------------------------------------------------------------------------
+    @property
+    def is_locked(self):
+        #HACK - fixme!
+        return False if (self.base_dir or self.ref) else True
+    
+    #---------------------------------------------------------------------------
+    def set_flags(self, url, base, ref, sizes):
+        base_dir    = path(base)
+        ref         = ref.lower()
+        static_root = path(settings.STATIC_ROOT)
+        parent_dir  = path(BASE_FLAG_DIR) / base_dir / ref
+        abs_dir     = static_root / parent_dir
+        path_fmt    = parent_dir / ('%s-%%s.png' % (ref,))
+
+        if not abs_dir.exists():
+            abs_dir.makedirs()
+        
+        self.source   = url
+        self.base_dir = base_dir
+        self.ref      = ref
+        for size, bytes in sizes.iteritems():
+            flag_path = path_fmt % size
+            setattr(self, 'width_%s' % size, flag_path)
+            with open(static_root / flag_path, 'wb') as fp:
+                fp.write(bytes)
+
+        self.save()
+
 
 
 #===============================================================================
@@ -372,8 +431,20 @@ class Entity(models.Model):
         elif abbr == 'st' and self.country:
             return 'st/%s' % (self.country.code.lower(), )
         return ''
-        
     
+    #---------------------------------------------------------------------------
+    def update_flags(self, flag_url, sizes=None):
+        if self.flag and not self.flag.is_locked:
+            flag = self.flag
+        else:
+            flag = Flag()
+
+        data = Flag.objects.get_wiki_flags_by_size(flag_url, sizes=sizes)
+        flag.set_flags(flag_url, self.flag_dir, self.code, data)
+        self.flag = flag
+        self.save()
+        return flag
+
     #---------------------------------------------------------------------------
     @property
     def lower(self):
