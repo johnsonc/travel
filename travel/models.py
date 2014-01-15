@@ -8,6 +8,7 @@ from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 
 from path import path
+from jargon.json import dumps as json_dumps
 from jargon.db.fields import ChoiceEnumeration
 from jargon.apps.annotation.models import Markup
 
@@ -95,23 +96,6 @@ class ToDoList(models.Model):
         return u'%s' % self.title
 
 
-STATE        = 'S'
-PROVINCE     = 'P'
-DISTRICT     = 'D'
-TERRITORY    = 'T'
-COMMONWEALTH = 'W'
-COUNTY       = 'C'
-REGION       = 'R'
-
-STATE_OPTS_DICT = {
-    STATE:        _('State'),
-    PROVINCE:     _('Province'),
-    DISTRICT:     _('District'),
-    TERRITORY:    _('Territory'),
-    COMMONWEALTH: _('Commonwealth'),
-    COUNTY:       _('County'),
-    REGION:       _('Region'),
-}
 
 EXTRA_INFO = { 'ap': 'IATA'}
 
@@ -153,7 +137,11 @@ class Profile(models.Model):
     #---------------------------------------------------------------------------
     def history(self):
         return TravelLog.objects.history(self.user)
-        
+    
+    #---------------------------------------------------------------------------
+    def history_json(self):
+        return TravelLog.objects.history_json(self.user)
+    
     #---------------------------------------------------------------------------
     def history_details(self):
         history = list(self.history())
@@ -255,6 +243,17 @@ _external_url_handlers = {
 
 #===============================================================================
 class Entity(models.Model):
+    
+    #===========================================================================
+    class Subnational(ChoiceEnumeration):
+        STATE        = ChoiceEnumeration.Option('S', 'State', default=True)
+        PROVINCE     = ChoiceEnumeration.Option('P', 'Province')
+        DISTRICT     = ChoiceEnumeration.Option('D', 'District')
+        TERRITORY    = ChoiceEnumeration.Option('T', 'Territory')
+        COMMONWEALTH = ChoiceEnumeration.Option('W', 'Commonwealth')
+        COUNTY       = ChoiceEnumeration.Option('C', 'County')
+        REGION       = ChoiceEnumeration.Option('R', 'Region')
+
     old_id    = models.IntegerField(default=0)
     type      = models.ForeignKey(EntityType)
     code      = models.CharField(max_length=6, db_index=True)
@@ -351,7 +350,7 @@ class Entity(models.Model):
     @property
     def type_detail(self):
         if self.type.abbr == 'st':
-            return STATE_OPTS_DICT.get(self.category, self.type.title)
+            return Entity.Subnational.CHOICES_DICT.get(self.category, self.type.title)
             
         return self.type.title
     
@@ -368,10 +367,10 @@ class Entity(models.Model):
     @property
     def flag_dir(self):
         abbr = self.type.abbr
-        if abbr == 'co':
-            return '%s' % (self.type.abbr,)
+        if abbr == 'co' or abbr == 'ct':
+            return abbr
         elif abbr == 'st' and self.country:
-            return '%s/%s' % (self.type.abbr, self.country.code.lower())
+            return 'st/%s' % (self.country.code.lower(), )
         return ''
         
     
@@ -405,6 +404,39 @@ class TravelLogManager(models.Manager):
              GROUP BY   `entity_id`
              ORDER BY   most_recent_visit DESC''',
              [user.id]
+        )
+    
+    #---------------------------------------------------------------------------
+    def history_json(self, user):
+        cursor = connection.cursor()
+        cursor.execute(
+            '''SELECT tl.id, 
+                      tl.entity_id,
+                      te.code,
+                      te.name,
+                      tej.name AS country_name,
+                      tej.code AS country_code,
+                      tl.rating AS rating, 
+                      MAX(tl.arrival) AS most_recent_visit,
+                      MIN(tl.arrival) AS first_visit,
+                      COUNT(tl.entity_id) AS num_visits,
+                      tet.abbr AS type_abbr,
+                      tet.title AS type_title,
+                      tf.width_32 AS flag_url
+                 FROM `travel_travellog` AS tl
+            LEFT JOIN `travel_entity` AS te ON tl.entity_id = te.id
+            LEFT JOIN `travel_entity` AS tej ON te.country_id = tej.id
+            LEFT JOIN `travel_entitytype` AS tet ON te.type_id = tet.id
+            LEFT JOIN `travel_flag` AS tf ON te.flag_id = tf.id 
+                WHERE `user_id` = %s
+             GROUP BY `entity_id`
+             ORDER BY most_recent_visit DESC''',
+             [user.id]
+        )
+
+        desc = cursor.description
+        return json_dumps(
+            [dict(zip([c[0] for c in desc], r)) for r in cursor.fetchall()]
         )
 
     #---------------------------------------------------------------------------

@@ -149,9 +149,7 @@ class EntityForm(forms.ModelForm):
         super(EntityForm, self).__init__(*args, **kws)
         if self.instance.id:
             del self.fields['type']
-            if self.instance.type.abbr not in ('co', 'st'):
-                del self.fields['flag_data']
-        
+    
     #---------------------------------------------------------------------------
     def clean_flag_data(self):
         url = self.cleaned_data.get('flag_data', None)

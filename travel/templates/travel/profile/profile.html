@@ -36,37 +36,19 @@
             <span id="id_count"></span>
         </div>
     </div>
-    <table class="table table-hover table-condensed">
+    <table id="history" class="table table-hover table-condensed table-striped">
         <thead>
-            <tr class="">
+            <tr>
                 <th></th>
-                <th>Type</th>
-                <th>Name</th>
-                <th>Recent Visit</th>
-                <th>First Visit</th>
-                <th>Logs</th>
-                <th>Rating</th>
+                <th class="col_type sort_desc">Type</th>
+                <th class="col_name sort_desc">Name</th>
+                <th class="col_recent sort_desc">Recent Visit</th>
+                <th class="col_first sort_desc">First Visit</th>
+                <th class="col_logs sort_desc">Logs</th>
+                <th class="col_rating sort_desc">Rating</th>
             </tr>
         </thead>
-        <tbody id="id_entries"> {% for visit in history %}{% with visit.entity as entity %}
-            <tr class="type-{{ entity.type.abbr }}{% if entity.country %} co-{{ entity.country.code}}{% endif %}" data-id="{{ entity.id }}">
-                <td>{% if entity.flag %}
-                    <img class="flag" src="{{ entity.flag.width_32.url }}" />{% endif %}
-                </td>
-                <td class="entitytype">{{ entity.type_detail }}</td>
-                <td><a href="{{ entity.get_absolute_url }}">{{ entity }}</a></td>
-                <td>
-                    <nobr>{{ visit.most_recent_visit|date:"M j, Y" }}</nobr><br />
-                    <nobr>{{ visit.most_recent_visit|date:"D, P" }}</nobr>
-                </td>
-                <td>
-                    <nobr>{{ visit.first_visit|date:"M j, Y" }}</nobr><br />
-                    <nobr>{{ visit.first_visit|date:"D, P" }}</nobr>
-                </td>
-                <td>{{ visit.num_visits}}</td>
-                <td class="rating">{{ visit.get_rating_display }}</td>
-            </tr>{% endwith %}{% endfor %}
-        </tbody>
+        <tbody></tbody>
     </table>
     {% endwith %}
     {% endwith %}
@@ -76,21 +58,14 @@
     </p>
     {% endif %}
 {% endblock travel_content %}
-{% block extra_body %}
+{% block end_body %}
     <script type="text/javascript" charset="utf-8">
-        var history = [{% for visit in profile.history_details.history %}{% with visit.entity as entity %}
-            {   'country_code': {% if entity.country %}'{{ entity.country.code}}'{% else %}null{% endif %},
-                'id': {{ entity.id }},
-                'flag': {% if entity.flag %}'{{ entity.flag.width_32.url }}'{% else %}null{% endif %},
-                'type': {'abbr': '{{ entity.type.abbr }}', 'title': '{{ entity.type_detail }}'},
-                'url': '{{ entity.get_absolute_url }}',
-                'name': '{{ entity }}',
-                'recent': new Date('{{ visit.most_recent_visit.isoformat }}'),
-                'first': new Date('{{ visit.first_visit.isoformat }}'),
-                'visits': '{{ visit.num_visits}}',
-                'rating': {{ visit.rating }}   }{% if not forloop.last %},{% endif %}{% endwith %}{% endfor %}
-        ];
-        Travelogue.init_profile_filter();
-        
+        (function() {
+            var profile_history = {{ profile.history_json|safe }};
+            Travelogue.initialize(
+                profile_history,
+                {'media_prefix': '{{ MEDIA_URL }}'}
+            );
+        })();
     </script>
-{% endblock extra_body %}
+{% endblock end_body %}

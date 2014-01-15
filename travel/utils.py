@@ -68,4 +68,4 @@ def get_flags_by_size(url, sizes=None):
 #-------------------------------------------------------------------------------
 def update_flags_for_entity(entity, url):
      data = get_flags_by_size(url)
-     create_flags(entity, data)
+     create_flags(entity, url, data)
