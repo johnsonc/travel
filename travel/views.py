@@ -89,15 +89,10 @@ def search(request):
     search_form = forms.SearchForm(request.GET)
     data        = {'search_form': search_form}
     if search_form.is_valid():
-        q                     = search_form.cleaned_data['search']
-        mtype                 = search_form.cleaned_data['type']
+        q               = search_form.cleaned_data['search']
+        mtype           = search_form.cleaned_data['type']
         data['results'] = travel.Entity.objects.search(q, mtype)
         data['search']  = q
-        data['checklist'] = (
-            travel.TravelLog.objects.checklist(request.user)
-            if request.user.is_authenticated()
-            else {}
-        )
 
     return request_to_response(request, 'travel/search/search.html', data)
 

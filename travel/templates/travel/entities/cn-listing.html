@@ -3,6 +3,7 @@
     <th>Name</th>
     <th>Official Name</th>
     <th>Abbreviation</th>
+    <th></th>
 {% endblock list_header %}
 {% block listing %}
     {% for place in places %}
@@ -10,6 +11,9 @@
         <td><a href="{{ place.get_absolute_url }}">{{ place.name }}</a></td>
         <td>{{ place.full_name }}</td>
         <td>{{ place.code }}</td>
+        <td>{% if place.id in checklist %}
+            <img src="{{ MEDIA_URL }}img/icons/32/accept.png">{% endif %}
+        </td>
     </tr>
     {% endfor %}
 {% endblock listing %}

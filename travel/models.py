@@ -282,6 +282,10 @@ class EntityManager(models.Manager):
     #---------------------------------------------------------------------------
     def countries(self):
         return self.filter(type__abbr='co')
+    
+    #---------------------------------------------------------------------------
+    def country_dict(self):
+        return dict([(e.code, e) for e in self.countries()])
 
 
 #-------------------------------------------------------------------------------
@@ -350,29 +354,28 @@ class Entity(models.Model):
         return self.name
     
     #---------------------------------------------------------------------------
-    def _permalink_url(self, name):
-        type_abbr = self.type.abbr
+    def _permalink_args(self):
         code = self.code or self.id
-        if type_abbr in ('st', 'wh'):
+        if self.type.abbr in ('st', 'wh'):
             code = (
                 '%s-%s' % (self.country.code, code)
                 if self.country
                 else code
             )
         
-        return (name, [type_abbr, code])
+        return [self.type.abbr, code]
         
     #---------------------------------------------------------------------------
     @models.permalink
     def get_absolute_url(self):
         # url(r'^i/(\w+)/(\w+)/(\w+)/(\w+)/$'
-        return self._permalink_url('travel-entity')
+        return ('travel-entity', self._permalink_args())
 
     #---------------------------------------------------------------------------
     @models.permalink
     def get_edit_url(self):
         # url(r'^edit/i/(\w+)/(\w+)/(\w+)/(\w+)/$'
-        return self._permalink_url('travel-entity-edit')
+        return ('travel-entity-edit', self._permalink_args())
     
     #---------------------------------------------------------------------------
     def wikipedia_search_url(self):

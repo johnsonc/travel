@@ -56,7 +56,7 @@
                             <li><a title="World Heritage sites of the world" href="{% url travel-by-locale 'wh' %}">World Heritage Sites</a>
                             <li class="divider"></li>
                             <li class="dropdown-header">More</li>
-                            <li><a href="{% url travel-todos %}">To-do lists</a></li>
+                            <li><a href="{% url travel-todos %}">Bucket lists</a></li>
                             <li><a href="{% url travel-profiles %}">Profiles</a></li>
                         </ul>
                     </li>
@@ -85,28 +85,9 @@
                     </li>
                 </ul>
                 {% endif %}
-                <!-- div id="subheader">
-                    <p>
-                        {% if user.is_authenticated %}
-                        <a href="{% url acct-logout %}">Log out, {{ user.username }}</a>
-                        <a href="{% url travel-profile user.username %}">My travelogue</a>
-                        {% else %}
-                        <a href="{% url acct-login %}?next={{ request.path }}">Log in</a>
-                        <a href="{% url registration-register %}">Register</a>
-                        {% endif %}
-                    </p>
-                    <p class="logo">
-                        <a id="travelogue" href="/">Free Travelogue</a>
-                    </p>
-                </div -->
-
-                
                 <form class="navbar-form navbar-right" role="search" action="{% url travel-search %}" method="get" accept-charset="utf-8">
                     <div class="form-group">
                         <input type="text" class="form-control input-sm" placeholder="Search" name="search">
-                        <!-- 
-                        {{ search_form.travel_search }}
-                        -->
                     </div>
                     <div class="form-group">
                         <select class="form-control input-sm" style="width: 6.5em" name="type">
@@ -120,29 +101,11 @@
                             <option value="cn">Continent</option>
                             <option value="wh">World Heritage Site</option>
                         </select>
-                        <!--
-                        {{ search_form.type }}
-                        -->
                     </div>
                     <button type="submit" class="btn btn-default btn-sm">
                         <span class="glyphicon glyphicon-search"></span>
                     </button>
                 </form>
-                <!-- div class="btn-group navbar-btn">
-                    <button type="button" class="btn btn-default">
-                        <a href="xxx"><span class="glyphicon glyphicon-user"></span> My Travelogue</a>
-                    </button>
-                    <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
-                        <span class="caret"></span>
-                    </button>
-                    <ul class="dropdown-menu" role="menu">
-                        <li><a href="#">Sign Out</a></li>
-                        <li><a href="#">Another action</a></li>
-                        <li><a href="#">Something else here</a></li>
-                        <li class="divider"></li>
-                        <li><a href="#">Separated link</a></li>
-                    </ul>
-                </div -->
             </div><!--/.nav-collapse -->
         </div>
     </div>
@@ -158,7 +121,6 @@
         <!-- travel_content -->
         {% block travel_content %}{% endblock travel_content %}
     </div> <!-- /container -->
-    
     {% block extra_body %}{% endblock extra_body %}
     <hr />
     <div class="container" id="footer">
@@ -172,10 +134,9 @@
         {% endblock %}
         </div>
         <div class="">
-            <span class="quiet">Copyright &copy; 2013 david krauth</span>
+            <span class="quiet">Copyright &copy; 2014 david krauth</span>
         </div>
     </div>
-    
     {% block google_analytics %}
     <script type="text/javascript">
         var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
@@ -189,8 +150,6 @@
         catch(err) {}
     </script>
     {% endblock %}
-    
-    <!-- Bootstrap core JavaScript -->
     <script src="{{ MEDIA_URL }}bootstrap/js/bootstrap.min.js"></script>
     {% block end_body %}{% endblock end_body %}
 </body>

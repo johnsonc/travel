@@ -3,6 +3,7 @@
     <th>Name</th>
     <th>State</th>
     <th>County</th>
+    <th></th>
 {% endblock list_header %}
 {% block listing %}
     {% for place in places %}
@@ -22,6 +23,9 @@
             <a href="{{ place.country.get_absolute_url }}">
                 <img src="{{ place.country.flag.width_32.url }}" />
                 {{ place.country.name }}</a>
+        </td>
+        <td>{% if place.id in checklist %}
+            <img src="{{ MEDIA_URL }}img/icons/32/accept.png">{% endif %}
         </td>
     </tr>
     {% endfor %}
