@@ -15,7 +15,7 @@
     </style>
 {% endblock extra_head %}
 {% block travel_content %}
-    <dl class="dl-horizontal">
+    <dl class="dl-horizontal entity-details">
         <dt>Official name</dt>
         <dd>
             {{ place.full_name }} |
@@ -115,7 +115,7 @@
             </tr>
         </thead>
         <tbody> {% for entry in history %}
-            <tr class="{% cycle 'odd' 'even' as zebra %}">
+            <tr>
                 <td>{{ entry.arrival|date:"D, j M y" }}</td>
                 <td>{{ entry.arrival|date:"P" }}</td>
                 <td>{{ entry.get_rating_display }}</td>
@@ -125,7 +125,7 @@
                 </td>
             </tr>
             {% if entry.notes %}
-            <tr class="{{ zebra }}">
+            <tr>
                 <td colspan="4">
                     <blockquote>
                     {{ entry.notes.safe_html }}
@@ -142,8 +142,5 @@
 {% endblock travel_content %}
 {% block end_body %}
     <script type="text/javascript">
-        $(function() {
-            Travelogue.log_entry_prep();
-        });
     </script>
 {% endblock end_body %}

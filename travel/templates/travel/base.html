@@ -117,14 +117,14 @@
             </ul>
         </div>
         {% endblock %}{% endif %}
-        <h1 class="">{% block travel_heading %}{% endblock %}</h1>
+        <h1>{% block travel_heading %}{% endblock %}</h1>
         <!-- travel_content -->
         {% block travel_content %}{% endblock travel_content %}
     </div> <!-- /container -->
     {% block extra_body %}{% endblock extra_body %}
     <hr />
     <div class="container" id="footer">
-        <div class="">
+        <div>
         {% block footer-details %}
             <ul>
                 <li><a title="About this site" class="quiet" href="{% url travel-about %}">About</a></li>
@@ -133,7 +133,7 @@
             </ul>
         {% endblock %}
         </div>
-        <div class="">
+        <div>
             <span class="quiet">Copyright &copy; 2014 david krauth</span>
         </div>
     </div>

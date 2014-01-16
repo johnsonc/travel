@@ -38,5 +38,9 @@ body {
     font-variant:  small-caps;
 }
 
+.entity-table tbody td {
+    height: 35px;
+}
 tbody tr.even td { background-color: #f9f9f9; }
 img.flag { box-shadow: 1px 1px 4px rgba(0, 0, 0, 0.5); }
+#id_note { height: 5em; }
