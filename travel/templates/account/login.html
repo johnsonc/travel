@@ -1,9 +1,10 @@
 {% extends "travel/base.html" %}
+{% load url from future %}
 {% block title %}Account Login{% endblock %}
 {% block travel_heading %}Account Login{% endblock travel_heading %}
 {% block travel_content %}
 {% with form as login_form %}
-    <form class="form-signin" action="{% url acct-login %}?next={{ next|default:"/" }}" method="POST" accept-charset="utf-8">
+    <form class="form-signin" action="{% url 'acct-login' %}?next={{ next|default:"/" }}" method="POST" accept-charset="utf-8">
         {% csrf_token %}
         {% if login_form.errors %}
         <p class="error">
@@ -26,7 +27,7 @@
             Remember Me
         </label>
         <p><button class="btn btn-primary btn-block" type="submit">Log in</button></p>
-        <p class="text-center"><em><a href="{% url password-reset %}">Forgot your password?</a></em></p>
+        <p class="text-center"><em><a href="{% url 'password-reset' %}">Forgot your password?</a></em></p>
     </form>
 {% endwith %}
 {% endblock %}

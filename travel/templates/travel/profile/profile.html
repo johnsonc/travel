@@ -2,8 +2,6 @@
 {% block travel_heading %}Travelogue for {{ profile.user.username }}{% endblock %}
 {% block travel_content %}
     {% if profile.is_public %}
-    {% with profile.history_details as history_details %}
-    {% with history_details.history as history %}
     <div class="form-inline">
         <div class="form-group">
             <label for="id_filter">Show</label>
@@ -25,12 +23,9 @@
             <label for="id_country">in</label>
         </div>
         <div class="form-group">
-            {% with history_details.countries as co_filter %}
             <select id="id_country" class="filter_ctrl form-control input-sm">
-                <option value="">-- All countries --</option> {% for co in co_filter %}
-                <option value="co-{{ co.1}}">{{ co.0 }}</option>{% endfor %}
+                <option value="">-- All countries --</option>
             </select>
-            {% endwith %}
         </div>
         <div class="form-group">
             <span id="id_count"></span>
@@ -50,8 +45,6 @@
         </thead>
         <tbody></tbody>
     </table>
-    {% endwith %}
-    {% endwith %}
     {% else %}
     <p>
         <strong>{{ profile.user.username }}</strong> has chosen not to share any travel information
@@ -59,6 +52,7 @@
     {% endif %}
 {% endblock travel_content %}
 {% block end_body %}
+    {% if profile.is_public %}
     <script type="text/javascript" charset="utf-8">
         (function() {
             var profile_history = {{ profile.history_json|safe }};
@@ -68,4 +62,5 @@
             );
         })();
     </script>
+    {% endif %}
 {% endblock end_body %}

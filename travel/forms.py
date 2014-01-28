@@ -129,12 +129,13 @@ class SupportForm(forms.Form):
 #===============================================================================
 class EntityForm(forms.ModelForm):
     flag_data = forms.CharField(label='Flag URL', required=False)
-    
+    country = forms.ModelChoiceField(queryset=travel.Entity.objects.countries())
+
     #===========================================================================
     class Meta:
         model = travel.Entity
         fields = (
-            'type',
+            'country',
             'name',
             'full_name',
             'code',
@@ -143,13 +144,7 @@ class EntityForm(forms.ModelForm):
             'locality',
             'flag_data'
         )
-        
-    #---------------------------------------------------------------------------
-    def __init__(self, *args, **kws):
-        super(EntityForm, self).__init__(*args, **kws)
-        if self.instance.id:
-            del self.fields['type']
-    
+
     #---------------------------------------------------------------------------
     def clean_flag_data(self):
         url = self.cleaned_data.get('flag_data', None)
@@ -160,11 +155,37 @@ class EntityForm(forms.ModelForm):
                 raise forms.ValidationError(why)
 
     #---------------------------------------------------------------------------
-    def save(self):
-        instance = super(EntityForm, self).save()
+    def _save_flag(self, instance):
         flag_data = self.cleaned_data.get('flag_data')
         if flag_data:
             url, sizes = flag_data
             instance.update_flags(url, sizes)
-            
+
+
+#===============================================================================
+class EditEntityForm(EntityForm):
+    
+    #---------------------------------------------------------------------------
+    def save(self):
+        instance = super(EditEntityForm, self).save()
+        self._save_flag(instance)
+        return instance
+
+
+#===============================================================================
+class NewEntityForm(EntityForm):
+    
+    #---------------------------------------------------------------------------
+    def __init__(self, entity_type, *args, **kws):
+        super(NewEntityForm, self).__init__(*args, **kws)
+        if entity_type.abbr == 'co':
+            del self.fields['country']
+        self.entity_type = entity_type
+    
+    #---------------------------------------------------------------------------
+    def save(self):
+        instance = super(NewEntityForm, self).save(commit=False)
+        instance.type = self.entity_type
+        instance.save()
+        self._save_flag(instance)
         return instance

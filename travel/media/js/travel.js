@@ -32,15 +32,32 @@
         media_prefix: '/media/',
         initialize: function(history, conf) {
             var media_prefix = conf.media_prefix || this.media_prefix;
+            var $co_opts = $('#id_country');
             this.filters = {'type': null, 'country_code': null};
+            this.countries = {};
             this.all_entities = _.map(history, function(e) {
+                // "rating": 3,             "entity_id": 1463,
+                // "code": "BUD",           "type_title": "Airport",
+                // "num_visits": 1,         "flag_url": "img/ap-32.png",
+                // "type_abbr": "ap",       "id": 276
+                // "country_code": "HU",    "country_name": "Hungary",
+                // "most_recent_visit": "2013-12-29 08:00:00",
+                // "first_visit": "2013-12-29 08:00:00",
+                // "name": "Budapest Ferenc Liszt International Airport",
                 e.entity_url = entity_url(e);
                 e.flag_url = e.flag_url ? media_prefix + e.flag_url: '';
                 e.most_recent_visit = new Date(e.most_recent_visit);
                 e.first_visit = new Date(e.first_visit);
                 e.html = make_entity_row(e);
+                if(e.country_code) {
+                    this.countries[e.country_code] = e.country_name;
+                }
                 return e;
             }, this);
+            
+            _.each(this.countries, function(value, key) {
+                $co_opts.append('<option value="co-' + key + '">' + value + '</option>');
+            });
             
             this.$el = $('#history');
             this.$el.find('thead th').click(sort_handler);

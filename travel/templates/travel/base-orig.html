@@ -29,11 +29,11 @@
 <div id="subheader" class="">
     <p>
         {% if user.is_authenticated %}
-        <a href="{% url acct-logout %}">Log out, {{ user.username }}</a>
-        <a href="{% url travel-profile user.username %}">My travelogue</a>
+        <a href="{% url 'acct-logout' %}">Log out, {{ user.username }}</a>
+        <a href="{% url 'travel-profile' user.username %}">My travelogue</a>
         {% else %}
-        <a href="{% url acct-login %}?next={{ request.path }}">Log in</a>
-        <a href="{% url registration-register %}">Register</a>
+        <a href="{% url 'acct-login' %}?next={{ request.path }}">Log in</a>
+        <a href="{% url 'registration-register' %}">Register</a>
         {% endif %}
     </p>
     <p class="logo">
@@ -63,7 +63,7 @@
     </div>
     <div class="" id="sidebar">
         <div class="box">
-            <form action="{% url travel-search %}" method="get" accept-charset="utf-8">
+            <form action="{% url 'travel-search' %}" method="get" accept-charset="utf-8">
                 <div>
                     <span class="text shortfield">{{ search_form.travel_search }}</span>
                 </div>
@@ -77,20 +77,20 @@
         <div class="box" >
             <h3 class="caps">Browse</h3>
             <ul title="Locations of the world">
-                <li><a title="Countries of the world" href="{% url travel-by-locale 'co' %}">Countries</a>
-                <li><a title="States, provinces, territories of the world" href="{% url travel-by-locale 'st' %}">States</a>
-                <li><a title="Cities of the world" href="{% url travel-by-locale 'ct' %}">Cities</a>
-                <li><a title="Airports of the world" href="{% url travel-by-locale 'ap' %}">Airports</a>
-                <li><a title="Nation parks of the world" href="{% url travel-by-locale 'np' %}">National Parks</a>
-                <li><a title="Landmarks of the world" href="{% url travel-by-locale 'lm' %}">Landmarks</a>
-                <li><a title="Continents of the world" href="{% url travel-by-locale 'cn' %}">Continents</a>
-                <li><a title="World Heritage sites of the world" href="{% url travel-by-locale 'wh' %}">World Heritage Sites</a>
+                <li><a title="Countries of the world" href="{% url 'travel-by-locale' 'co' %}">Countries</a>
+                <li><a title="States, provinces, territories of the world" href="{% url 'travel-by-locale' 'st' %}">States</a>
+                <li><a title="Cities of the world" href="{% url 'travel-by-locale' 'ct' %}">Cities</a>
+                <li><a title="Airports of the world" href="{% url 'travel-by-locale' 'ap' %}">Airports</a>
+                <li><a title="Nation parks of the world" href="{% url 'travel-by-locale' 'np' %}">National Parks</a>
+                <li><a title="Landmarks of the world" href="{% url 'travel-by-locale' 'lm' %}">Landmarks</a>
+                <li><a title="Continents of the world" href="{% url 'travel-by-locale' 'cn' %}">Continents</a>
+                <li><a title="World Heritage sites of the world" href="{% url 'travel-by-locale' 'wh' %}">World Heritage Sites</a>
             </ul>    
 
             <hr />
             <ul>
-                <li><a href="{% url travel-todos %}">To-do lists</a></li>
-                <li><a href="{% url travel-profiles %}">Profiles</a></li>
+                <li><a href="{% url 'travel-todos' %}">To-do lists</a></li>
+                <li><a href="{% url 'travel-profiles' %}">Profiles</a></li>
             </ul>
         </div>
     </div>
@@ -101,9 +101,9 @@
     <div class="">
     {% block footer-details %}
         <ul>
-            <li><a title="About this site" class="quiet" href="{% url travel-about %}">About</a></li>
-            <li><a title="Member request form" class="quiet" href="{% url travel-request %}">Submit a request</a></li>
-            <li><a title="Member problem form" class="quiet" href="{% url travel-problem %}">Report a problem</a></li>
+            <li><a title="About this site" class="quiet" href="{% url 'travel-about' %}">About</a></li>
+            <li><a title="Member request form" class="quiet" href="{% url 'travel-request' %}">Submit a request</a></li>
+            <li><a title="Member problem form" class="quiet" href="{% url 'travel-problem' %}">Report a problem</a></li>
         </ul>
     {% endblock %}
     </div>

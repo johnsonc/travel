@@ -5,20 +5,20 @@
     <table class="table table-hover table-striped table-condensed">
     <thead>
         <tr class="">
+            <th></th>
             <th>Bucket</th>
             <th>Description</th>
             <th>Entries</th>
-            <td>Updated</td>
         </tr>
     </thead>
     <tbody>{% for todo in todos  %}
         <tr>
+            <td><span class="glyphicon glyphicon-{{ todo.is_public|yesno:"globe,user" }}"></span></td>
             <td><a href="{{ todo.get_absolute_url }}">{{ todo }}</a></td>
             <td>
                 {{ todo.description }}{% if todo.is_private %}<sup>*</sup>{% endif %}
             </td>
             <td>{{ todo.entities.count }}</td>
-            <td>{{ todo.last_update }}</td>
         </tr>
         {% endfor %}
     </tbody>

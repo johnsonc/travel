@@ -5,6 +5,7 @@ from django.core.urlresolvers import reverse
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import login_required
 
+from jargon.decorators import superuser_required
 from jargon.shortcuts import request_to_response
 from travel import models as travel
 from travel import forms
@@ -98,27 +99,24 @@ def search(request):
 
 
 #-------------------------------------------------------------------------------
+@login_required
 def search_advanced(request):
     'travel-search-advanced'
     data = {'results': [], 'search': ''}
-    if request.method == 'POST':
-        search = request.POST.get('search').strip()
-        if search:
-            lines = [line.strip() for line in search.splitlines()]
-            data['search'] = '\n'.join(lines)
-            q = models.Q()
-            for term in lines:
-                print term
-                q |= (
-                    models.Q(name__icontains=term)      |
-                    models.Q(full_name__icontains=term) |
-                    models.Q(locality__icontains=term)  |
-                    models.Q(code__iexact=term)
-                )
-                
-            qs = travel.Entity.objects.filter(q)
-            print qs.count()
-            data['results'] = qs
+    search = request.GET.get('search', '').strip()
+    if search:
+        lines = [line.strip() for line in search.splitlines()]
+        data['search'] = '\n'.join(lines)
+        q = models.Q()
+        for term in lines:
+            q |= (
+                models.Q(name__icontains=term)      |
+                models.Q(full_name__icontains=term) |
+                models.Q(locality__icontains=term)  |
+                models.Q(code__iexact=term)
+            )
+            
+        data['results'] = travel.Entity.objects.filter(q)
         
     return request_to_response(request, 'travel/search/advanced.html', data)
     
@@ -249,17 +247,30 @@ def log_entry(request, username, pk):
 
 
 #-------------------------------------------------------------------------------
-@login_required
-def add_entity(request):
-    if not request.user.is_superuser:
-        return http.HttpResponseForbidden()
+@superuser_required
+def start_add_entity(request):
+    entity_types = travel.EntityType.objects.exclude(abbr='cn')
+    return request_to_response(
+        request,
+        'travel/entities/add.html',
+        {'types': entity_types, 'state': 'start'}
+    )
     
+
+#-------------------------------------------------------------------------------
+@superuser_required
+def add_entity(request, type_abbr):
+    entity_type = get_object_or_404(travel.EntityType, abbr=type_abbr)
     if request.method == 'POST':
-        form = forms.EntityForm(request.POST)
+        form = forms.NewEntityForm(entity_type, request.POST)
         if form.is_valid():
             entity = form.save()
             return http.HttpResponseRedirect(entity.get_absolute_url())
     else:
-        form = forms.EntityForm()
+        form = forms.NewEntityForm(entity_type)
         
-    return request_to_response(request, 'travel/entities/add.html', {'form': form})
+    return request_to_response(
+        request,
+        'travel/entities/add.html',
+        {'form': form, 'state': 'add', 'entity_type': entity_type}
+    )

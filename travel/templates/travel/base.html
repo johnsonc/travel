@@ -1,3 +1,4 @@
+{% load url from future %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -46,18 +47,18 @@
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown">
                             <span class="glyphicon glyphicon-globe"></span> Browse <b class="caret"></b></a>
                         <ul class="dropdown-menu">
-                            <li><a title="Countries of the world" href="{% url travel-by-locale 'co' %}">Countries</a>
-                            <li><a title="States, provinces, territories of the world" href="{% url travel-by-locale 'st' %}">States</a>
-                            <li><a title="Cities of the world" href="{% url travel-by-locale 'ct' %}">Cities</a>
-                            <li><a title="Airports of the world" href="{% url travel-by-locale 'ap' %}">Airports</a>
-                            <li><a title="Nation parks of the world" href="{% url travel-by-locale 'np' %}">National Parks</a>
-                            <li><a title="Landmarks of the world" href="{% url travel-by-locale 'lm' %}">Landmarks</a>
-                            <li><a title="Continents of the world" href="{% url travel-by-locale 'cn' %}">Continents</a>
-                            <li><a title="World Heritage sites of the world" href="{% url travel-by-locale 'wh' %}">World Heritage Sites</a>
+                            <li><a title="Countries of the world" href="{% url 'travel-by-locale' 'co' %}">Countries</a>
+                            <li><a title="States, provinces, territories of the world" href="{% url 'travel-by-locale' 'st' %}">States</a>
+                            <li><a title="Cities of the world" href="{% url 'travel-by-locale' 'ct' %}">Cities</a>
+                            <li><a title="Airports of the world" href="{% url 'travel-by-locale' 'ap' %}">Airports</a>
+                            <li><a title="Nation parks of the world" href="{% url 'travel-by-locale' 'np' %}">National Parks</a>
+                            <li><a title="Landmarks of the world" href="{% url 'travel-by-locale' 'lm' %}">Landmarks</a>
+                            <li><a title="Continents of the world" href="{% url 'travel-by-locale' 'cn' %}">Continents</a>
+                            <li><a title="World Heritage sites of the world" href="{% url 'travel-by-locale' 'wh' %}">World Heritage Sites</a>
                             <li class="divider"></li>
                             <li class="dropdown-header">More</li>
-                            <li><a href="{% url travel-todos %}">Bucket lists</a></li>
-                            <li><a href="{% url travel-profiles %}">Profiles</a></li>
+                            <li><a href="{% url 'travel-todos' %}">Bucket lists</a></li>
+                            <li><a href="{% url 'travel-profiles' %}">Profiles</a></li>
                         </ul>
                     </li>
                 </ul>
@@ -65,11 +66,16 @@
                 <ul class="nav navbar-nav navbar-left">
                     <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown">
-                            <span class="glyphicon glyphicon-user"></span> david<b class="caret"></b></a>
+                            <span class="glyphicon glyphicon-user"></span>{{ user.username }}<b class="caret"></b></a>
                         <ul class="dropdown-menu">
-                            <li><a href="{% url travel-profile user.username %}">My Travelogue</a></li>
+                            <li><a href="{% url 'travel-search-advanced' %}">Advanced Search</a></li>
+                            <li><a href="{% url 'travel-profile' user.username %}">My Travelogue</a></li>
+                            {% if user.is_superuser %}
                             <li class="divider"></li>
-                            <li><a href="{% url acct-logout %}">Sign Out</a></li>
+                            <li><a href="{% url 'travel-entity-start-add' %}">New Entity</a></li>
+                            {% endif %}
+                            <li class="divider"></li>
+                            <li><a href="{% url 'acct-logout' %}">Sign Out</a></li>
                         </ul>
                     </li>
                 </ul>
@@ -79,13 +85,13 @@
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown">
                             <span class="glyphicon glyphicon-lock"></span> Account <b class="caret"></b></a>
                         <ul class="dropdown-menu">
-                            <li><a href="{% url acct-login %}?next={{ request.path }}">Log in</a></li>
-                            <li><a href="{% url registration-register %}">Register</a></li>
+                            <li><a href="{% url 'acct-login' %}?next={{ request.path }}">Log in</a></li>
+                            <li><a href="{% url 'registration-register' %}">Register</a></li>
                         </ul>
                     </li>
                 </ul>
                 {% endif %}
-                <form class="navbar-form navbar-right" role="search" action="{% url travel-search %}" method="get" accept-charset="utf-8">
+                <form class="navbar-form navbar-right" role="search" action="{% url 'travel-search' %}" method="get" accept-charset="utf-8">
                     <div class="form-group">
                         <input type="text" class="form-control input-sm" placeholder="Search" name="search">
                     </div>
@@ -109,7 +115,8 @@
             </div><!--/.nav-collapse -->
         </div>
     </div>
-    <div class="container">
+    <div class="container travel-body">
+        {% block travel_image %}{% endblock travel_image %}
         {% if messages %}{% block user_messages %}
         <div class="user-messages">
             <ul> {% for message in messages %}
@@ -127,9 +134,9 @@
         <div>
         {% block footer-details %}
             <ul>
-                <li><a title="About this site" class="quiet" href="{% url travel-about %}">About</a></li>
-                <li><a title="Member request form" class="quiet" href="{% url travel-request %}">Submit a request</a></li>
-                <li><a title="Member problem form" class="quiet" href="{% url travel-problem %}">Report a problem</a></li>
+                <li><a title="About this site" class="quiet" href="{% url 'travel-about' %}">About</a></li>
+                <li><a title="Member request form" class="quiet" href="{% url 'travel-request' %}">Submit a request</a></li>
+                <li><a title="Member problem form" class="quiet" href="{% url 'travel-problem' %}">Report a problem</a></li>
             </ul>
         {% endblock %}
         </div>
