@@ -31,8 +31,6 @@ class EntityAdmin(admin.ModelAdmin):
         'code',
         'name',
         'category',
-        'locality',
-        'flag',
         'capital',
         'state',
         'country',
@@ -42,7 +40,6 @@ class EntityAdmin(admin.ModelAdmin):
     # exclude             = ('',)
     # filter_horizontal   = ('',)
     # inlines             = (,)
-    # list_filter         = ('',)
     # list_per_page       = 100
     # list_select_related = False
     # ordering            = ('',)
@@ -77,12 +74,7 @@ class FlagAdmin(admin.ModelAdmin):
         'source',
         'base_dir',
         'ref',
-        'width_16',
         'width_32',
-        'width_64',
-        'width_128',
-        'width_256',
-        'width_512',
     )
     
     # exclude             = ('',)
