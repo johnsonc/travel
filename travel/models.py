@@ -10,7 +10,7 @@ from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 
 from path import path
-from jargon.json import dumps as json_dumps
+from jargon.utils.json_utils import dumps as json_dumps
 from jargon.db.fields import ChoiceEnumeration
 from jargon.apps.annotation.models import Markup
 
@@ -491,8 +491,8 @@ class TravelLogManager(models.Manager):
                       tej.name AS country_name,
                       tej.code AS country_code,
                       tl.rating AS rating, 
-                      MAX(tl.arrival) AS most_recent_visit,
-                      MIN(tl.arrival) AS first_visit,
+                      UNIX_TIMESTAMP(MAX(tl.arrival)) * 1000 AS most_recent_visit,
+                      UNIX_TIMESTAMP(MIN(tl.arrival)) * 1000 AS first_visit,
                       COUNT(tl.entity_id) AS num_visits,
                       tet.abbr AS type_abbr,
                       tet.title AS type_title,

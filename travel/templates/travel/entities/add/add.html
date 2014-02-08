@@ -1,19 +1,23 @@
 {% extends "travel/base.html" %}
-{% block subheader %}{{ block.super }}{% endblock subheader %}
+{% load url from future %}
 {% block travel_heading %}{{ place.name }}{% endblock %}
 {% block extra_head %}
     <style type="text/css" media="screen">
         form table th { text-align: right; width: 20%; }
-        form table td { width: 80%; }
+        form table td { width: 80%;}
         form table td input[type=text] { width: 100%; }
-        #id_lat, #id_lon { width: 5em; }
+        #id_lat, #id_lon { width: 5em;  text-align: right; }
     </style>
 {% endblock extra_head %}
 {% block travel_content %}
-    <p>
-        <img style="border: 1px solid #ddd;" src="{{ place.flag.width_128.url }}">
-    </p>
     {% if user.is_superuser %}
+    {% if state == 'start' %}
+    <h2>Add New Entity</h2>
+    <ul>{% for type in types %}
+        <li><a href="{% url 'travel-entity-add' type.abbr %}">{{ type }}</a></li>
+    {% endfor %}</ul>
+    {% else %}
+    <h2>Add New {{ entity_type }}</h2>
     <form method="post">
         <table>
             <tbody>
@@ -21,11 +25,13 @@
             </tbody>
             <tfoot>
                 <tr>
-                    <td colspan="2" class="center"><input type="submit" value="Save"></td>
+                    <th></th>
+                    <td><button class="btn btn-primary btn-sm" type="submit">Save</button></td>
                 </tr>
                 
             </tfoot>
         </table>
     </form>
+    {% endif %}
     {% endif %}
 {% endblock travel_content %}

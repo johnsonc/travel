@@ -136,5 +136,5 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         loader = EntityLoader()
         for arg in args:
-            loader.process_file(arg)
+            loader.process_entity_file(arg)
         

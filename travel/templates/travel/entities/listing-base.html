@@ -1,6 +1,5 @@
 {% extends "travel/base.html" %}
 {% block title %}{{ single_label}} Listing{% endblock title %}
-{% block subheader %}{{ block.super }} {# <span id="subheader-descr">Listing</span> #}{% endblock subheader %}
 {% block travel_heading %}{{ type }} listing
     {% if parent %}for <a href="{{ parent.get_absolute_url }}">
         <span class="flag-bg" style="background: url({{ parent.flag.width_32.url }}) no-repeat right center; padding-right: 36px">{{ parent }}</span></a>

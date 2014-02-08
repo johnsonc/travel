@@ -1,19 +1,22 @@
 {% extends "travel/base.html" %}
-{% block subheader %}{{ block.super }}{% endblock subheader %}
-{% block travel_heading %}
-    {% if place.flag %}
-        <a class="pull-right" href="{{ place.flag.width_512.url }}">
-            <img class="flag" src="{{ place.flag.width_128.url }}"></a>
-    {% endif %}
-    
-    {{ place.name }} {% if user.is_superuser %}<a href="{{ place.get_edit_url }}">
-        <img src="{{ MEDIA_URL }}/img/icons/24/edit.png"></a>{% endif %}
-{% endblock %}
+{% load url from future %}
 {% block extra_head %}
     <style type="text/css" media="screen">
         .related-content { padding-left: 1em; }
+        .travel-body { position: relative; }
+        .travel-body > a.travel-image { position: absolute; top: 20px; right: 20px; }
+        .travel-body > h1, .travel-body > .entity-details { margin-right: 128px; }
     </style>
 {% endblock extra_head %}
+{% block travel_image %}
+{% if place.flag %}
+<a class="pull-right travel-image" href="{{ place.flag.width_512.url }}">
+    <img class="flag" src="{{ place.flag.width_128.url }}"></a>
+{% endif %}
+{% endblock travel_image %}
+{% block travel_heading %}
+    {{ place.name }}&nbsp;{% if user.is_superuser %}<a href="{{ place.get_edit_url }}"><img src="{{ MEDIA_URL }}/img/icons/24/edit.png"></a>{% endif %}
+{% endblock %}
 {% block travel_content %}
     <dl class="dl-horizontal entity-details">
         <dt>Official name</dt>
@@ -77,7 +80,7 @@
         <dd id="related">{% block related %}
             <ul class="related-content">{% for rel in place.related_entities %}
                 <li>
-                    <a href="{% url travel-entity-relationships place.type.abbr place.code rel.abbr %}">
+                    <a href="{% url 'travel-entity-relationships' place.type.abbr place.code rel.abbr %}">
                         <span>{{ rel.count }}</span> {{ rel.text }}</a>
                 </li>
                 {% endfor %}

@@ -11,6 +11,7 @@ from jargon.utils.dates import parse as dtparse
 from jargon.apps.annotation.models import Markup
 
 from travel import models as travel
+from travel import utils as travel_utils
 
 
 #===============================================================================
@@ -127,14 +128,47 @@ class SupportForm(forms.Form):
 
 
 #===============================================================================
-class EntityForm(forms.ModelForm):
-    flag_data = forms.CharField(label='Flag URL', required=False)
+class LatLonField(forms.CharField):
     
+    #---------------------------------------------------------------------------
+    def clean(self, value):
+        value = super(LatLonField, self).clean(value)
+        if value:
+            try:
+                return travel_utils.parse_latlon(value)
+            except ValueError:
+                raise forms.ValidationError('Unable to parse lat/lon')
+
+
+#===============================================================================
+class FlagField(forms.CharField):
+    
+    #---------------------------------------------------------------------------
+    def clean(self, value):
+        url = super(FlagField, self).clean(value)
+        if url:
+            try:
+                return url, travel.Flag.objects.get_wiki_flags_by_size(url)
+            except ValueError, why:
+                raise forms.ValidationError(why)
+
+
+#-------------------------------------------------------------------------------
+def _save_flag(instance, flag_data):
+    if flag_data:
+        instance.update_flags(*flag_data)
+
+
+#===============================================================================
+class EditEntityForm(forms.ModelForm):
+    flag_data = FlagField(label='Flag URL', required=False)
+    country = forms.ModelChoiceField(queryset=travel.Entity.objects.countries())
+
     #===========================================================================
     class Meta:
         model = travel.Entity
         fields = (
-            'type',
+            'country',
             'name',
             'full_name',
             'code',
@@ -143,28 +177,66 @@ class EntityForm(forms.ModelForm):
             'locality',
             'flag_data'
         )
-        
-    #---------------------------------------------------------------------------
-    def __init__(self, *args, **kws):
-        super(EntityForm, self).__init__(*args, **kws)
-        if self.instance.id:
-            del self.fields['type']
-    
-    #---------------------------------------------------------------------------
-    def clean_flag_data(self):
-        url = self.cleaned_data.get('flag_data', None)
-        if url:
-            try:
-                return url, travel.Flag.objects.get_wiki_flags_by_size(url)
-            except ValueError, why:
-                raise forms.ValidationError(why)
 
     #---------------------------------------------------------------------------
     def save(self):
-        instance = super(EntityForm, self).save()
-        flag_data = self.cleaned_data.get('flag_data')
-        if flag_data:
-            url, sizes = flag_data
-            instance.update_flags(url, sizes)
-            
+        instance = super(EditEntityForm, self).save()
+        _save_flag(instance, self.fields.get('flag_data'))
         return instance
+
+
+#-------------------------------------------------------------------------------
+def entity_meta_fields(*args):
+    return ('name', 'full_name') + args  + ('lat_lon', 'flag_data')
+
+
+#===============================================================================
+class _NewEntityForm(forms.ModelForm):
+    lat_lon = LatLonField(label='Lat/Lon', required=False)
+    flag_data = FlagField(label='Flag URL', required=False)
+    
+    #===========================================================================
+    class Meta:
+        model = travel.Entity
+        fields = entity_meta_fields()
+    
+    #---------------------------------------------------------------------------
+    def __init__(self, *args, **kws):
+        super(_NewEntityForm, self).__init__(*args, **kws)
+        self.fields['full_name'].required = False
+    
+    #---------------------------------------------------------------------------
+    def save(self, entity_type, **extra_fields):
+        instance = super(_NewEntityForm, self).save(commit=False)
+        instance.type = entity_type
+        instance.full_name = instance.full_name or instance.name
+        
+        lat_lon = self.cleaned_data.get('lat_lon')
+        if lat_lon:
+            self.lat, self.lon = lat_lon
+            
+        for key, value in extra_fields.items():
+            setattr(instance, key, value)
+            
+        instance.save()
+        _save_flag(instance, self.cleaned_data.get('flag_data'))
+        return instance
+
+
+#===============================================================================
+class NewCountryForm(_NewEntityForm):
+    continent = forms.ModelChoiceField(queryset=travel.Entity.objects.filter(type__abbr='cn'))
+
+    #===========================================================================
+    class Meta(_NewEntityForm.Meta):
+        fields = entity_meta_fields('code', 'continent')
+
+
+#===============================================================================
+class NewStateForm(_NewEntityForm):
+
+    #===========================================================================
+    class Meta(_NewEntityForm.Meta):
+        fields = entity_meta_fields('code')
+    
+# country = forms.ModelChoiceField(queryset=travel.Entity.objects.countries())
