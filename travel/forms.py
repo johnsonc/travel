@@ -201,13 +201,22 @@ class _NewEntityForm(forms.ModelForm):
         fields = entity_meta_fields()
     
     #---------------------------------------------------------------------------
-    def save(self, entity_type):
+    def __init__(self, *args, **kws):
+        super(_NewEntityForm, self).__init__(*args, **kws)
+        self.fields['full_name'].required = False
+    
+    #---------------------------------------------------------------------------
+    def save(self, entity_type, **extra_fields):
         instance = super(_NewEntityForm, self).save(commit=False)
         instance.type = entity_type
+        instance.full_name = instance.full_name or instance.name
         
         lat_lon = self.cleaned_data.get('lat_lon')
         if lat_lon:
             self.lat, self.lon = lat_lon
+            
+        for key, value in extra_fields.items():
+            setattr(instance, key, value)
             
         instance.save()
         _save_flag(instance, self.cleaned_data.get('flag_data'))
@@ -221,5 +230,13 @@ class NewCountryForm(_NewEntityForm):
     #===========================================================================
     class Meta(_NewEntityForm.Meta):
         fields = entity_meta_fields('code', 'continent')
+
+
+#===============================================================================
+class NewStateForm(_NewEntityForm):
+
+    #===========================================================================
+    class Meta(_NewEntityForm.Meta):
+        fields = entity_meta_fields('code')
     
 # country = forms.ModelChoiceField(queryset=travel.Entity.objects.countries())

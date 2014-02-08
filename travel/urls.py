@@ -16,6 +16,8 @@ urlpatterns = patterns('',
 
     url(r'^add/$', views.start_add_entity, name='travel-entity-start-add'),
     url(r'^add/co/$', views.add_entity_co, name='travel-entity-add-co'),
+    url(r'^add/co/(\w+)/(\w+)/$', views.add_entity_by_co, name='travel-entity-add-by-co'),
+    
     url(r'^edit/i/(\w+)/(\w+)(?:-(\w+))?/$', views.entity_edit, name='travel-entity-edit'),
     url(r'^site/request/$', views.support_request, kwargs={'title': 'Feature Request'}, name='travel-request'),
     url(r'^site/problem/$', views.support_request, kwargs={'title': 'Site Problem'}, name='travel-problem'),
