@@ -213,7 +213,7 @@ class _NewEntityForm(forms.ModelForm):
         
         lat_lon = self.cleaned_data.get('lat_lon')
         if lat_lon:
-            self.lat, self.lon = lat_lon
+            instance.lat, instance.lon = lat_lon
             
         for key, value in extra_fields.items():
             setattr(instance, key, value)
