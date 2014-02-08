@@ -154,12 +154,12 @@ def _entity_base(request, entity):
 #-------------------------------------------------------------------------------
 def _entity_edit(request, entity):
     if request.method == 'POST':
-        form = forms.EntityForm(request.POST, instance=entity)
+        form = forms.EditEntityForm(request.POST, instance=entity)
         if form.is_valid():
             form.save()
             return http.HttpResponseRedirect(entity.get_absolute_url())
     else:
-        form = forms.EntityForm(instance=entity)
+        form = forms.EditEntityForm(instance=entity)
         
     return request_to_response(
         request,
