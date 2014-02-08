@@ -309,13 +309,14 @@ class Entity(models.Model):
     
     #===========================================================================
     class Subnational(ChoiceEnumeration):
-        STATE        = ChoiceEnumeration.Option('S', 'State', default=True)
-        PROVINCE     = ChoiceEnumeration.Option('P', 'Province')
-        DISTRICT     = ChoiceEnumeration.Option('D', 'District')
-        TERRITORY    = ChoiceEnumeration.Option('T', 'Territory')
-        COMMONWEALTH = ChoiceEnumeration.Option('W', 'Commonwealth')
-        COUNTY       = ChoiceEnumeration.Option('C', 'County')
-        REGION       = ChoiceEnumeration.Option('R', 'Region')
+        STATE                = ChoiceEnumeration.Option('S', 'State', default=True)
+        PROVINCE             = ChoiceEnumeration.Option('P', 'Province')
+        DISTRICT             = ChoiceEnumeration.Option('D', 'District')
+        TERRITORY            = ChoiceEnumeration.Option('T', 'Territory')
+        COMMONWEALTH         = ChoiceEnumeration.Option('W', 'Commonwealth')
+        COUNTY               = ChoiceEnumeration.Option('C', 'County')
+        REGION               = ChoiceEnumeration.Option('R', 'Region')
+        AUTONOMOUS_COMMUNITY = ChoiceEnumeration.Option('A', 'Autonomous Community')
 
     old_id    = models.IntegerField(default=0)
     type      = models.ForeignKey(EntityType)
