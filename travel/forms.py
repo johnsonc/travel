@@ -181,7 +181,7 @@ class EditEntityForm(forms.ModelForm):
     #---------------------------------------------------------------------------
     def save(self):
         instance = super(EditEntityForm, self).save()
-        _save_flag(instance, self.fields.get('flag_data'))
+        _save_flag(instance, self.cleaned_data.get('flag_data'))
         return instance
 
 
