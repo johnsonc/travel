@@ -70,11 +70,11 @@
                 entities = _.filter(entities, function(e) {
                     var good = true;
                     if(type) {
-                        good &= e.type_abbr === type;
+                        good &= (e.type_abbr === type);
                     }
 
                     if(country_code) {
-                        good &= e.country_code === country_code;
+                        good &= (e.country_code === country_code);
                     }
 
                     return !!good;
@@ -85,7 +85,10 @@
         },
         
         show_entities: function(entities) {
+            var count = entities.length;
             this.current_entities = entities;
+
+            $('#id_count').text(count + ' entr' + (count > 1 ? 'ies' : 'y'));
             var html = _.reduce(entities, function(memo, e) {
                 return memo + e.html;
             }, '');
@@ -150,16 +153,6 @@
             $filters.find(sel).parent().val(o)
         });
         profile_history.filter(params.type, params.co);
-    };
-
-    //--------------------------------------------------------------------------
-    var do_filter_logs = function(filters) {
-        var filter_cls = _.reduce(filters || [], function(memo, val) {
-            return val ? memo + '.' + val : memo;
-        }, '');
-        var count = $what.length;
-
-        $('#id_count').text(count + ' entr' + (count > 1 ? 'ies' : 'y'));
     };
 
     //--------------------------------------------------------------------------
