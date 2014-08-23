@@ -36,5 +36,8 @@
     </tr>{% endfor %}
 </tbody>
 </table>
-{% else %}No Results
+{% else %}
+    {% if results != None %}
+    <div class="alert alert-warning">No Results</div>
+    {% endif %}
 {% endif %}

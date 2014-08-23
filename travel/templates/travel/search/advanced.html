@@ -1,28 +1,27 @@
 {% extends "travel/base.html" %}
-{% block travel_heading %}{% endblock %}
 {% block travel_content %}
-<div class="panel panel-default">
-    <div class="panel-heading"><strong>Advanced Search</strong></div>
-    <div class="panel-body">
+    <div class="well">
         <form class="form-horizontal" action="" method="get" accept-charset="utf-8">
-            <div class="form-group">
-                <label for="id_search" class="col-sm-1">Search Criteria:</label>
-                <div class="col-sm-8">
-                    <textarea
-                        class="form-control"
-                        id="id_search"
-                        name="search"
-                        placeholder="Add multiple search criteria, each on its own line"
-                        rows="12">{{ search }}</textarea>
+            <fieldset>
+                <legend>Advanced Search</legend>
+                <div class="form-group">
+                    <label for="id_search" class="col-lg-2 control-label">Search</label>
+                    <div class="col-lg-10">
+                        <textarea
+                            class="form-control"
+                            id="id_search"
+                            name="search"
+                            placeholder="Add multiple search criteria, each on its own line"
+                            rows="12">{{ search }}</textarea>
+                    </div>
                 </div>
-            </div>
-            <div class="form-group">
-                <div class="col-sm-1 col-sm-offset-1">
-                    <button type="submit" class="btn btn-primary">Search</button>
+                <div class="form-group">
+                    <div class="col-lg-10 col-lg-offset-2">
+                        <button type="submit" class="btn btn-primary">Search</button>
+                    </div>
                 </div>
-            </div>
+            </fieldset>
         </form>
     </div>
-</div>
     {% include "travel/search/_results-inc.html" %}
 {% endblock travel_content %}

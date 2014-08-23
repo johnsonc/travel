@@ -318,7 +318,7 @@ class Entity(models.Model):
         REGION               = ChoiceEnumeration.Option('R', 'Region')
         AUTONOMOUS_COMMUNITY = ChoiceEnumeration.Option('A', 'Autonomous Community')
 
-    old_id    = models.IntegerField(default=0)
+    #old_id    = models.IntegerField(default=0)
     type      = models.ForeignKey(EntityType)
     code      = models.CharField(max_length=6, db_index=True)
     name      = models.CharField(max_length=175)
@@ -333,8 +333,9 @@ class Entity(models.Model):
     state     = models.ForeignKey('self', related_name='state_set',     blank=True, null=True)
     country   = models.ForeignKey('self', related_name='country_set',   blank=True, null=True)
     continent = models.ForeignKey('self', related_name='continent_set', blank=True, null=True)
+    #extras    = models.TextField(blank=True)
 
-    objects = EntityManager()
+    objects   = EntityManager()
     
     RELATED_DETAILS = {
         'co': 'Countries',
@@ -463,7 +464,35 @@ class Entity(models.Model):
             return GOOGLE_MAPS % (quote_plus(self.name.encode('UTF8')),)
 
 
+#===============================================================================
+class EntityExtraType(models.Model):
+    abbr  = models.CharField(max_length=4, db_index=True)
+    descr = models.CharField(max_length=25)
 
+
+#===============================================================================
+class EntityExtra(models.Model):
+    entity = models.ForeignKey(Entity)
+    type = models.ForeignKey(EntityExtraType)
+    ref = models.TextField()
+
+
+# CREATE TABLE `travel_entityextratype` (
+#     `id` integer AUTO_INCREMENT NOT NULL PRIMARY KEY,
+#     `abbr` varchar(4) NOT NULL,
+#     `descr` varchar(25) NOT NULL
+# )
+# ;
+# CREATE TABLE `travel_entityextra` (
+#     `id` integer AUTO_INCREMENT NOT NULL PRIMARY KEY,
+#     `entity_id` integer NOT NULL,
+#     `type_id` integer NOT NULL,
+#     `ref` longtext NOT NULL
+# )
+# ;
+# ALTER TABLE `travel_entityextra` ADD CONSTRAINT `entity_id_refs_id_cdfd397f` FOREIGN KEY (`entity_id`) REFERENCES `travel_entity` (`id`);
+# ALTER TABLE `travel_entityextra` ADD CONSTRAINT `type_id_refs_id_13ae39a5` FOREIGN KEY (`type_id`) REFERENCES `travel_entityextratype` (`id`);
+# 
 #===============================================================================
 class TravelLogManager(models.Manager):
     

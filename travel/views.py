@@ -101,8 +101,8 @@ def search(request):
 #-------------------------------------------------------------------------------
 @login_required
 def search_advanced(request):
-    'travel-search-advanced'
-    data = {'results': [], 'search': ''}
+    # 'travel-search-advanced'
+    data = {'results': None, 'search': ''}
     search = request.GET.get('search', '').strip()
     if search:
         lines = [line.strip() for line in search.splitlines()]
