@@ -1,12 +1,12 @@
 {% extends "travel/base.html" %}
+{% block travel_heading %}Advanced Search{% endblock travel_heading %}
 {% block travel_content %}
-    <div class="well">
-        <form class="form-horizontal" action="" method="get" accept-charset="utf-8">
+    <form class="form-horizontal" action="" method="get" accept-charset="utf-8">
+        <div class="well">
             <fieldset>
-                <legend>Advanced Search</legend>
                 <div class="form-group">
-                    <label for="id_search" class="col-lg-2 control-label">Search</label>
-                    <div class="col-lg-10">
+                    <label for="id_search" class="col-lg-1 control-label">Search</label>
+                    <div class="col-lg-11">
                         <textarea
                             class="form-control"
                             id="id_search"
@@ -16,12 +16,13 @@
                     </div>
                 </div>
                 <div class="form-group">
-                    <div class="col-lg-10 col-lg-offset-2">
+                    <div class="col-lg-11 col-lg-offset-1">
                         <button type="submit" class="btn btn-primary">Search</button>
                     </div>
                 </div>
             </fieldset>
-        </form>
-    </div>
+        </div>
+    </form>
+    
     {% include "travel/search/_results-inc.html" %}
 {% endblock travel_content %}

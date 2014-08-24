@@ -1,13 +1,12 @@
 {% extends "travel/base.html" %}
 {% block extra_head %}{{ block.super }}
     <style type="text/css" media="screen">
-        .todo-summary strong { color: #37811f; }
         .todo-result tbody tr td:first-child { width: 40px; }
         .flag-32 { width: 36px; }
         .flag-32 img { box-shadow: 1px 2px 6px #777;}
     </style>
 {% endblock extra_head %}
-{% block travel_heading %}To-Do: {{ todo.title }}{% endblock %}
+{% block travel_heading %}Bucket List: {{ todo.title }}{% endblock %}
 {% block travel_content %}
     <p>{{ todo.description }}</p>
     {% if user.is_authenticated %}

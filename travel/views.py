@@ -122,6 +122,19 @@ def search_advanced(request):
     
 
 #-------------------------------------------------------------------------------
+@superuser_required
+def fix_shit(request):
+    if request.method == 'POST':
+        ids = request.POST.getlist('fix', [])
+        if ids:
+            items = travel.Entity.objects.filter(id__in=ids)
+            count = items.count()
+            items.delete()
+            return http.HttpResponseRedirect(request.path + ('?deleted=%s' % count))
+    data = {'places': travel.Entity.objects.filter(type__abbr__in=['wh', 'lm'])}
+    return request_to_response(request, 'travel/fix_it.html', data)
+
+#-------------------------------------------------------------------------------
 def by_locale(request, ref):
     etype = get_object_or_404(travel.EntityType, abbr=ref)
     data = {'type': etype, 'places': etype.entity_set.all()}
