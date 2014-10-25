@@ -477,22 +477,7 @@ class EntityExtra(models.Model):
     ref = models.TextField()
 
 
-# CREATE TABLE `travel_entityextratype` (
-#     `id` integer AUTO_INCREMENT NOT NULL PRIMARY KEY,
-#     `abbr` varchar(4) NOT NULL,
-#     `descr` varchar(25) NOT NULL
-# )
-# ;
-# CREATE TABLE `travel_entityextra` (
-#     `id` integer AUTO_INCREMENT NOT NULL PRIMARY KEY,
-#     `entity_id` integer NOT NULL,
-#     `type_id` integer NOT NULL,
-#     `ref` longtext NOT NULL
-# )
-# ;
-# ALTER TABLE `travel_entityextra` ADD CONSTRAINT `entity_id_refs_id_cdfd397f` FOREIGN KEY (`entity_id`) REFERENCES `travel_entity` (`id`);
-# ALTER TABLE `travel_entityextra` ADD CONSTRAINT `type_id_refs_id_13ae39a5` FOREIGN KEY (`type_id`) REFERENCES `travel_entityextratype` (`id`);
-# 
+
 #===============================================================================
 class TravelLogManager(models.Manager):
     
@@ -520,7 +505,7 @@ class TravelLogManager(models.Manager):
                       te.name,
                       tej.name AS country_name,
                       tej.code AS country_code,
-                      tl.rating AS rating, 
+                      MIN(tl.rating) AS rating,
                       UNIX_TIMESTAMP(MAX(tl.arrival)) * 1000 AS most_recent_visit,
                       UNIX_TIMESTAMP(MIN(tl.arrival)) * 1000 AS first_visit,
                       COUNT(tl.entity_id) AS num_visits,
@@ -584,7 +569,7 @@ class TravelLog(models.Model):
     
     #===========================================================================
     class Meta:
-        get_latest_by = ('arrival',)
+        get_latest_by = 'arrival'
         ordering = ('-arrival',)
 
     #---------------------------------------------------------------------------
