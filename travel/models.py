@@ -16,7 +16,7 @@ from jargon.apps.annotation.models import Markup
 import travel.utils as travel_utils
 
 GOOGLE_MAPS             = 'http://maps.google.com/maps?q=%s'
-GOOGLE_MAPS_LL          = 'http://maps.google.com/maps?q=%s,+%s&iwloc=A&z=10'
+GOOGLE_MAPS_LATLON      = 'http://maps.google.com/maps?q=%s,+%s&iwloc=A&z=10'
 GOOGLE_SEARCH_URL       = 'http://www.google.com/search?as_q=%s'
 WIKIPEDIA_URL           = 'http://en.wikipedia.org/wiki/Special:Search?search=%s&go=Go'
 WORLD_HERITAGE_URL      = 'http://whc.unesco.org/en/list/%s'
@@ -64,7 +64,7 @@ class Flag(models.Model):
     #---------------------------------------------------------------------------
     @property
     def is_locked(self):
-        #HACK - fixme!
+        #TODO **hack** - fixme!
         return False if (self.base_dir or self.ref) else True
     
     #---------------------------------------------------------------------------
@@ -192,10 +192,7 @@ class Profile(models.Model):
             key=lambda e: e[0]
         )
         
-        return {
-            'history': history,
-            'countries': countries
-        }
+        return {'history': history, 'countries': countries}
         
     #---------------------------------------------------------------------------
     is_public    = property(lambda self: self.access == self.Access.PUBLIC)
@@ -206,7 +203,7 @@ class Profile(models.Model):
 #-------------------------------------------------------------------------------
 def profile_factory(sender, instance, created=False, **kws):
         if created:
-            Profile.objects.create(user=instance)
+            Profile.objects.get_or_create(user=instance)
 
 
 models.signals.post_save.connect(profile_factory, sender=User)
@@ -225,11 +222,7 @@ class EntityType(models.Model):
 #===============================================================================
 class EntityManager(models.Manager):
 
-    RELATIONSHIP_MAP = {
-        'co': 'country',
-        'st': 'state',
-        'cn': 'continent',
-    }
+    RELATIONSHIP_MAP = {'co': 'country', 'st': 'state', 'cn': 'continent'}
     
     #---------------------------------------------------------------------------
     def search(self, term, type=None):
@@ -443,7 +436,7 @@ class Entity(models.Model):
     @property
     def google_maps_url(self):
         if self.lat or self.lon:
-            return GOOGLE_MAPS_LL % (self.lat, self.lon)
+            return GOOGLE_MAPS_LATLON % (self.lat, self.lon)
         else:
             return GOOGLE_MAPS % (quote_plus(self.name.encode('UTF8')),)
 
@@ -459,7 +452,6 @@ class EntityExtra(models.Model):
     entity = models.ForeignKey(Entity)
     type = models.ForeignKey(EntityExtraType)
     ref = models.TextField()
-
 
 
 #===============================================================================
