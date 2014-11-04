@@ -13,17 +13,16 @@ from path import path
 from jargon.utils.json_utils import dumps as json_dumps
 from jargon.db.fields import ChoiceEnumeration
 from jargon.apps.annotation.models import Markup
+import travel.utils as travel_utils
 
-GOOGLE_MAPS        = 'http://maps.google.com/maps?q=%s'
-GOOGLE_MAPS_LL     = 'http://maps.google.com/maps?q=%s,+%s&iwloc=A&z=10'
-GOOGLE_SEARCH_URL  = 'http://www.google.com/search?as_q=%s'
-WIKIPEDIA_URL      = 'http://en.wikipedia.org/wiki/Special:Search?search=%s&go=Go'
-WORLD_HERITAGE_URL = 'http://whc.unesco.org/en/list/%s'
-
-BASE_FLAG_DIR = path('img/flags')
-STAR          = mark_safe('&#9733;')
-
-_world_heritage_category = {
+GOOGLE_MAPS             = 'http://maps.google.com/maps?q=%s'
+GOOGLE_MAPS_LL          = 'http://maps.google.com/maps?q=%s,+%s&iwloc=A&z=10'
+GOOGLE_SEARCH_URL       = 'http://www.google.com/search?as_q=%s'
+WIKIPEDIA_URL           = 'http://en.wikipedia.org/wiki/Special:Search?search=%s&go=Go'
+WORLD_HERITAGE_URL      = 'http://whc.unesco.org/en/list/%s'
+BASE_FLAG_DIR           = path('img/flags')
+STAR                    = mark_safe('&#9733;')
+WORLD_HERITAGE_CATEGORY = {
     'C': 'Cultural',
     'N': 'Natural',
     'M': 'Mixed'
@@ -40,26 +39,12 @@ def flag_upload(size):
 #===============================================================================
 class FlagManager(models.Manager):
     
-    flag_url_re =  re.compile(r'(.*)/(\d+)px(.*)')
-
     #---------------------------------------------------------------------------
-    def get_wiki_flags_by_size(self, url, sizes=None):
-        '''Typical url format:
-        
-        http://upload.wikimedia.org/wikipedia/commons/thumb/x/yz/Flag_of_XYZ.svg/120px-Flag_of_XYZ.svg.png'''
-        import requests
-
-        sizes = sizes or ('16', '32', '64', '128', '256', '512')
-        data = {}
-        for size in sizes:
-            size_url = self.flag_url_re.sub(r'\1/%spx\3' % size, url)
-            r = requests.get(size_url)
-            if r.status_code != 200:
-                raise ValueError('Status %s (%s)' % (r.status_code, size_url))
-
-            data[size] = r.content
-
-        return data
+    def get_flag_data_by_sizes(self, url, sizes=None):
+        if url.endswith('.svg.png'):
+            return travel_utils.get_wiki_flags_by_size(url, sizes)
+        else:
+            return travel_utils.get_flags_from_image_by_size(url, sizes)
 
 
 #===============================================================================
@@ -104,7 +89,6 @@ class Flag(models.Model):
                 fp.write(bytes)
 
         self.save()
-
 
 
 #===============================================================================
@@ -153,7 +137,6 @@ class ToDoList(models.Model):
     #---------------------------------------------------------------------------
     def __unicode__(self):
         return u'%s' % self.title
-
 
 
 EXTRA_INFO = { 'ap': 'IATA'}
@@ -318,7 +301,7 @@ class Entity(models.Model):
         REGION               = ChoiceEnumeration.Option('R', 'Region')
         AUTONOMOUS_COMMUNITY = ChoiceEnumeration.Option('A', 'Autonomous Community')
 
-    #old_id    = models.IntegerField(default=0)
+    geonameid = models.IntegerField(default=0)
     type      = models.ForeignKey(EntityType)
     code      = models.CharField(max_length=6, db_index=True)
     name      = models.CharField(max_length=175)
@@ -333,6 +316,7 @@ class Entity(models.Model):
     state     = models.ForeignKey('self', related_name='state_set',     blank=True, null=True)
     country   = models.ForeignKey('self', related_name='country_set',   blank=True, null=True)
     continent = models.ForeignKey('self', related_name='continent_set', blank=True, null=True)
+    tz        = models.CharField('timezone', max_length=40, blank=True)
     #extras    = models.TextField(blank=True)
 
     objects   = EntityManager()
@@ -399,7 +383,7 @@ class Entity(models.Model):
     #---------------------------------------------------------------------------
     def category_detail(self):
         if self.type.abbr == 'wh':
-            return _world_heritage_category[self.category]
+            return WORLD_HERITAGE_CATEGORY.get(self.category, 'Unknown')
             
         return self.category
 
@@ -444,7 +428,7 @@ class Entity(models.Model):
         else:
             flag = Flag()
 
-        data = Flag.objects.get_wiki_flags_by_size(flag_url, sizes=sizes)
+        data = Flag.ojbects.get_flag_data_by_sizes(flag_url, sizes=sizes)
         flag.set_flags(flag_url, self.flag_dir, self.code, data)
         self.flag = flag
         self.save()

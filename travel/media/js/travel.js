@@ -112,10 +112,7 @@
                     }
 
                     if(co) {
-                        good &= (
-                            e.country_code === co ||
-                            (e.type_abbr === 'co' && e.code === co)
-                        );
+                        good &= (e.country_code === co || (e.type_abbr === 'co' && e.code === co));
                     }
                     
                     if(tf && dt) {

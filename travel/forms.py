@@ -146,9 +146,9 @@ class FlagField(forms.CharField):
     #---------------------------------------------------------------------------
     def clean(self, value):
         url = super(FlagField, self).clean(value)
-        if url:
+        if url and url != self.initial:
             try:
-                return url, travel.Flag.objects.get_wiki_flags_by_size(url)
+                return url, travel.Flag.objects.get_flag_data_by_sizes(url)
             except ValueError, why:
                 raise forms.ValidationError(why)
 
@@ -161,7 +161,7 @@ def _save_flag(instance, flag_data):
 
 #===============================================================================
 class EditEntityForm(forms.ModelForm):
-    flag_data = FlagField(label='Flag URL', required=False)
+    flag_url = FlagField(label='Flag URL', required=False)
     country = forms.ModelChoiceField(queryset=travel.Entity.objects.countries())
 
     #===========================================================================
@@ -175,19 +175,30 @@ class EditEntityForm(forms.ModelForm):
             'lat',
             'lon',
             'locality',
-            'flag_data'
+            'tz',
+            'flag_url',
         )
-
+    #---------------------------------------------------------------------------
+    def __init__(self, *args, **kws):
+        super(EditEntityForm, self).__init__(*args, **kws)
+        instance = kws.get('instance', None)
+        if instance:
+            if instance.type:
+                if instance.type.abbr in ('co', 'cn'):
+                    del self.fields['country']
+            if instance.flag and instance.flag.source:
+                self.fields['flag_url'].initial = instance.flag.source
+        
     #---------------------------------------------------------------------------
     def save(self):
         instance = super(EditEntityForm, self).save()
-        _save_flag(instance, self.cleaned_data.get('flag_data'))
+        _save_flag(instance, self.cleaned_data.get('flag_url'))
         return instance
 
 
 #-------------------------------------------------------------------------------
 def entity_meta_fields(*args):
-    return ('name', 'full_name') + args  + ('lat_lon', 'flag_data')
+    return args + ('name', 'full_name', 'code', 'lat_lon', 'tz', 'flag_data')
 
 
 #===============================================================================
@@ -204,6 +215,7 @@ class _NewEntityForm(forms.ModelForm):
     def __init__(self, *args, **kws):
         super(_NewEntityForm, self).__init__(*args, **kws)
         self.fields['full_name'].required = False
+        self.fields['tz'].required = False
     
     #---------------------------------------------------------------------------
     def save(self, entity_type, **extra_fields):
@@ -229,7 +241,7 @@ class NewCountryForm(_NewEntityForm):
 
     #===========================================================================
     class Meta(_NewEntityForm.Meta):
-        fields = entity_meta_fields('code', 'continent')
+        fields = entity_meta_fields('continent')
 
 
 #===============================================================================
@@ -237,6 +249,6 @@ class NewStateForm(_NewEntityForm):
 
     #===========================================================================
     class Meta(_NewEntityForm.Meta):
-        fields = entity_meta_fields('code')
+        fields = entity_meta_fields()
     
 # country = forms.ModelChoiceField(queryset=travel.Entity.objects.countries())

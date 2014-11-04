@@ -1,6 +1,58 @@
 # -*- coding:utf8 -*-
+import io
 import re
 from decimal import Decimal, localcontext
+
+import requests
+from PIL import Image
+from path import path
+
+_wiki_flag_url_re =  re.compile(r'(.*)/(\d+)px(.*)')
+_default_flag_sizes = (16, 32, 64, 128, 256, 512)
+
+
+#-------------------------------------------------------------------------------
+def get_url_content(url):
+    r = requests.get(url)
+    if r.status_code != 200:
+        raise ValueError('Status %s (%s)' % (r.status_code, url))
+    
+    return r.content
+
+#-------------------------------------------------------------------------------
+def make_resizer(size):
+    x1, y1 = size
+    return lambda x2: (x2, x2 * y1 / x1)
+    
+#-------------------------------------------------------------------------------
+def get_wiki_flags_by_size(url, sizes=None):
+    '''Typical url format:
+    
+    http://upload.wikimedia.org/wikipedia/commons/thumb/x/yz/Flag_of_XYZ.svg/120px-Flag_of_XYZ.svg.png'''
+    data = {}
+    sizes = sizes or _default_flag_sizes
+    for size in sizes:
+        size_url = _wiki_flag_url_re.sub(r'\1/%spx\3' % size, url)
+        data[size] = get_url_content(size_url)
+
+    return data
+
+#-------------------------------------------------------------------------------
+def get_flags_from_image_by_size(url, sizes=None):
+    im = Image.open(io.BytesIO(get_url_content(url)))
+    x1, y1 = size = im.size
+    resize = make_resizer(size)
+    data = {}
+    sizes = sizes or _default_flag_sizes
+    for x1 in sizes:
+        x2, y2 = new_size = resize(x1)
+        resample = Image.BICUBIC if x2 > x1 else Image.ANTIALIAS
+        stream = io.BytesIO()
+        new_im = im.resize(new_size, resample)
+        new_im.save(stream, 'PNG')
+        data[x1] = stream.getvalue()
+
+    return data
 
 #-------------------------------------------------------------------------------
 def send_message(user, title, message):
@@ -61,6 +113,7 @@ def parse_latlon(s):
         return [Decimal(d) for d in m.groups()]
         
     raise ValueError('Invalid Lat/Lon value: %s' % (s,))
+
 
 ################################################################################
 def test():
