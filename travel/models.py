@@ -421,7 +421,7 @@ class Entity(models.Model):
         else:
             flag = Flag()
 
-        data = Flag.ojbects.get_flag_data_by_sizes(flag_url, sizes=sizes)
+        data = Flag.objects.get_flag_data_by_sizes(flag_url, sizes=sizes)
         flag.set_flags(flag_url, self.flag_dir, self.code, data)
         self.flag = flag
         self.save()
