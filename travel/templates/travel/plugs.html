@@ -1,0 +1,594 @@
+{% extends "travel/base.html" %}
+{% block title %}World voltage and plug specifications{% endblock %}
+{% block extra_head %}
+    <style>
+        .images { margin-bottom: 2em; }
+        .specs table td { width: 25%; }
+    </style>
+{% endblock extra_head %}
+{% block travel_heading %}World voltage and plug specifications{% endblock %}
+{% block travel_content %}
+    <table class="table table-bordered text-center">
+        <tr>
+            <td><img src="{{ MEDIA_URL }}img/plugs/a.png"><br><strong>Category A</strong><br>125V~, 2 flat blades</td>
+            <td><img src="{{ MEDIA_URL }}img/plugs/b.png"><br><strong>Category B</strong><br>2 flat blades, grounded</td>
+            <td><img src="{{ MEDIA_URL }}img/plugs/c.png"><br><strong>Category C</strong><br>oblique flat blades</td>
+            <td><img src="{{ MEDIA_URL }}img/plugs/d.png"><br><strong>Category D</strong><br>oblique flat blades, grounded</td>
+            <td><img src="{{ MEDIA_URL }}img/plugs/e.png"><br><strong>Category E</strong><br>2 round pins</td>
+        </tr>
+        <tr>
+            <td><img src="{{ MEDIA_URL }}img/plugs/f.png"><br><strong>Category F</strong><br>2 round pins</td>
+            <td><img src="{{ MEDIA_URL }}img/plugs/g.png"><br><strong>Category G</strong><br>2 round pins, grounded</td>
+            <td><img src="{{ MEDIA_URL }}img/plugs/i.png"><br><strong>Category I</strong><br>3 flat blades UK type plug</td>
+            <td><img src="{{ MEDIA_URL }}img/plugs/j.png"><br><strong>Category J</strong><br>220V~, 2 flat blades</td>
+            <td><img src="{{ MEDIA_URL }}img/plugs/k.png"><br><strong>Category K</strong><br>3 round pins triangle (6A)</td>
+        </tr>
+        <tr>
+            <td><img src="{{ MEDIA_URL }}img/plugs/l.png"><br><strong>Category L</strong><br>3 round pins triangle (16A)</td>
+            <td><img src="{{ MEDIA_URL }}img/plugs/m.png"><br><strong>Category M</strong><br>Swiss type plug</td>
+            <td><img src="{{ MEDIA_URL }}img/plugs/n.png"><br><strong>Category N</strong><br>Italy type plug</td>
+            <td><img src="{{ MEDIA_URL }}img/plugs/o.png"><br><strong>Category O</strong><br>Denmark type plug</td>
+            <td><img src="{{ MEDIA_URL }}img/plugs/p.png"><br><strong>Category P</strong><br>Israel type plug</td>
+        </tr>
+    </table>
+    <div class="specs">
+    <h2>North America</h2>
+    <table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Country</th>
+            <th>Voltage</th>
+            <th>Frequency</th>
+            <th>Category</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Canada</td>
+            <td>110V</td>
+            <td>60Hz</td>
+            <td>A,  B</td>
+        </tr>
+        <tr>
+            <td>United States</td>
+            <td>120V</td>
+            <td>60Hz</td>
+            <td>A,  B</td>
+        </tr>
+        <tr>
+            <td>Mexico</td>
+            <td>127V</td>
+            <td>60Hz</td>
+            <td>A,  B</td>
+        </tr>
+    </tbody>
+    </table>
+
+    <h2>Europe</h2>
+    <table class="table table-striped">
+    <tbody>
+        <tr>
+            <td>Austria</td>
+            <td>220V</td>
+            <td>50Hz</td>
+            <td>E, F,  G</td>
+        </tr>
+        <tr>
+            <td>Belgium</td>
+            <td>220V</td>
+            <td>50Hz</td>
+            <td>E, F,  G</td>
+        </tr>
+        <tr>
+            <td>Czech Rep.</td>
+            <td>220V</td>
+            <td>50Hz</td>
+            <td>E, F,  G</td>
+        </tr>
+        <tr>
+            <td>Denmark </td>
+            <td>220V</td>
+            <td>50Hz</td>
+            <td>O, E, F,  G</td>
+        </tr>
+        <tr>
+            <td>Estonia</td>
+            <td>220V</td>
+            <td>50Hz</td>
+            <td>E, F,  G</td>
+        </tr>
+        <tr>
+            <td>Finland</td>
+            <td>220V</td>
+            <td>50Hz</td>
+            <td>E, F,  G</td>
+        </tr>
+        <tr>
+            <td>France</td>
+            <td>220V</td>
+            <td>50Hz</td>
+            <td>E, F,  G</td>
+        </tr>
+
+        <tr>
+            <td>Germany</td>
+            <td>220V</td>
+            <td>50Hz</td>
+            <td>E, F,  G</td>
+        </tr>
+        <tr>
+            <td>Greece</td>
+            <td>220V</td>
+            <td>50Hz</td>
+            <td>E, F,  G</td>
+        </tr>
+        <tr>
+            <td>Hungary</td>
+            <td>220V</td>
+            <td>50Hz</td>
+            <td>F,  G</td>
+        </tr>
+        <tr>
+            <td>Ireland</td>
+            <td>220V</td>
+            <td>50Hz</td>
+            <td>I</td>
+        </tr>
+        <tr>
+            <td>Italy</td>
+            <td>220-230V</td>
+            <td>50Hz</td>
+            <td>E,  N</td>
+        </tr>
+        <tr>
+            <td>Latvia</td>
+            <td>220-240V</td>
+            <td>50Hz</td>
+            <td>E,  G</td>
+        </tr>
+        <tr>
+            <td>Luxembourg</td>
+            <td>220V</td>
+            <td>50Hz</td>
+            <td>E, F,  G</td>
+        </tr>
+
+        <tr>
+            <td>Netherlands</td>
+            <td>220V</td>
+            <td>50Hz</td>
+            <td>E, F,  G</td>
+        </tr>
+        <tr>
+            <td>Norway</td>
+            <td>220V</td>
+            <td>50Hz</td>
+            <td>E, F,  G</td>
+        </tr>
+        <tr>
+            <td>Poland</td>
+            <td>220V</td>
+            <td>50Hz</td>
+            <td>E, F,  G</td>
+        </tr>
+        <tr>
+            <td>Portugal</td>
+            <td>220V</td>
+            <td>50Hz</td>
+            <td>E, F,  G</td>
+        </tr>
+
+        <tr>
+            <td>Slovak Rep.</td>
+            <td>220V</td>
+            <td>50Hz</td>
+            <td>E, F,  G</td>
+        </tr>
+        <tr>
+            <td>Spain</td>
+            <td>220V</td>
+            <td>50Hz</td>
+            <td>E, F,  G</td>
+        </tr>
+        <tr>
+            <td>Sweden</td>
+            <td>220V</td>
+            <td>50Hz</td>
+            <td>E, F,  G</td>
+        </tr>
+        <tr>
+            <td>Switzerland</td>
+            <td>220-224V</td>
+            <td>50Hz</td>
+            <td>M,  E</td>
+        </tr>
+        <tr>
+            <td>Turkey</td>
+            <td>220V</td>
+            <td>50Hz</td>
+            <td>E,  F</td>
+        </tr>
+        <tr>
+            <td>Russia</td>
+            <td>220V</td>
+            <td>50Hz</td>
+            <td>E, F,  G</td>
+        </tr>
+        <tr>
+            <td>United Kingdom</td>
+            <td>220-240V</td>
+            <td>50Hz</td>
+            <td>I</td>
+        </tr>
+        <tr>
+            <td>Ukraine</td>
+            <td>220V</td>
+            <td>50Hz</td>
+            <td>E, F,  G</td>
+        </tr>
+    </tbody>
+    </table>
+
+    <h2>Middle East</h2>
+    <table class="table table-striped">
+    <tbody>
+        <tr>
+            <td>Bahrain</td>
+            <td>220V</td>
+            <td>50Hz</td>
+            <td>I,  K</td>
+        </tr>
+        <tr>
+            <td>Dubai</td>
+            <td>220V</td>
+            <td>50Hz</td>
+            <td>G</td>
+        </tr>
+        <tr>
+            <td>Iran</td>
+            <td>220V</td>
+            <td>50Hz</td>
+            <td>E</td>
+        </tr>
+        <tr>
+            <td>Israel</td>
+            <td>220-240V</td>
+            <td>50Hz</td>
+            <td>P,  E</td>
+        </tr>
+        <tr>
+            <td>Jordan</td>
+            <td>220V</td>
+            <td>50Hz</td>
+            <td>I</td>
+        </tr>
+        <tr>
+            <td>Kuwait</td>
+            <td>220-240V</td>
+            <td>50Hz</td>
+            <td>E,  I</td>
+        </tr>
+        <tr>
+            <td>Lebanon</td>
+            <td>220V</td>
+            <td>50Hz</td>
+            <td>E</td>
+        </tr>
+        <tr>
+            <td>Syria</td>
+            <td>220V</td>
+            <td>50Hz</td>
+            <td>E, F,  N</td>
+        </tr>
+        <tr>
+            <td>Saudi Arabia</td>
+            <td>220V</td>
+            <td>50Hz</td>
+            <td>I</td>
+        </tr>
+        <tr>
+            <td>Turkey</td>
+            <td>220V</td>
+            <td>50Hz</td>
+            <td>E,  F</td>
+        </tr>
+    </tbody>
+    </table>
+
+    <h2>Africa</h2>
+    <table class="table table-striped">
+    <tbody>
+        </tr>
+        <tr>
+            <td>Algeria</td>
+            <td>220V</td>
+            <td>50Hz</td>
+            <td>E,  G</td>
+        </tr>
+        <tr>
+            <td>Burkina Faso</td>
+            <td>220V</td>
+            <td>50Hz</td>
+            <td>E,  F</td>
+        </tr>
+        <tr>
+            <td>Cameroon</td>
+            <td>220V</td>
+            <td>50Hz</td>
+            <td>E, F,  G</td>
+        </tr>
+        <tr>
+            <td>Chad</td>
+            <td>220-250V</td>
+            <td>50Hz</td>
+            <td>F, G,  L</td>
+        </tr>
+        <tr>
+            <td>Equatorial Guinea</td>
+            <td>220V</td>
+            <td>50Hz</td>
+            <td>E,  F</td>
+        </tr>
+        <tr>
+            <td>Gabon</td>
+            <td>220V</td>
+            <td>50Hz</td>
+            <td>G</td>
+        </tr>
+        <tr>
+            <td>Gambia</td>
+            <td>220V</td>
+            <td>50Hz</td>
+            <td>I</td>
+        </tr>
+        <tr>
+            <td>Ghana</td>
+            <td>220V</td>
+            <td>50Hz</td>
+            <td>E, I,  K</td>
+        </tr>
+        <tr>
+            <td>Malawi</td>
+            <td>240V</td>
+            <td>50Hz</td>
+            <td>I</td>
+        </tr>
+        <tr>
+            <td>Mauritius</td>
+            <td>240V</td>
+            <td>50Hz</td>
+            <td>E,  I</td>
+        </tr>
+        <tr>
+            <td>Morocco</td>
+            <td>220V</td>
+            <td>50Hz</td>
+            <td>E,  G</td>
+        </tr>
+        <tr>
+            <td>Nigeria</td>
+            <td>230V</td>
+            <td>50Hz</td>
+            <td>I</td>
+        </tr>
+        <tr>
+            <td>South Africa</td>
+            <td>220V</td>
+            <td>50Hz</td>
+            <td>K,  L</td>
+        </tr>
+        <tr>
+            <td>Senegal</td>
+            <td>220V</td>
+            <td>50Hz</td>
+            <td>E, F,  G</td>
+        </tr>
+        <tr>
+            <td>Swaziland</td>
+            <td>220V</td>
+            <td>50Hz</td>
+            <td>I</td>
+        </tr>
+    </tbody>
+    </table>
+
+    <h2>Asia / Pacific</h2>
+    <table class="table table-striped">
+    <tbody>
+        <tr>
+            <td>Australia</td>
+            <td>240V</td>
+            <td>50Hz</td>
+            <td>C,  D</td>
+        </tr>
+        <tr>
+            <td>China</td>
+            <td>220V</td>
+            <td>50Hz</td>
+            <td>D,  J</td>
+        </tr>
+        <tr>
+            <td>Hong-Kong</td>
+            <td>220V</td>
+            <td>50Hz</td>
+            <td>I</td>
+        </tr>
+        <tr>
+            <td>Indonesia</td>
+            <td>220V</td>
+            <td>50Hz</td>
+            <td>E,  G</td>
+        </tr>
+        <tr>
+            <td>India</td>
+            <td>230V</td>
+            <td>50Hz</td>
+            <td>K,  L</td>
+        </tr>
+        <tr>
+            <td>Japan</td>
+            <td>100V</td>
+            <td>50, 60</td>
+            <td>A,  B</td>
+        </tr>
+        <tr>
+            <td>Korea</td>
+            <td>220V</td>
+            <td>50, 60</td>
+            <td>E,  G</td>
+        </tr>
+        <tr>
+            <td>Macau</td>
+            <td>220V</td>
+            <td>50Hz</td>
+            <td>I</td>
+        </tr>
+        <tr>
+            <td>Malaysia</td>
+            <td>230V</td>
+            <td>50Hz</td>
+            <td>I</td>
+        </tr>
+        <tr>
+            <td>New-Zealand</td>
+            <td>220V</td>
+            <td>50Hz</td>
+            <td>C,  D</td>
+        </tr>
+        <tr>
+            <td>Philippines</td>
+            <td>220V</td>
+            <td>50Hz</td>
+            <td>E</td>
+        </tr>
+        <tr>
+            <td>Singapore</td>
+            <td>220V</td>
+            <td>50Hz</td>
+            <td>I</td>
+        </tr>
+        <tr>
+            <td>Thailand</td>
+            <td>220V</td>
+            <td>50Hz</td>
+            <td>A,  B</td>
+        </tr>
+
+        <tr>
+            <td>Vietnam</td>
+            <td>120/220V</td>
+            <td>50Hz</td>
+            <td>A, B, E,  G</td>
+        </tr>
+    </tbody>
+    </table>
+
+    <h2>Central &amp; South America</h2>
+    <table class="table table-striped">
+    <tbody>
+        <tr>
+            <td>Nicaragua</td>
+            <td>110V</td>
+            <td>60Hz</td>
+            <td>A,  B</td>
+        </tr>
+        <tr>
+            <td>El Salvador</td>
+            <td>110V</td>
+            <td>60Hz</td>
+            <td>A,  B</td>
+        </tr>
+        <tr>
+            <td>Honduras</td>
+            <td>110V</td>
+            <td>60Hz</td>
+            <td>A,  B</td>
+        </tr>
+        <tr>
+            <td>Nicaragua</td>
+            <td>110V</td>
+            <td>60Hz</td>
+            <td>A,  B</td>
+        </tr>
+        <tr>
+            <td>Costa Rica</td>
+            <td>110-120V</td>
+            <td>60Hz</td>
+            <td>A,  B</td>
+        </tr>
+        <tr>
+            <td>Panama</td>
+            <td>120V</td>
+            <td>60Hz</td>
+            <td>A,  B</td>
+        </tr>
+        <tr>
+            <td>Dominican Rep.</td>
+            <td>110V</td>
+            <td>60Hz</td>
+            <td>A,  B</td>
+        </tr>
+        <tr>
+            <td>Columbia</td>
+            <td>115V</td>
+            <td>60Hz</td>
+            <td>A,  B</td>
+        </tr>
+        <tr>
+            <td>Venezuela</td>
+            <td>110V</td>
+            <td>60Hz</td>
+            <td>A,  B</td>
+        </tr>
+        <tr>
+            <td>Ecuador</td>
+            <td>110V</td>
+            <td>60Hz</td>
+            <td>A,  B</td>
+        </tr>
+        <tr>
+            <td>Brazil</td>
+            <td>110V / 220V</td>
+            <td>60Hz / 50Hz</td>
+            <td>E,  G</td>
+        </tr>
+        <tr>
+            <td>Peru</td>
+            <td>110V / 220V</td>
+            <td>60Hz / 50Hz</td>
+            <td>A, B,  E</td>
+        </tr>
+        <tr>
+            <td>Bolivia</td>
+            <td>110V / 220V</td>
+            <td>60Hz / 50Hz</td>
+            <td>A, B,  E</td>
+        </tr>
+        <tr>
+            <td>Paraguay</td>
+            <td>220V</td>
+            <td>50Hz</td>
+            <td>E</td>
+        </tr>
+        <tr>
+            <td>Uruguay</td>
+            <td>220V</td>
+            <td>50Hz</td>
+            <td>E</td>
+        </tr>
+        <tr>
+            <td>Argentina</td>
+            <td>220V</td>
+            <td>50Hz</td>
+            <td>C,  D</td>
+        </tr>
+        <tr>
+            <td>Chile</td>
+            <td>220V</td>
+            <td>50Hz</td>
+            <td>E,  N</td>
+        </tr>
+    </tbody>
+    </table>
+    </div>
+{% endblock travel_content %}

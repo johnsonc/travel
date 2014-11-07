@@ -379,7 +379,19 @@ class Entity(models.Model):
             return WORLD_HERITAGE_CATEGORY.get(self.category, 'Unknown')
             
         return self.category
-
+    
+    #---------------------------------------------------------------------------
+    @property
+    def timezone(self):
+        if not hasattr(self, '__timezone'):
+            timezone = self.tz
+            if not timezone and self.state:
+                timezone = self.state.timezone
+            if not timezone and self.country:
+                timezone = self.country.timezone
+            self.__timezone = timezone
+        return self.__timezone
+        
     #---------------------------------------------------------------------------
     def get_continent(self):
         if self.continent:
@@ -577,4 +589,31 @@ class TravelLog(models.Model):
             
             self.notes = None
             self.save()
-    
+
+
+
+#===============================================================================
+class Currency(models.Model):
+    iso = models.CharField(max_length=4, primary_key=True)
+    name = models.CharField(max_length=50)
+    fraction = models.CharField(blank=True, max_length=8)
+    fraction_name = models.CharField(blank=True, max_length=15)
+    sign = models.CharField(blank=True, max_length=4)
+    alt_sign = models.CharField(blank=True, max_length=4)
+
+
+#===============================================================================
+class CountryInfo(models.Model):
+    country = models.OneToOneField(Entity)
+    iso3 = models.CharField(blank=True, max_length=3)
+    currency = models.ForeignKey(Currency, blank=True, null=True)
+    denom = models.CharField(blank=True, max_length=40)
+    denoms = models.CharField(blank=True, max_length=60)
+    languages = models.CharField(blank=True, max_length=100)
+    phone = models.CharField(blank=True, max_length=20)
+    electrical = models.CharField(blank=True, max_length=40)
+    postal_code = models.CharField(blank=True, max_length=60)
+    neighbors = models.CharField(blank=True, max_length=50)
+    tld = models.CharField(blank=True, max_length=8)
+    population = models.CharField(blank=True, max_length=12)
+    area = models.CharField(blank=True, max_length=10)

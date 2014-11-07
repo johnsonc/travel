@@ -31,4 +31,5 @@ urlpatterns = patterns('',
     url(r'^todo/$', views.todo_lists, name='travel-todos'),
     url(r'^todo/(\d+)/$', views.todo_list, name='travel-todo'),
 
+    url(r'^plugs/$', to_template('travel/plugs.html'), name='travel-plugs'),
 )
