@@ -260,6 +260,10 @@ class EntityManager(models.Manager):
         return self.filter(type__abbr='co')
     
     #---------------------------------------------------------------------------
+    def country(self, code):
+        return self.get(code=code, type__abbr='co')
+
+    #---------------------------------------------------------------------------
     def country_dict(self):
         return dict([(e.code, e) for e in self.countries()])
 
@@ -601,10 +605,13 @@ class Currency(models.Model):
     sign = models.CharField(blank=True, max_length=4)
     alt_sign = models.CharField(blank=True, max_length=4)
 
+    def __unicode__(self):
+        return self.name
+
 
 #===============================================================================
-class CountryInfo(models.Model):
-    country = models.OneToOneField(Entity)
+class EntityInfo(models.Model):
+    entity = models.OneToOneField(Entity)
     iso3 = models.CharField(blank=True, max_length=3)
     currency = models.ForeignKey(Currency, blank=True, null=True)
     denom = models.CharField(blank=True, max_length=40)
