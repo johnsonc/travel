@@ -269,7 +269,7 @@
     //--------------------------------------------------------------------------
     var entity_url = function(e) {
         return '/i/' + e.type_abbr + '/' + (
-            e.type_abbr == 'wh'
+            (e.type_abbr == 'wh' || e.type_abbr == 'st')
           ? (e.country_code + '-' + e.code)
           : e.code
         ) + '/';
@@ -294,7 +294,7 @@
     };
     
     //--------------------------------------------------------------------------
-    var make_tag = function(name) {
+    var make_tag = root.make_tag = function(name) {
         var args = Array.prototype.slice.call(arguments, 1);
         var tag = '<' + name;
         var attrs;
@@ -313,6 +313,7 @@
     var make_entity_row = function(e) {
         var html = '';
         var attrs = {'data-id' : e.id, 'class': e.type_abbr};
+        var name_args = ['td', '<a href="', e.entity_url, '">', e.name, '</a>'];
         if(e.country_code) {
             attrs['class'] += ' co-' + e.country_code;
         }
@@ -325,8 +326,13 @@
           : ''
         );
         
+        if(e.country_name) {
+            name_args = name_args.concat(['<br>', e.country_name]);
+        }
+
+        name_args = name_args.concat([])
         html += make_tag('td', e.type_title);
-        html += make_tag('td', '<a href="', e.entity_url, '">', e.name, '</a>');
+        html += make_tag.apply(null, name_args);
         html += make_tag('td', date_html(e.most_recent_visit));
         html += make_tag('td', date_html(e.first_visit));
         html += make_tag('td', e.num_visits);

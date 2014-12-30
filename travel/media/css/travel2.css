@@ -46,7 +46,7 @@ body {
 img.flag { box-shadow: 1px 1px 4px rgba(0, 0, 0, 0.5); }
 #id_note { height: 5em; }
 
-
+.visited-icon { color: #7aa43e;}
 /*.table-striped > tbody > tr:nth-child(odd) > td, .table-striped > tbody > tr:nth-child(odd) > th {*/
 /*    background-color: #f7efd6;*/
 /*}*/

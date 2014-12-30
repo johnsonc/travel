@@ -624,3 +624,10 @@ class EntityInfo(models.Model):
     tld = models.CharField(blank=True, max_length=8)
     population = models.CharField(blank=True, max_length=12)
     area = models.CharField(blank=True, max_length=10)
+
+    #---------------------------------------------------------------------------
+    def electrical_info(self):
+        if self.electrical:
+            v,h,p = self.electrical.split('/')
+            return {'volts': v, 'hertz': h, 'plugs': p.split(',')}
+        return {}

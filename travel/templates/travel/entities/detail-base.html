@@ -15,7 +15,7 @@
 {% endif %}
 {% endblock travel_image %}
 {% block travel_heading %}
-    {{ place.name }}&nbsp;{% if user.is_superuser %}<a href="{{ place.get_edit_url }}"><img src="{{ MEDIA_URL }}/img/icons/24/edit.png"></a>{% endif %}
+    {{ place.name }}&nbsp;{% if user.is_superuser %}<a href="{{ place.get_edit_url }}"><small class="glyphicon glyphicon-edit"></small></a>{% endif %}
 {% endblock %}
 {% block travel_content %}
     <dl class="dl-horizontal entity-details">
@@ -124,7 +124,7 @@
                 <td>{{ entry.get_rating_display }}</td>
                 <td>
                     <a title="Edit this log entry" href="{{ entry.get_absolute_url }}">
-                        <img src="{{ MEDIA_URL }}img/icons/24/edit.png"></a>
+                        <i class="glyphicon glyphicon-edit"></i></a>
                 </td>
             </tr>
             {% if entry.notes %}

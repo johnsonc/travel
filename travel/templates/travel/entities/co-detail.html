@@ -1,0 +1,31 @@
+{% extends "travel/entities/detail-base.html" %}
+{% block extra_details %}
+    {% with place.entityinfo as info %}
+    {% if info %}
+    <dt>Area</dt>
+    <dd>{{ info.area|default:"Unknown"}} km<sup>2</sup></dd>
+    <dt>Population</dt>
+    <dd>{{ info.population|default:"Unknown" }}</dd>
+    <dt>Currency</dt>
+    <dd>{% if info.currency %}{% with info.currency as cur %}
+        {{ cur.iso }} ({{ cur }}) &bull;
+        {{ cur.sign }}1 = {{ cur.fraction }} {{ cur.fraction_name }}{% endwith %}{% else %}Unknown
+    {% endif %}</dd>
+    {% if info.denom %}
+    <dt>Demonym</dt>
+    <dd>{{ info.denom }} <i>(sing.)</i>; {{ info.denoms }} <i>(pl.)</i></dd>{% endif %}
+    {% if info.languages %}
+    <dt>Language(s)</dt>
+    <dd>{{ info.languages}}</dd>{% endif %}
+    {% if info.electrical %}
+    <dt>Electrical</dt>
+    <dd>{% with info.electrical_info as el %}
+        {{ el.volts }}V, {{ el.hz }}Hz, Connector type(s): {{ el.plugs|join:", " }}<br>
+        {% for p in el.plugs %}
+        <img style="width:50px" src="{{ MEDIA_URL }}img/plugs/{{ p.0.lower }}.png">
+        {% endfor %}
+    {% endwith %}
+    </dd>{% endif %}
+    {% endif %}
+    {% endwith %}
+{% endblock extra_details %}

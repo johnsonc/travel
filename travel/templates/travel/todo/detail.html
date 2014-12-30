@@ -28,7 +28,7 @@
         {% for obj,logged in entities %}
         <tr>
             <td>
-                <img src="{{ MEDIA_URL }}img/icons/32/{{ logged|yesno:"accept,block" }}.png" />
+                <i class="glyphicon glyphicon-{{ logged|yesno:"ok,remove" }}"></i>
             </td>
             <td>
                 <a href="{{ obj.get_absolute_url }}">{{ obj }}</a>

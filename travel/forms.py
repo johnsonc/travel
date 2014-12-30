@@ -8,7 +8,6 @@ from django.contrib.contenttypes.models import ContentType
 
 from jargon.forms import TextField
 from jargon.utils.dates import parse as dtparse
-from jargon.apps.annotation.models import Markup
 
 from travel import models as travel
 from travel import utils as travel_utils

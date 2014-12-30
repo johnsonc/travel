@@ -30,7 +30,7 @@
         {% endif %}
         {% if request.user.is_authenticated %}
         <td>{% if place.id in checklist %}
-            <img src="{{ MEDIA_URL }}img/icons/32/accept.png">{% endif %}
+            <i class="glyphicon glyphicon-ok visited-icon"></i>{% endif %}
         </td>
         {% endif %}
     </tr>{% endfor %}

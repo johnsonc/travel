@@ -24,7 +24,7 @@
             <a href="{{ place.country.get_absolute_url }}">{{ place.country }}</a>
         </td>
         <td>{% if place.id in checklist %}
-            <img src="{{ MEDIA_URL }}img/icons/24/accept.png">{% endif %}
+            <i class="glyphicon glyphicon-ok visited-icon"></i>{% endif %}
         </td>
     </tr>
     {% endfor %}
