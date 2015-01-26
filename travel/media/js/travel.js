@@ -22,6 +22,8 @@
     var root = this;
     var $$ = _.bind(document.getElementById, document);
     
+    _.templateSettings.interpolate = /{{([\s\S]+?)}}/g;
+    
     var profile_datepicker_opts = {
         changeMonth: true,
         changeYear: true,
@@ -48,8 +50,8 @@
             }
             return (a.name < b.name) ? -1 : 0;
         },
-        'recent': function(a, b) { return b.most_recent_visit - a.most_recent_visit; },
-        'first':  function(a, b) { return b.first_visit - a.first_visit; },
+        'recent': function(a, b) { return b.most_recent_visit.date - a.most_recent_visit.date; },
+        'first':  function(a, b) { return b.first_visit.date - a.first_visit.date; },
         'logs':   function(a, b) { return b.num_visits - a.num_visits; },
         'rating': function(a, b) { return a.rating - b.rating; }
     };
@@ -59,6 +61,20 @@
         var STARS = '★★★★★';
         return function(rating) { return STARS.substr(rating - 1); };
     }());
+    
+    //--------------------------------------------------------------------------
+    var date_wrapper = function(dt_str) {
+        var dt = new Date(dt_str);
+        var str = dt.toString().split(' ');
+        var hours = dt.getHours();
+        var hours12 = hours ? hours % 12 : 12;
+        
+        return {
+            'date': dt,
+            'date_string': str[1] + ' ' + dt.getDate() + ', ' + dt.getFullYear(),
+            'time_string': str[0] + ' ' + hours12  + ':' + pad(dt.getMinutes()) + (hours > 12 ? 'pm' : 'am')
+        }
+    };
     
     //--------------------------------------------------------------------------
     var profile_history = {
@@ -73,8 +89,8 @@
                 e.entity_url = entity_url(e);
                 e.flag_url = e.flag_url ? media_prefix + e.flag_url: '';
                 e.flag_co_url = e.flag_co_url ? media_prefix + e.flag_co_url: '';
-                e.most_recent_visit = new Date(e.most_recent_visit);
-                e.first_visit = new Date(e.first_visit);
+                e.most_recent_visit = date_wrapper(e.most_recent_visit);
+                e.first_visit = date_wrapper(e.first_visit);
                 e.html = make_entity_row(e);
                 if(e.country_code) {
                     this.countries[e.country_code] = e.country_name;
@@ -117,14 +133,11 @@
                     }
                     
                     if(tf && dt) {
-                        switch(tf) {
-                            case '+':
-                                good &= (e.most_recent_visit >= dt);
-                            break
-                            
-                            case '-':
-                                good &= (e.most_recent_visit <= dt);
-                            break
+                        if(tf == '+') {
+                            good &= (e.most_recent_visit.date >= dt);
+                        }
+                        else if(tf == '-') {
+                            good &= (e.most_recent_visit.date <= dt);
                         }
                     }
 
@@ -277,21 +290,8 @@
     };
 
     //--------------------------------------------------------------------------
-    var date_html = function(dt) {
-        var ampm, html;
-        var str = dt.toString().split(' ');
-        var hours = dt.getHours();
-        var minutes = dt.getMinutes();
-        hours = hours ? hours % 12 : 12;
-        ampm = (hours > 12) ? 'p' : 'a';
-        if(minutes < 10) {
-            minutes = '0' + minutes;
-        }
-        
-        return (
-            make_tag('nobr', str[1] + ' ', dt.getDate() + ', ', dt.getFullYear(), '<br>')
-          + make_tag('nobr', str[0] + ' ', hours  + ':', minutes, ampm, '.m.')
-        );
+    var date_html = function(dtw) {
+        return make_tag('nobr', dtw.date_string, '<br>') + make_tag('nobr', dtw.time_string);
     };
     
     //--------------------------------------------------------------------------
@@ -311,48 +311,47 @@
     };
     
     //--------------------------------------------------------------------------
+    var img_tag = function(src, classes) {
+        var tag = '<img src="' + src + '"';
+        if(classes) {
+            tag += ' class="' + classes + '"';
+        }
+        return tag + '>';
+    }
+    
+    //--------------------------------------------------------------------------
     var make_entity_row = function(e) {
-        var html = '';
-        var co_bits = '';
-        var attrs = {'data-id' : e.id, 'class': e.type_abbr};
-        var name_args = ['td', '<a href="', e.entity_url, '">', e.name, '</a>'];
-        var extra_name_args = [];
-        if(e.country_code) {
-            attrs['class'] += ' co-' + e.country_code;
-        }
-        else if(e.type_abbr == 'co') {
-            attrs['class'] += ' co-' + e.code;
-        }
-        
-        html += make_tag('td', e.flag_url
-          ? '<img class="flag" src="' + e.flag_url + '">'
-          : ''
-        );
+        var co_html = '';
+        var name_html = '<a href="' + e.entity_url + '">' + e.name + '</a>';
+        var html = make_tag('td', e.flag_url ? img_tag(e.flag_url, 'flag') : '');
+        var attrs = {
+            'data-id' : e.id,
+            'class': e.type_abbr + ' co-' + e.country_code ? e.country_code : (e.type_abbr == 'co' ? e.code : '')
+        };
         
         if(e.locality) {
-            extra_name_args.push(e.locality);
+            co_html += e.locality;
         }
         if(e.country_name) {
-            co_bits = e.country_name;
+            co_html += co_html.length ? ', ' + e.country_name : e.country_name;
             if(e.flag_co_url) {
-                co_bits += ' <img class="flag" src="' + e.flag_co_url + '">';
+                co_html += ' ' + img_tag(e.flag_co_url, 'flag');
             }
-            extra_name_args.push(co_bits);
         }
 
-        if(extra_name_args.length) {
-            name_args.push('<br>');
-            name_args.push(extra_name_args.join(', '));
+        if(co_html.length) {
+            name_html += '<br>' + co_html;
         }
 
-        name_args = name_args.concat([])
-        html += make_tag('td', e.type_title);
-        html += make_tag.apply(null, name_args);
-        html += make_tag('td', date_html(e.most_recent_visit));
-        html += make_tag('td', date_html(e.first_visit));
-        html += make_tag('td', e.num_visits);
-        html += make_tag('td', stars(e.rating));
-        return make_tag('tr', attrs, html);
+        return make_tag('tr', attrs, (
+              html
+            + make_tag('td', e.type_title)
+            + make_tag('td', name_html)
+            + make_tag('td', date_html(e.most_recent_visit))
+            + make_tag('td', date_html(e.first_visit))
+            + make_tag('td', e.num_visits)
+            + make_tag('td', stars(e.rating))
+        ));
     };
     
     //--------------------------------------------------------------------------

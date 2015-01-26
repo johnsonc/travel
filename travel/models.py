@@ -11,7 +11,6 @@ from django.utils.translation import ugettext_lazy as _
 from path import path
 from jargon.utils.json_utils import dumps as json_dumps
 from choice_enum import ChoiceEnumeration
-from jargon.apps.annotation.models import Markup
 import travel.utils as travel_utils
 
 GOOGLE_MAPS             = 'http://maps.google.com/maps?q=%s'

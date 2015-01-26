@@ -5,12 +5,38 @@ from urllib import quote_plus
 
 from decimal import Decimal, localcontext
 import requests
+from dateutil import parser
 from PIL import Image
 
 _wiki_flag_url_re =  re.compile(r'(.*)/(\d+)px(.*)')
 _default_flag_sizes = (16, 32, 64, 128, 256, 512)
 
 
+
+#===============================================================================
+class _ParserInfo(parser.parserinfo):
+    parser.parserinfo.MONTHS[8] += ('Sept',)
+
+    parser.parserinfo.WEEKDAYS[1] += ('Tues',)
+    parser.parserinfo.WEEKDAYS[2] += ('Weds', 'Wedn')
+    parser.parserinfo.WEEKDAYS[3] += ('Thurs', 'Thur')
+
+
+_parser_info = _ParserInfo()
+
+#-------------------------------------------------------------------------------
+def dt_parse(dtstr, **kws):
+    return parser.parse(dtstr, _parser_info, **kws)
+
+
+################################################################################
+def test():
+    s = 'Sept 16, 2011 11:56'
+    print parse(s)
+
+
+if __name__ == '__main__':
+    test()
 #-------------------------------------------------------------------------------
 def nice_url(text):
     return quote_plus(text('utf8'))

@@ -1,11 +1,10 @@
 from django.conf.urls import *
-from jargon.shortcuts import to_template
 from travel import views
 
 
 urlpatterns = patterns('',
     url(r'^$', views.home, name='travel-home'),
-    url(r'^about/$', to_template('travel/about.html'), name='travel-about'),
+    url(r'^about/$', view.to_template('travel/about.html'), name='travel-about'),
     url(r'^search/$', views.search, name='travel-search'),
     url(r'^search/advanced/$', views.search_advanced, name='travel-search-advanced'),
 
@@ -22,7 +21,7 @@ urlpatterns = patterns('',
     url(r'^edit/i/(\w+)/(\w+)(?:-(\w+))?/$', views.entity_edit, name='travel-entity-edit'),
     url(r'^site/request/$', views.support_request, kwargs={'title': 'Feature Request'}, name='travel-request'),
     url(r'^site/problem/$', views.support_request, kwargs={'title': 'Site Problem'}, name='travel-problem'),
-    url(r'^site/thanks/$', to_template('travel/site/thank_you.html'), name='travel-thanks'),
+    url(r'^site/thanks/$', view.to_template('travel/site/thank_you.html'), name='travel-thanks'),
 
     url(r'^profile/$', views.all_profiles, name='travel-profiles'),
     url(r'^profiles/([^/]+)/$', views.profile, name='travel-profile'),
@@ -31,5 +30,5 @@ urlpatterns = patterns('',
     url(r'^todo/$', views.todo_lists, name='travel-todos'),
     url(r'^todo/(\d+)/$', views.todo_list, name='travel-todo'),
 
-    url(r'^plugs/$', to_template('travel/plugs.html'), name='travel-plugs'),
+    url(r'^plugs/$', view.to_template('travel/plugs.html'), name='travel-plugs'),
 )

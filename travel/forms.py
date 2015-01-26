@@ -1,16 +1,13 @@
 from datetime import datetime, date
-
 from django import forms
 from django.conf import settings
-from django.forms import fields
-from django.db.models import Q
-from django.contrib.contenttypes.models import ContentType
-
-from jargon.forms import TextField
-from jargon.utils.dates import parse as dtparse
-
 from travel import models as travel
 from travel import utils as travel_utils
+
+
+#===============================================================================
+class TextField(forms.CharField):
+    widget = forms.Textarea
 
 
 #===============================================================================
@@ -26,7 +23,7 @@ class DateUtilField(forms.Field):
         Python datetime.datetime object.
         """
         super(DateUtilField, self).clean(value)
-        if value in fields.EMPTY_VALUES:
+        if value in form.fields.EMPTY_VALUES:
             return None
         elif isinstance(value, datetime):
             return value
@@ -34,7 +31,7 @@ class DateUtilField(forms.Field):
             return datetime(value.year, value.month, value.day)
 
         try:
-            return dtparse(value)
+            return travel_utils.dt_parse(value)
         except:
             raise forms.ValidationError(self.error_messages['invalid'])
 

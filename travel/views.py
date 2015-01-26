@@ -2,14 +2,25 @@ from django import http
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
-from django.shortcuts import get_object_or_404
-from django.contrib.auth.decorators import login_required
+from django.shortcuts import get_object_or_404, render
+from django.contrib.auth.decorators import user_passes_test, login_required
 
-from jargon.decorators import superuser_required
-from jargon.shortcuts import request_to_response
 from travel import models as travel
 from travel import forms
 from travel import utils
+
+
+#-------------------------------------------------------------------------------
+superuser_required = user_passes_test(
+    lambda u: u.is_authenticated() and u.is_active and u.is_superuser
+)
+
+
+#-------------------------------------------------------------------------------
+def to_template(tmpl):
+    def to_template_inner(request):
+        return render(request, tmpl)
+    return to_template_inner
 
 
 #-------------------------------------------------------------------------------
@@ -24,7 +35,7 @@ def support_request(request, title):
         form = forms.SupportForm()
 
     data = {'form': form, 'title': title}
-    return request_to_response(request, 'travel/site/support.html', data)
+    return render(request, 'travel/site/support.html', data)
 
 
 
@@ -32,25 +43,25 @@ def support_request(request, title):
 def home(request):
     # if request.user.is_authenticated:
     #     profile = get_object_or_404(travel.Profile, user=request.user)
-    #     return request_to_response(request, 'travel/profile/profile.html', {'profile': profile})
+    #     return render(request, 'travel/profile/profile.html', {'profile': profile})
     # else:
-    return request_to_response(request, 'travel/home.html')
+    return render(request, 'travel/home.html')
 
 #-------------------------------------------------------------------------------
 def all_profiles(request):
     data = {'profiles': travel.Profile.objects.public()}
-    return request_to_response(request, 'travel/profile/all.html', data)
+    return render(request, 'travel/profile/all.html', data)
 
 
 #-------------------------------------------------------------------------------
 def profile(request, username):
     profile = get_object_or_404(travel.Profile, user__username=username)
-    return request_to_response(request, 'travel/profile/profile.html', {'profile': profile})
+    return render(request, 'travel/profile/profile.html', {'profile': profile})
 
 
 #-------------------------------------------------------------------------------
 def _add_todos(request):
-    return request_to_response(request, 'travel/construction.html')
+    return render(request, 'travel/construction.html')
 
 
 #-------------------------------------------------------------------------------
@@ -60,7 +71,7 @@ def todo_lists(request):
     else:
         todos = travel.ToDoList.objects.filter(is_public=True)
 
-    return request_to_response(request, 'travel/todo/listing.html', {'todos': todos})
+    return render(request, 'travel/todo/listing.html', {'todos': todos})
 
 
 #-------------------------------------------------------------------------------
@@ -82,7 +93,7 @@ def todo_list(request, pk):
         entities.append((entity, logged))
         
     data = {'todo': todo, 'entities': entities, 'stats': {'total': total, 'done': done}}
-    return request_to_response(request, 'travel/todo/detail.html', data)
+    return render(request, 'travel/todo/detail.html', data)
 
 
 #-------------------------------------------------------------------------------
@@ -95,7 +106,7 @@ def search(request):
         data['results'] = travel.Entity.objects.search(q, mtype)
         data['search']  = q
 
-    return request_to_response(request, 'travel/search/search.html', data)
+    return render(request, 'travel/search/search.html', data)
 
 
 #-------------------------------------------------------------------------------
@@ -118,7 +129,7 @@ def search_advanced(request):
             
         data['results'] = travel.Entity.objects.filter(q)
         
-    return request_to_response(request, 'travel/search/advanced.html', data)
+    return render(request, 'travel/search/advanced.html', data)
     
 
 #-------------------------------------------------------------------------------
@@ -132,13 +143,13 @@ def fix_shit(request):
             items.delete()
             return http.HttpResponseRedirect(request.path + ('?deleted=%s' % count))
     data = {'places': travel.Entity.objects.filter(type__abbr__in=['wh', 'lm'])}
-    return request_to_response(request, 'travel/fix_it.html', data)
+    return render(request, 'travel/fix_it.html', data)
 
 #-------------------------------------------------------------------------------
 def by_locale(request, ref):
     etype = get_object_or_404(travel.EntityType, abbr=ref)
     data = {'type': etype, 'places': etype.entity_set.all()}
-    return request_to_response(request, 'travel/entities/%s-listing.html' % ref, data)
+    return render(request, 'travel/entities/%s-listing.html' % ref, data)
 
 
 #-------------------------------------------------------------------------------
@@ -157,7 +168,7 @@ def _entity_base(request, entity):
         history = []
 
     template = 'travel/entities/%s-detail.html' % entity.type.abbr
-    return request_to_response(
+    return render(
         request,
         [template, 'travel/entities/detail-base.html'],
         {'place': entity, 'form': form, 'history': history}
@@ -174,7 +185,7 @@ def _entity_edit(request, entity):
     else:
         form = forms.EditEntityForm(instance=entity)
         
-    return request_to_response(
+    return render(
         request,
         'travel/entities/edit.html',
         {'place': entity, 'form': form}
@@ -192,7 +203,7 @@ def _handle_entity(request, ref, code, aux, handler):
     if n == 0:
         raise http.Http404
     elif n > 1:
-        return request_to_response(request, 'travel/search/search.html', {'results': entity})
+        return render(request, 'travel/search/search.html', {'results': entity})
     else:
         return handler(request, entity[0])
 
@@ -230,14 +241,14 @@ def entity_relationships(request, ref, code, rel):
     if count == 0:
         raise http.Http404('No entity matches the given query.')
     if count > 1:
-        return request_to_response(request, 'travel/search/search.html', {'results': places})
+        return render(request, 'travel/search/search.html', {'results': places})
         
     place  = places[0]
     etype  = get_object_or_404(travel.EntityType, abbr=rel)
     key    = travel.Entity.objects.RELATIONSHIP_MAP[ref]
     places = travel.Entity.objects.filter(models.Q(**{key: place}), type__abbr=rel)
     data   = {'type': etype, 'places': places, 'parent': place}
-    return request_to_response(request, 'travel/entities/%s-listing.html' % rel, data)
+    return render(request, 'travel/entities/%s-listing.html' % rel, data)
 
 
 #-------------------------------------------------------------------------------
@@ -246,7 +257,6 @@ def log_entry(request, username, pk):
     if request.user == entry.user:
         if request.method == 'POST':
             form = forms.TravelLogForm(request.POST, instance=entry)
-            #import jargon.debug; jargon.debug.set_trace()
             if form.is_valid():
                 form.save(user=request.user)
                 return http.HttpResponseRedirect(request.path)
@@ -256,7 +266,7 @@ def log_entry(request, username, pk):
         form = None
     
     data = {'entry': entry, 'form':  form}
-    return request_to_response(request, 'travel/log-entry.html', data)
+    return render(request, 'travel/log-entry.html', data)
 
 
 #-------------------------------------------------------------------------------
@@ -277,7 +287,7 @@ def start_add_entity(request):
             return http_redirect_reverse('travel-entity-add-by-co', co, abbr)
     
     entity_types = travel.EntityType.objects.exclude(abbr__in=['cn', 'co'])
-    return request_to_response(
+    return render(
         request,
         'travel/entities/add/start.html',
         {'types': entity_types, 'countries': travel.Entity.objects.countries()}
@@ -296,7 +306,7 @@ def add_entity_co(request):
     else:
         form = forms.NewCountryForm()
         
-    return request_to_response(
+    return render(
         request,
         'travel/entities/add/add.html',
         {'form': form, 'entity_type': entity_type}
@@ -323,7 +333,7 @@ def add_entity_by_co(request, code, abbr):
     else:
         form = Form()
     
-    return request_to_response(
+    return render(
         request,
         'travel/entities/add/add.html',
         {'entity_type': entity_type, 'form': form}
