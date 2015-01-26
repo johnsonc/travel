@@ -430,6 +430,11 @@ class Entity(models.Model):
         return ''
     
     #---------------------------------------------------------------------------
+    def related_by_type(self, type):
+        key = Entity.objects.RELATIONSHIP_MAP[self.type.abbr]
+        return Entity.objects.filter(models.Q(**{key: self}), type=type)
+        
+    #---------------------------------------------------------------------------
     def update_flags(self, flag_url, sizes=None):
         if self.flag and not self.flag.is_locked:
             flag = self.flag

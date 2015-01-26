@@ -3,17 +3,11 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django.shortcuts import get_object_or_404, render
-from django.contrib.auth.decorators import user_passes_test, login_required
+from django.contrib.auth.decorators import login_required
 
 from travel import models as travel
 from travel import forms
 from travel import utils
-
-
-#-------------------------------------------------------------------------------
-superuser_required = user_passes_test(
-    lambda u: u.is_authenticated() and u.is_active and u.is_superuser
-)
 
 
 #-------------------------------------------------------------------------------
@@ -37,15 +31,6 @@ def support_request(request, title):
     data = {'form': form, 'title': title}
     return render(request, 'travel/site/support.html', data)
 
-
-
-#-------------------------------------------------------------------------------
-def home(request):
-    # if request.user.is_authenticated:
-    #     profile = get_object_or_404(travel.Profile, user=request.user)
-    #     return render(request, 'travel/profile/profile.html', {'profile': profile})
-    # else:
-    return render(request, 'travel/home.html')
 
 #-------------------------------------------------------------------------------
 def all_profiles(request):
@@ -77,13 +62,13 @@ def todo_lists(request):
 #-------------------------------------------------------------------------------
 def todo_list(request, pk):
     todo = get_object_or_404(travel.ToDoList, pk=pk)
-    anon = request.user.is_anonymous()
+    is_anon = request.user.is_anonymous()
     
     entities = []
     total = done = 0
     for entity in todo.entities.all():
         total += 1
-        if anon:
+        if is_anon:
             logged = 0
         else:
             logged = entity.travellog_set.filter(user=request.user).count()
@@ -99,12 +84,11 @@ def todo_list(request, pk):
 #-------------------------------------------------------------------------------
 def search(request):
     search_form = forms.SearchForm(request.GET)
-    data        = {'search_form': search_form}
+    data = {'search_form': search_form}
     if search_form.is_valid():
-        q               = search_form.cleaned_data['search']
-        mtype           = search_form.cleaned_data['type']
-        data['results'] = travel.Entity.objects.search(q, mtype)
-        data['search']  = q
+        q     = search_form.cleaned_data['search']
+        mtype = search_form.cleaned_data['type']
+        data.update(search=q, results=travel.Entity.objects.search(q, mtype))
 
     return render(request, 'travel/search/search.html', data)
 
@@ -132,18 +116,6 @@ def search_advanced(request):
     return render(request, 'travel/search/advanced.html', data)
     
 
-#-------------------------------------------------------------------------------
-@superuser_required
-def fix_shit(request):
-    if request.method == 'POST':
-        ids = request.POST.getlist('fix', [])
-        if ids:
-            items = travel.Entity.objects.filter(id__in=ids)
-            count = items.count()
-            items.delete()
-            return http.HttpResponseRedirect(request.path + ('?deleted=%s' % count))
-    data = {'places': travel.Entity.objects.filter(type__abbr__in=['wh', 'lm'])}
-    return render(request, 'travel/fix_it.html', data)
 
 #-------------------------------------------------------------------------------
 def by_locale(request, ref):
@@ -223,32 +195,22 @@ def entity_edit(request, ref, code, aux=None):
 
 
 #-------------------------------------------------------------------------------
-def entity_by_parent(request, ref, ref_code, rel, code):
-    entity = get_object_or_404(
-        travel.Entity,
-        country__code=ref_code,
-        type__abbr=rel,
-        code=code
-    )
-    return _entity_base(request, entity)
-
-
-#-------------------------------------------------------------------------------
 def entity_relationships(request, ref, code, rel):
     places = travel.Entity.objects.filter(type__abbr=ref, code=code)
     count  = places.count()
     
     if count == 0:
         raise http.Http404('No entity matches the given query.')
-    if count > 1:
+    elif count > 1:
         return render(request, 'travel/search/search.html', {'results': places})
-        
-    place  = places[0]
+
+    place = places[0]
     etype  = get_object_or_404(travel.EntityType, abbr=rel)
-    key    = travel.Entity.objects.RELATIONSHIP_MAP[ref]
-    places = travel.Entity.objects.filter(models.Q(**{key: place}), type__abbr=rel)
-    data   = {'type': etype, 'places': places, 'parent': place}
-    return render(request, 'travel/entities/%s-listing.html' % rel, data)
+    return render(request, 'travel/entities/%s-listing.html' % rel, {
+        'type': etype,
+        'places': place.related_by_type(etype),
+        'parent': place
+    })
 
 
 #-------------------------------------------------------------------------------
@@ -265,8 +227,7 @@ def log_entry(request, username, pk):
     else:
         form = None
     
-    data = {'entry': entry, 'form':  form}
-    return render(request, 'travel/log-entry.html', data)
+    return render(request, 'travel/log-entry.html', {'entry': entry, 'form':  form})
 
 
 #-------------------------------------------------------------------------------
@@ -275,7 +236,7 @@ def http_redirect_reverse(name, *args):
 
 
 #-------------------------------------------------------------------------------
-@superuser_required
+@utils.superuser_required
 def start_add_entity(request):
     abbr = request.GET.get('type')
     if abbr:
@@ -295,7 +256,7 @@ def start_add_entity(request):
 
 
 #-------------------------------------------------------------------------------
-@superuser_required
+@utils.superuser_required
 def add_entity_co(request):
     entity_type = get_object_or_404(travel.EntityType, abbr='co')
     if request.method == 'POST':
@@ -319,7 +280,7 @@ NEW_ENTITY_FORMS = {
 
 
 #-------------------------------------------------------------------------------
-@superuser_required
+@utils.superuser_required
 def add_entity_by_co(request, code, abbr):
     entity_type = get_object_or_404(travel.EntityType, abbr=abbr)
     country = travel.Entity.objects.get(code=code, type__abbr='co')

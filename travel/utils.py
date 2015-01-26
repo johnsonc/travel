@@ -7,10 +7,16 @@ from decimal import Decimal, localcontext
 import requests
 from dateutil import parser
 from PIL import Image
+from django.contrib.auth.decorators import user_passes_test
 
 _wiki_flag_url_re =  re.compile(r'(.*)/(\d+)px(.*)')
 _default_flag_sizes = (16, 32, 64, 128, 256, 512)
 
+
+#-------------------------------------------------------------------------------
+superuser_required = user_passes_test(
+    lambda u: u.is_authenticated() and u.is_active and u.is_superuser
+)
 
 
 #===============================================================================
