@@ -72,6 +72,7 @@
             this.all_entities = _.map(history, function(e) {
                 e.entity_url = entity_url(e);
                 e.flag_url = e.flag_url ? media_prefix + e.flag_url: '';
+                e.flag_co_url = e.flag_co_url ? media_prefix + e.flag_co_url: '';
                 e.most_recent_visit = new Date(e.most_recent_visit);
                 e.first_visit = new Date(e.first_visit);
                 e.html = make_entity_row(e);
@@ -312,8 +313,10 @@
     //--------------------------------------------------------------------------
     var make_entity_row = function(e) {
         var html = '';
+        var co_bits = '';
         var attrs = {'data-id' : e.id, 'class': e.type_abbr};
         var name_args = ['td', '<a href="', e.entity_url, '">', e.name, '</a>'];
+        var extra_name_args = [];
         if(e.country_code) {
             attrs['class'] += ' co-' + e.country_code;
         }
@@ -322,12 +325,24 @@
         }
         
         html += make_tag('td', e.flag_url
-          ? '<img class="flag" src="' + e.flag_url + '" />'
+          ? '<img class="flag" src="' + e.flag_url + '">'
           : ''
         );
         
+        if(e.locality) {
+            extra_name_args.push(e.locality);
+        }
         if(e.country_name) {
-            name_args = name_args.concat(['<br>', e.country_name]);
+            co_bits = e.country_name;
+            if(e.flag_co_url) {
+                co_bits += ' <img class="flag" src="' + e.flag_co_url + '">';
+            }
+            extra_name_args.push(co_bits);
+        }
+
+        if(extra_name_args.length) {
+            name_args.push('<br>');
+            name_args.push(extra_name_args.join(', '));
         }
 
         name_args = name_args.concat([])

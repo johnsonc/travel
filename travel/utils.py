@@ -1,14 +1,19 @@
 # -*- coding:utf8 -*-
 import io
 import re
-from decimal import Decimal, localcontext
+from urllib import quote_plus
 
+from decimal import Decimal, localcontext
 import requests
 from PIL import Image
-from path import path
 
 _wiki_flag_url_re =  re.compile(r'(.*)/(\d+)px(.*)')
 _default_flag_sizes = (16, 32, 64, 128, 256, 512)
+
+
+#-------------------------------------------------------------------------------
+def nice_url(text):
+    return quote_plus(text('utf8'))
 
 
 #-------------------------------------------------------------------------------

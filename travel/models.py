@@ -1,6 +1,5 @@
 import re
 from datetime import datetime
-from urllib import quote_plus
 
 from django.conf import settings
 from django.db import models, connection
@@ -11,7 +10,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from path import path
 from jargon.utils.json_utils import dumps as json_dumps
-from jargon.db.fields import ChoiceEnumeration
+from choice_enum import ChoiceEnumeration
 from jargon.apps.annotation.models import Markup
 import travel.utils as travel_utils
 
@@ -270,7 +269,7 @@ class EntityManager(models.Manager):
 
 #-------------------------------------------------------------------------------
 def wikipedia_url(entity):
-    return WIKIPEDIA_URL % quote_plus(entity.full_name.encode('utf8'))
+    return WIKIPEDIA_URL % travel_utils.nice_url(entity.full_name)
 
 
 #-------------------------------------------------------------------------------
@@ -362,7 +361,8 @@ class Entity(models.Model):
     
     #---------------------------------------------------------------------------
     def wikipedia_search_url(self):
-        return WIKIPEDIA_URL % quote_plus(self.full_name.encode('utf8'))
+        return WIKIPEDIA_URL % travel_utils.nice_url(entity.full_name)
+        
 
     #---------------------------------------------------------------------------
     def _external_handler(self):
@@ -454,7 +454,7 @@ class Entity(models.Model):
         if self.lat or self.lon:
             return GOOGLE_MAPS_LATLON % (self.lat, self.lon)
         else:
-            return GOOGLE_MAPS % (quote_plus(self.name.encode('UTF8')),)
+            return GOOGLE_MAPS % (travel_utils.nice_url(self.name),)
 
 
 #===============================================================================
@@ -470,8 +470,45 @@ class EntityExtra(models.Model):
     ref = models.TextField()
 
 
+#-------------------------------------------------------------------------------
+def custom_sql_as_dict(sql, args):
+    cursor = connection.cursor()
+    cursor.execute(sql, args)
+    description = cursor.description
+    return [
+        dict(zip([column[0] for column in description], row))
+        for row in cursor.fetchall()
+    ]
+
+
 #===============================================================================
 class TravelLogManager(models.Manager):
+    
+    DETAILED_HISTORY_SQL = '''SELECT
+              log.id, 
+              log.entity_id,
+              entity.code,
+              entity.name,
+              entity.locality,
+              entity_co.name AS country_name,
+              entity_co.code AS country_code,
+              flag_co.width_16 AS flag_co_url,
+              MIN(log.rating) AS rating,
+              UNIX_TIMESTAMP(MAX(log.arrival)) * 1000 AS most_recent_visit,
+              UNIX_TIMESTAMP(MIN(log.arrival)) * 1000 AS first_visit,
+              COUNT(log.entity_id) AS num_visits,
+              etype.abbr AS type_abbr,
+              etype.title AS type_title,
+              flag.width_32 AS flag_url
+         FROM `travel_travellog`  AS log
+    LEFT JOIN `travel_entity`     AS entity    ON log.entity_id     = entity.id
+    LEFT JOIN `travel_entity`     AS entity_co ON entity.country_id = entity_co.id
+    LEFT JOIN `travel_entitytype` AS etype     ON entity.type_id    = etype.id
+    LEFT JOIN `travel_flag`       AS flag      ON entity.flag_id    = flag.id
+    LEFT JOIN `travel_flag`       AS flag_co   ON entity_co.flag_id = flag_co.id
+        WHERE `user_id` = %s
+     GROUP BY `entity_id`
+     ORDER BY most_recent_visit DESC'''
     
     #---------------------------------------------------------------------------
     def history(self, user):
@@ -488,37 +525,13 @@ class TravelLogManager(models.Manager):
         )
     
     #---------------------------------------------------------------------------
-    def history_json(self, user):
-        cursor = connection.cursor()
-        cursor.execute(
-            '''SELECT tl.id, 
-                      tl.entity_id,
-                      te.code,
-                      te.name,
-                      tej.name AS country_name,
-                      tej.code AS country_code,
-                      MIN(tl.rating) AS rating,
-                      UNIX_TIMESTAMP(MAX(tl.arrival)) * 1000 AS most_recent_visit,
-                      UNIX_TIMESTAMP(MIN(tl.arrival)) * 1000 AS first_visit,
-                      COUNT(tl.entity_id) AS num_visits,
-                      tet.abbr AS type_abbr,
-                      tet.title AS type_title,
-                      tf.width_32 AS flag_url
-                 FROM `travel_travellog` AS tl
-            LEFT JOIN `travel_entity` AS te ON tl.entity_id = te.id
-            LEFT JOIN `travel_entity` AS tej ON te.country_id = tej.id
-            LEFT JOIN `travel_entitytype` AS tet ON te.type_id = tet.id
-            LEFT JOIN `travel_flag` AS tf ON te.flag_id = tf.id 
-                WHERE `user_id` = %s
-             GROUP BY `entity_id`
-             ORDER BY most_recent_visit DESC''',
-             [user.id]
-        )
+    def _detailed_history(self, user):
+        return custom_sql_as_dict(self.DETAILED_HISTORY_SQL, [user.id])
 
-        desc = cursor.description
-        return json_dumps(
-            [dict(zip([c[0] for c in desc], r)) for r in cursor.fetchall()]
-        )
+    #---------------------------------------------------------------------------
+    def history_json(self, user):
+        results = json_dumps(self._detailed_history(user))
+        return results
 
     #---------------------------------------------------------------------------
     def recent_countries(self, user):
@@ -554,7 +567,7 @@ class TravelLog(models.Model):
     arrival = models.DateTimeField()
     rating = models.PositiveSmallIntegerField(choices=RATING_CHOICES, default=3)
     user = models.ForeignKey(User, related_name='travellog_set')
-    notes = models.ForeignKey(Markup, null=True, blank=True)
+    notes = models.TextField(blank=True)
     entity = models.ForeignKey(Entity)
     
     objects = TravelLogManager()
@@ -580,19 +593,8 @@ class TravelLog(models.Model):
     
     #---------------------------------------------------------------------------
     def update_notes(self, note):
-        if note:
-            if self.notes:
-                self.notes.text = note
-                self.notes.save()
-            else:
-                self.notes = Markup.objects.create(format=Markup.Format.BASIC, text=note)
-                self.save()
-        else:
-            if self.notes:
-                self.notes.delete()
-            
-            self.notes = None
-            self.save()
+        self.notes = note
+        self.save()
 
 
 
@@ -631,3 +633,4 @@ class EntityInfo(models.Model):
             v,h,p = self.electrical.split('/')
             return {'volts': v, 'hertz': h, 'plugs': p.split(',')}
         return {}
+
