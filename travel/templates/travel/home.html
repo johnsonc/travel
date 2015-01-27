@@ -22,7 +22,7 @@
 
     <br />{% if not user.is_authenticated %}
     <p class="text-center">
-        <a href="{% url 'registration_register' %}" class="btn btn-primary">Register &raquo;</a>
-        <a href="{% url 'acct-login' %}" class="btn btn-default">Log in</a>
+        <a href="{% url 'registration-register' %}" class="btn btn-primary">Register &raquo;</a>
+        <a href="{% url 'account-login' %}" class="btn btn-default">Log in</a>
     </p>{% endif %}
 {% endblock travel_content %}

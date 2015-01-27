@@ -9,9 +9,9 @@ from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 
 from path import path
-from jargon.utils.json_utils import dumps as json_dumps
 from choice_enum import ChoiceEnumeration
 import travel.utils as travel_utils
+
 
 GOOGLE_MAPS             = 'http://maps.google.com/maps?q=%s'
 GOOGLE_MAPS_LATLON      = 'http://maps.google.com/maps?q=%s,+%s&iwloc=A&z=10'
@@ -534,7 +534,7 @@ class TravelLogManager(models.Manager):
 
     #---------------------------------------------------------------------------
     def history_json(self, user):
-        results = json_dumps(self._detailed_history(user))
+        results = travel_utils.json_dumps(self._detailed_history(user))
         return results
 
     #---------------------------------------------------------------------------

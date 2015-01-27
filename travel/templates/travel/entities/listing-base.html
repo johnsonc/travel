@@ -9,9 +9,9 @@
     <p>
         Total: {{ places|length }} {{ plural_label }} 
     </p>
-    {% load pagination_tags jargon %}
+    {% load pagination_tags %}
     {% autopaginate places 100 %}
-    {% memoize pagination %}{% paginate %}{% endmemoize %}
+    {% paginate %}
     
     <table class="table table-hover table-striped table-condensed entity-table">
         <thead>
@@ -23,7 +23,7 @@
             {% block listing %}{% endblock listing %}
         </tbody>
     </table>
-    {{ pagination }}
+    {% paginate %}
 {% endblock travel_content %}
 
 

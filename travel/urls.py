@@ -1,10 +1,6 @@
 from django.conf.urls import *
 from travel import views
 
-    
-
-
-
 urlpatterns = patterns('',
     url(r'^$', views.to_template('travel/home.html'), name='travel-home'),
     url(r'^about/$', views.to_template('travel/about.html'), name='travel-about'),

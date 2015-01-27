@@ -1,13 +1,15 @@
 # -*- coding:utf8 -*-
 import io
 import re
+import json
+import datetime
 from urllib import quote_plus
-
 from decimal import Decimal, localcontext
 import requests
-from dateutil import parser
 from PIL import Image
+from dateutil import parser
 from django.contrib.auth.decorators import user_passes_test
+
 
 _wiki_flag_url_re =  re.compile(r'(.*)/(\d+)px(.*)')
 _default_flag_sizes = (16, 32, 64, 128, 256, 512)
@@ -35,14 +37,6 @@ def dt_parse(dtstr, **kws):
     return parser.parse(dtstr, _parser_info, **kws)
 
 
-################################################################################
-def test():
-    s = 'Sept 16, 2011 11:56'
-    print parse(s)
-
-
-if __name__ == '__main__':
-    test()
 #-------------------------------------------------------------------------------
 def nice_url(text):
     return quote_plus(text('utf8'))
@@ -56,11 +50,13 @@ def get_url_content(url):
     
     return r.content
 
+
 #-------------------------------------------------------------------------------
 def make_resizer(size):
     x1, y1 = size
     return lambda x2: (x2, x2 * y1 / x1)
-    
+
+
 #-------------------------------------------------------------------------------
 def get_wiki_flags_by_size(url, sizes=None):
     '''Typical url format:
@@ -93,7 +89,7 @@ def get_flags_from_image_by_size(url, sizes=None):
 
 #-------------------------------------------------------------------------------
 def send_message(user, title, message):
-    from jargon.apps.mailer import send_mail
+    from delivery.delivery import send_mail
     send_mail(title, 'From %s: (%s)\n\n%s' % (
         user.get_full_name, 
         user.email,
@@ -152,8 +148,87 @@ def parse_latlon(s):
     raise ValueError('Invalid Lat/Lon value: %s' % (s,))
 
 
-################################################################################
-def test():
+DATE_FORMAT     = "%Y/%m/%d"
+TIME_FORMAT     = "%H:%M:%S"
+DATETIME_FORMAT = '%s %s' % (DATE_FORMAT, TIME_FORMAT)
+
+parse_date = lambda o: datetime.date(*[int(i) for i in o.split('/')])
+parse_time = lambda o: datetime.time(*[int(i) for i in o.split(':')])
+
+#-------------------------------------------------------------------------------
+def parse_datetime(o):
+    dt, tm = o.split()
+    return datetime.datetime.combine(parse_date(dt), parse_time(tm))
+
+
+PARSERS = dict(
+    datetime = parse_datetime,
+    date     = parse_date,
+    time     = parse_time,
+    decimal  = Decimal
+)
+
+
+#-------------------------------------------------------------------------------
+def object_hook(dct):
+    content_type = dct.get('content_type')
+    if content_type in PARSERS:
+        return PARSERS[content_type](dct['value'])
+
+    return dct
+
+
+#===============================================================================
+class JargonEncoder(json.JSONEncoder):
+    """
+    JSONEncoder subclass that knows how to encode date/time and decimal types.
+    """
+
+    #---------------------------------------------------------------------------
+    def _special(self, ctype, value):
+        return dict(content_type=ctype, value=value)
+        
+    #---------------------------------------------------------------------------
+    def default(self, o):
+        if isinstance(o, datetime.datetime):
+            return self._special('datetime', value=o.strftime(DATETIME_FORMAT))
+        elif isinstance(o, datetime.date):
+            return self._special('date', value=o.strftime(DATE_FORMAT))
+        elif isinstance(o, datetime.time):
+            return self._special('time', value=o.strftime(TIME_FORMAT))
+        elif isinstance(o, Decimal):
+            return self._special('decimal', value=str(o))
+        return super(JargonEncoder, self).default(o)
+
+
+
+#-------------------------------------------------------------------------------
+def json_dumps(obj, cls=JargonEncoder, **kws):
+    return json.dumps(obj, kws.pop('indent', 4), cls=cls, **kws)
+
+
+#-------------------------------------------------------------------------------
+def json_loads(s, object_hook=object_hook, **kws):
+    return json.loads(s, object_hook=object_hook, **kws)
+
+
+#-------------------------------------------------------------------------------
+def json_encoding_test():
+    data = dict(
+        a_date=datetime.date(2011, 4, 22),
+        a_time=datetime.time(16, 59, 59),
+        a_datetime=datetime.datetime(2009, 2, 9, 8, 15),
+        a_decimal=Decimal('19.65')
+    )
+    out = dumps(data)
+    print out
+    result = loads(out)
+    print result
+    print result == data
+    
+
+#-------------------------------------------------------------------------------
+def lat_lon_test():
     a = u'º'
     b = u'°'
     print a == b
@@ -173,5 +248,7 @@ def test():
     print 'dc', parse_latlon('12.34, 56.78')
 
 
+################################################################################
 if __name__ == '__main__':
-    test()
+    json_encoding_test()
+    lat_lon_test()
