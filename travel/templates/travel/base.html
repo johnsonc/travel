@@ -130,17 +130,24 @@
     {% block extra_body %}{% endblock extra_body %}
     <hr />
     <div class="container" id="footer">
-        <div>
-        {% block footer-details %}
-            <ul>
-                <li><a title="About this site" class="quiet" href="{% url 'travel-about' %}">About</a></li>
-                <li><a title="Member request form" class="quiet" href="{% url 'travel-request' %}">Submit a request</a></li>
-                <li><a title="Member problem form" class="quiet" href="{% url 'travel-problem' %}">Report a problem</a></li>
-            </ul>
-        {% endblock %}
-        </div>
-        <div>
-            <span class="quiet">Copyright &copy; 2014 david krauth</span>
+        <div class="row">
+            {% block footer-details %}
+            <div class="col-md-2">
+                <ul>
+                    <li><a title="About this site" class="quiet" href="{% url 'travel-about' %}">About</a></li>
+                    {% if user.is_authenticated %}
+                    <li><a title="Member request form" class="quiet" href="{% url 'travel-request' %}">Submit a request</a></li>
+                    <li><a title="Member problem form" class="quiet" href="{% url 'travel-problem' %}">Report a problem</a></li>
+                    {% else %}
+                    <li><a href="{% url 'account-login' %}?next={{ request.path }}">Log in</a></li>
+                    <li><a href="{% url 'registration-register' %}">Register</a></li>
+                    {% endif %}
+                </ul>
+            </div>
+            {% endblock %}
+            <div class="col-md-8">
+                <div class="text-muted">Copyright &copy; {% now "Y" %} david krauth</div>
+            </div>
         </div>
     </div>
     {% block google_analytics %}

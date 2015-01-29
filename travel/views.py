@@ -11,28 +11,6 @@ from travel import utils
 
 
 #-------------------------------------------------------------------------------
-def to_template(tmpl):
-    def to_template_inner(request):
-        return render(request, tmpl)
-    return to_template_inner
-
-
-#-------------------------------------------------------------------------------
-@login_required
-def support_request(request, title):
-    if request.method == 'POST': 
-        form = forms.SupportForm(request.POST)
-        if form.is_valid():
-            utils.send_message(request.user, title, form.cleaned_data['message'])
-            return http.HttpResponseRedirect(reverse('travel-thanks'))
-    else:
-        form = forms.SupportForm()
-
-    data = {'form': form, 'title': title}
-    return render(request, 'travel/site/support.html', data)
-
-
-#-------------------------------------------------------------------------------
 def all_profiles(request):
     data = {'profiles': travel.Profile.objects.public()}
     return render(request, 'travel/profile/all.html', data)
@@ -231,21 +209,18 @@ def log_entry(request, username, pk):
 
 
 #-------------------------------------------------------------------------------
-def http_redirect_reverse(name, *args):
-    return http.HttpResponseRedirect(reverse(name, args=args))
-
-
-#-------------------------------------------------------------------------------
 @utils.superuser_required
 def start_add_entity(request):
     abbr = request.GET.get('type')
     if abbr:
         if abbr == 'co':
-            return http_redirect_reverse('travel-entity-add-co')
+            return http.HttpResponseRedirect(reverse('travel-entity-add-co'))
             
         co = request.GET.get('country')
         if co:
-            return http_redirect_reverse('travel-entity-add-by-co', co, abbr)
+            return http.HttpResponseRedirect(
+                reverse('travel-entity-add-by-co', args=(co, abbr))
+            )
     
     entity_types = travel.EntityType.objects.exclude(abbr__in=['cn', 'co'])
     return render(
