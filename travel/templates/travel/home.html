@@ -1,9 +1,9 @@
 {% extends "travel/base.html" %}
-{% load url from future %}
+{% load staticfiles %}
 {% block travel_heading %}Welcome{% endblock %}
 {% block travel_content %}
     <p>
-        <img src="{{ MEDIA_URL }}img/clouds.jpg" style="float: right" />
+        <img src="{% static 'img/clouds.jpg' %}" style="float: right" />
         <strong>Features</strong>
     </p>
     

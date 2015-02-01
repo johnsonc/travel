@@ -1,4 +1,5 @@
 {% extends "travel/base.html" %}
+{% load staticfiles %}
 {% block title %}World voltage and plug specifications{% endblock %}
 {% block extra_head %}
     <style>
@@ -10,25 +11,25 @@
 {% block travel_content %}
     <table class="table table-bordered text-center">
         <tr>
-            <td><img src="{{ MEDIA_URL }}img/plugs/a.png"><br><strong>Category A</strong><br>125V~, 2 flat blades</td>
-            <td><img src="{{ MEDIA_URL }}img/plugs/b.png"><br><strong>Category B</strong><br>2 flat blades, grounded</td>
-            <td><img src="{{ MEDIA_URL }}img/plugs/c.png"><br><strong>Category C</strong><br>oblique flat blades</td>
-            <td><img src="{{ MEDIA_URL }}img/plugs/d.png"><br><strong>Category D</strong><br>oblique flat blades, grounded</td>
-            <td><img src="{{ MEDIA_URL }}img/plugs/e.png"><br><strong>Category E</strong><br>2 round pins</td>
+            <td><img src="{% static 'img/plugs/a.png' %}"><br><strong>Category A</strong><br>125V~, 2 flat blades</td>
+            <td><img src="{% static 'img/plugs/b.png' %}"><br><strong>Category B</strong><br>2 flat blades, grounded</td>
+            <td><img src="{% static 'img/plugs/c.png' %}"><br><strong>Category C</strong><br>oblique flat blades</td>
+            <td><img src="{% static 'img/plugs/d.png' %}"><br><strong>Category D</strong><br>oblique flat blades, grounded</td>
+            <td><img src="{% static 'img/plugs/e.png' %}"><br><strong>Category E</strong><br>2 round pins</td>
         </tr>
         <tr>
-            <td><img src="{{ MEDIA_URL }}img/plugs/f.png"><br><strong>Category F</strong><br>2 round pins</td>
-            <td><img src="{{ MEDIA_URL }}img/plugs/g.png"><br><strong>Category G</strong><br>2 round pins, grounded</td>
-            <td><img src="{{ MEDIA_URL }}img/plugs/i.png"><br><strong>Category I</strong><br>3 flat blades UK type plug</td>
-            <td><img src="{{ MEDIA_URL }}img/plugs/j.png"><br><strong>Category J</strong><br>220V~, 2 flat blades</td>
-            <td><img src="{{ MEDIA_URL }}img/plugs/k.png"><br><strong>Category K</strong><br>3 round pins triangle (6A)</td>
+            <td><img src="{% static 'img/plugs/f.png' %}"><br><strong>Category F</strong><br>2 round pins</td>
+            <td><img src="{% static 'img/plugs/g.png' %}"><br><strong>Category G</strong><br>2 round pins, grounded</td>
+            <td><img src="{% static 'img/plugs/i.png' %}"><br><strong>Category I</strong><br>3 flat blades UK type plug</td>
+            <td><img src="{% static 'img/plugs/j.png' %}"><br><strong>Category J</strong><br>220V~, 2 flat blades</td>
+            <td><img src="{% static 'img/plugs/k.png' %}"><br><strong>Category K</strong><br>3 round pins triangle (6A)</td>
         </tr>
         <tr>
-            <td><img src="{{ MEDIA_URL }}img/plugs/l.png"><br><strong>Category L</strong><br>3 round pins triangle (16A)</td>
-            <td><img src="{{ MEDIA_URL }}img/plugs/m.png"><br><strong>Category M</strong><br>Swiss type plug</td>
-            <td><img src="{{ MEDIA_URL }}img/plugs/n.png"><br><strong>Category N</strong><br>Italy type plug</td>
-            <td><img src="{{ MEDIA_URL }}img/plugs/o.png"><br><strong>Category O</strong><br>Denmark type plug</td>
-            <td><img src="{{ MEDIA_URL }}img/plugs/p.png"><br><strong>Category P</strong><br>Israel type plug</td>
+            <td><img src="{% static 'img/plugs/l.png' %}"><br><strong>Category L</strong><br>3 round pins triangle (16A)</td>
+            <td><img src="{% static 'img/plugs/m.png' %}"><br><strong>Category M</strong><br>Swiss type plug</td>
+            <td><img src="{% static 'img/plugs/n.png' %}"><br><strong>Category N</strong><br>Italy type plug</td>
+            <td><img src="{% static 'img/plugs/o.png' %}"><br><strong>Category O</strong><br>Denmark type plug</td>
+            <td><img src="{% static 'img/plugs/p.png' %}"><br><strong>Category P</strong><br>Israel type plug</td>
         </tr>
     </table>
     <div class="specs">

@@ -1,4 +1,5 @@
 {% extends "travel/entities/detail-base.html" %}
+{% load staticfiles %}
 {% block extra_details %}
     {% with place.entityinfo as info %}
     {% if info %}
@@ -22,7 +23,7 @@
     <dd>{% with info.electrical_info as el %}
         {{ el.volts }}V, {{ el.hz }}Hz, Connector type(s): {{ el.plugs|join:", " }}<br>
         {% for p in el.plugs %}
-        <img style="width:50px" src="{{ MEDIA_URL }}img/plugs/{{ p.0.lower }}.png">
+        <img style="width:50px" src="{% static 'img/plugs/{{ p.0.lower }}.png' %}">
         {% endfor %}
     {% endwith %}
     </dd>{% endif %}

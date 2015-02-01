@@ -1,9 +1,10 @@
 {% extends "travel/base.html" %}
+{% load staticfiles %}
 {% block travel_heading %}Under Construction{% endblock %}
 {% block travel_content %}
     <div class="center">
         <p style="margin-top: 4em">
-            <img src="{{ MEDIA_URL }}img/construction.jpg" />    
+            <img src="{% static 'img/construction.jpg' %}" />    
         </p>
         
     </div>
