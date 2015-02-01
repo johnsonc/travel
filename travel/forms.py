@@ -23,7 +23,7 @@ class DateUtilField(forms.Field):
         Python datetime.datetime object.
         """
         super(DateUtilField, self).clean(value)
-        if value in form.fields.EMPTY_VALUES:
+        if value in forms.fields.EMPTY_VALUES:
             return None
         elif isinstance(value, datetime):
             return value
@@ -37,18 +37,11 @@ class DateUtilField(forms.Field):
 
 
 #===============================================================================
-class SearchInput(forms.TextInput):
-    input_type = 'search'
-
-
-#===============================================================================
 class SearchField(forms.CharField):
-    widget = SearchInput
     
     #---------------------------------------------------------------------------
     def widget_attrs(self, widget):
         return {'placeholder': 'Search'}
-    
     
 
 #===============================================================================

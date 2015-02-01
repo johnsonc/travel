@@ -21,10 +21,12 @@
     {% if info.electrical %}
     <dt>Electrical</dt>
     <dd>{% with info.electrical_info as el %}
-        {{ el.volts }}V, {{ el.hz }}Hz, Connector type(s): {{ el.plugs|join:", " }}<br>
-        {% for p in el.plugs %}
+        {{ el.volts }}V, {{ el.hz }}Hz, Connector type(s): {{ el.plugs|join:", " }}
+        {% comment %}
+        <br>{% for p in el.plugs %}
         <img style="width:50px" src="{% static 'img/plugs/{{ p.0.lower }}.png' %}">
         {% endfor %}
+        {% endcomment %}
     {% endwith %}
     </dd>{% endif %}
     {% endif %}
