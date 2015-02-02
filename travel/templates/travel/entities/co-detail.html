@@ -1,12 +1,12 @@
 {% extends "travel/entities/detail-base.html" %}
-{% load staticfiles %}
+{% load staticfiles humanize %}
 {% block extra_details %}
     {% with place.entityinfo as info %}
     {% if info %}
     <dt>Area</dt>
-    <dd>{{ info.area|default:"Unknown"}} km<sup>2</sup></dd>
+    <dd>{% if info.area %}{{ info.area|intcomma }} km<sup>2</sup>{% else %}<em>Unknown</em>{% endif %}</dd>
     <dt>Population</dt>
-    <dd>{{ info.population|default:"Unknown" }}</dd>
+    <dd>{% if info.population %}{{ info.population|intcomma }}{% else %}<em>Unknown</em>{% endif %}</dd>
     <dt>Currency</dt>
     <dd>{% if info.currency %}{% with info.currency as cur %}
         {{ cur.iso }} ({{ cur }}) &bull;
