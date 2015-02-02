@@ -4,7 +4,7 @@ from datetime import datetime
 from django.conf import settings
 from django.db import models, connection
 from django.contrib.auth.models import User
-from django.contrib.contenttypes import generic
+from django.core.urlresolvers import reverse
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 
@@ -20,17 +20,14 @@ WIKIPEDIA_URL           = 'http://en.wikipedia.org/wiki/Special:Search?search=%s
 WORLD_HERITAGE_URL      = 'http://whc.unesco.org/en/list/%s'
 BASE_FLAG_DIR           = path('img/flags')
 STAR                    = mark_safe('&#9733;')
-WORLD_HERITAGE_CATEGORY = {
-    'C': 'Cultural',
-    'N': 'Natural',
-    'M': 'Mixed'
-}
+WORLD_HERITAGE_CATEGORY = { 'C': 'Cultural', 'N': 'Natural', 'M': 'Mixed' }
+EXTRA_INFO              = { 'ap': 'IATA'}
 
 #-------------------------------------------------------------------------------
 def flag_upload(size):
     def upload_func(instance, filename):
-        name = '%s-%s%s' % (instance.ref, size, path(filename).ext)
-        return BASE_FLAG_DIR / ('%s/%s' % (instance.base_dir, name))
+        name = '{}-{}{}'.format(instance.ref, size, path(filename).ext)
+        return  '{}/{}/{}'.format(BASE_FLAG_DIR, instance.base_dir, name)
     return upload_func
 
 
@@ -128,16 +125,14 @@ class ToDoList(models.Model):
         db_table = 'travel_todo_list'
 
     #---------------------------------------------------------------------------
-    @models.permalink
     def get_absolute_url(self):
-        return ('travel-todo', [self.id])
+        return reverse('travel-todo', args=[self.id])
 
     #---------------------------------------------------------------------------
     def __unicode__(self):
         return u'%s' % self.title
 
 
-EXTRA_INFO = { 'ap': 'IATA'}
 
 #===============================================================================
 class ProfileManager(models.Manager):
@@ -166,9 +161,8 @@ class Profile(models.Model):
     objects = ProfileManager()
     
     #---------------------------------------------------------------------------
-    @models.permalink
     def public_url(self):
-        return ('travel-profile', [self.user.username])
+        return reverse('travel-profile', args=[self.user.username])
 
     #---------------------------------------------------------------------------
     def __unicode__(self):
@@ -347,16 +341,12 @@ class Entity(models.Model):
         return [self.type.abbr, code]
         
     #---------------------------------------------------------------------------
-    @models.permalink
     def get_absolute_url(self):
-        # url(r'^i/(\w+)/(\w+)/(\w+)/(\w+)/$'
-        return ('travel-entity', self._permalink_args())
+        return reverse('travel-entity', args=self._permalink_args())
 
     #---------------------------------------------------------------------------
-    @models.permalink
     def get_edit_url(self):
-        # url(r'^edit/i/(\w+)/(\w+)/(\w+)/(\w+)/$'
-        return ('travel-entity-edit', self._permalink_args())
+        return reverse('travel-entity-edit', args=self._permalink_args())
     
     #---------------------------------------------------------------------------
     def wikipedia_search_url(self):
@@ -496,14 +486,14 @@ class TravelLogManager(models.Manager):
               entity.locality,
               entity_co.name AS country_name,
               entity_co.code AS country_code,
-              flag_co.width_16 AS flag_co_url,
+              CONCAT('{media}', flag_co.width_16) AS flag_co_url,
               MIN(log.rating) AS rating,
               UNIX_TIMESTAMP(MAX(log.arrival)) * 1000 AS most_recent_visit,
               UNIX_TIMESTAMP(MIN(log.arrival)) * 1000 AS first_visit,
               COUNT(log.entity_id) AS num_visits,
               etype.abbr AS type_abbr,
               etype.title AS type_title,
-              flag.width_32 AS flag_url
+              CONCAT('{media}', flag.width_32) AS flag_url
          FROM `travel_travellog`  AS log
     LEFT JOIN `travel_entity`     AS entity    ON log.entity_id     = entity.id
     LEFT JOIN `travel_entity`     AS entity_co ON entity.country_id = entity_co.id
@@ -512,7 +502,7 @@ class TravelLogManager(models.Manager):
     LEFT JOIN `travel_flag`       AS flag_co   ON entity_co.flag_id = flag_co.id
         WHERE `user_id` = %s
      GROUP BY `entity_id`
-     ORDER BY most_recent_visit DESC'''
+     ORDER BY most_recent_visit DESC'''.format(media=settings.MEDIA_URL)
     
     #---------------------------------------------------------------------------
     def history(self, user):
@@ -586,9 +576,8 @@ class TravelLog(models.Model):
         return u'%s | %s' % (self.entity, self.user)
 
     #---------------------------------------------------------------------------
-    @models.permalink
     def get_absolute_url(self):
-        return ('travel-log-entry', [self.user.username, self.id])
+        return reverse('travel-log-entry', args=[self.user.username, self.id])
     
     #---------------------------------------------------------------------------
     def save(self, *args, **kws):

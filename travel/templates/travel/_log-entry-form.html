@@ -1,36 +1,9 @@
+{% load bootstrap3 %}
 <form class="form-horizontal" action="" method="post" accept-charset="utf-8">
-    {% if form.errors %}
-    <div class="has-error">
-        <p class="help-block">Please fix errors below:</p>
-    </div>
-    {% endif %}
-    
-    <div class="form-group{% if form.arrival.errors %} has-error{% endif %}">
-        <label for="id_arrival" class="col-sm-1 control-label">When</label>
-        <div class="col-sm-3">
-            {{ form.arrival }} {% if form.arrival.errors %}<br>
-                {{ form.arrival.errors }}
-            {% endif %}
-        </div>
-        
-    </div>
-    <div class="form-group">
-        <label for="id_rating" class="col-sm-1 control-label">Rating</label>
-        <div class="col-sm-3">
-            {{ form.rating }}
-        </div>
-        
-    </div>
-    <div class="form-group">
-        <label for="id_note" class="col-sm-1 control-label">Notes</label>
-        <div class="col-sm-8">
-            {{ form.note }}
-        </div>
-    </div>
-    
-    <div class="form-group">
-        <div class="col-sm-offset-1 col-sm-1">
-            <button type="submit" class="btn btn-primary" value="Save">Save</button>
-        </div>
-    </div>
+    {% bootstrap_form form layout="horizontal" horizontal_label_class='col-md-2' horizontal_field_class='col-md-6' %}
+    {% buttons layout="horizontal" %}
+    <button type="submit" class="btn btn-primary">
+        {% bootstrap_icon "plus" %} Save
+    </button>
+    {% endbuttons %}
 </form>

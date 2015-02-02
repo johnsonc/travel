@@ -21,6 +21,16 @@
 ;var Travelogue = (function($) {
     var root = this;
     var $$ = _.bind(document.getElementById, document);
+    var type_mapping = {
+        'cn': 'Continents',
+        'co': 'Countries',
+        'st': 'States',
+        'ap': 'Airports',
+        'ct': 'Cities',
+        'np': 'National Parks',
+        'lm': 'Landmarks',
+        'wh': 'World Heritage sites'
+    };
     
     _.templateSettings.interpolate = /{{([\s\S]+?)}}/g;
     
@@ -77,27 +87,34 @@
     };
     
     //--------------------------------------------------------------------------
+    var increment = function(obj, field) {
+        obj[field] = obj[field] ? obj[field]  + 1 : 1;
+    };
+    
+    //--------------------------------------------------------------------------
     var profile_history = {
         selector: '#history tbody',
         media_prefix: '/media/',
         initialize: function(history, conf) {
             var media_prefix = conf.media_prefix || this.media_prefix;
             var $co_opts = $('#id_co');
+            var summary = {};
             this.filters = {'type': null, 'country_code': null};
+            
             this.countries = {};
             this.all_entities = _.map(history, function(e) {
                 e.entity_url = entity_url(e);
-                e.flag_url = e.flag_url ? media_prefix + e.flag_url: '';
-                e.flag_co_url = e.flag_co_url ? media_prefix + e.flag_co_url: '';
                 e.most_recent_visit = date_wrapper(e.most_recent_visit);
                 e.first_visit = date_wrapper(e.first_visit);
                 e.html = make_entity_row(e);
                 if(e.country_code) {
                     this.countries[e.country_code] = e.country_name;
                 }
+                increment(summary, e.type_abbr);
                 return e;
             }, this);
-            
+            summary[''] = history.length;
+            console.log(summary);
             
             _.each(
                 _.pairs(this.countries).sort(function(a,b) {
@@ -110,6 +127,11 @@
             
             this.$el = $('#history');
             this.$el.find('thead th').click(sort_handler);
+            _.each(document.querySelectorAll('#id_type option'), function(e) {
+                if(summary[e.value]) {
+                    e.text += ' ' + ' (' + summary[e.value] + ')';
+                }
+            });
         },
 
         filter: function(bits) {
@@ -323,7 +345,6 @@
     var make_entity_row = function(e) {
         var co_html = '';
         var name_html = '<a href="' + e.entity_url + '">' + e.name + '</a>';
-        var html = make_tag('td', e.flag_url ? img_tag(e.flag_url, 'flag') : '');
         var attrs = {
             'data-id' : e.id,
             'class': e.type_abbr + ' co-' + e.country_code ? e.country_code : (e.type_abbr == 'co' ? e.code : '')
@@ -344,7 +365,7 @@
         }
 
         return make_tag('tr', attrs, (
-              html
+              make_tag('td', e.flag_url ? img_tag(e.flag_url, 'flag') : '')
             + make_tag('td', e.type_title)
             + make_tag('td', name_html)
             + make_tag('td', date_html(e.most_recent_visit))

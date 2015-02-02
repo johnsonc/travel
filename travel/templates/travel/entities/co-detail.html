@@ -20,13 +20,11 @@
     <dd>{{ info.languages}}</dd>{% endif %}
     {% if info.electrical %}
     <dt>Electrical</dt>
-    <dd>{% with info.electrical_info as el %}
+    <dd>{% static 'img/plugs/' as plug_pth %}{% with info.electrical_info as el %}
         {{ el.volts }}V, {{ el.hz }}Hz, Connector type(s): {{ el.plugs|join:", " }}
-        {% comment %}
         <br>{% for p in el.plugs %}
-        <img style="width:50px" src="{% static 'img/plugs/{{ p.0.lower }}.png' %}">
+        <a href="{{ plug_pth }}{{ p.0.lower }}.jpg"><img style="width:75px" src="{{ plug_pth }}{{ p.0.lower }}.jpg"></a>
         {% endfor %}
-        {% endcomment %}
     {% endwith %}
     </dd>{% endif %}
     {% endif %}

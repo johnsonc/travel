@@ -18,19 +18,15 @@
     {% endfor %}</ul>
     {% else %}
     <h2>Add New {{ entity_type }}</h2>
-    <form method="post">
-        <table>
-            <tbody>
-                {{ form }}
-            </tbody>
-            <tfoot>
-                <tr>
-                    <th></th>
-                    <td><button class="btn btn-primary btn-sm" type="submit">Save</button></td>
-                </tr>
-                
-            </tfoot>
-        </table>
+    
+    <form class="form-horizontal" action="" method="post" accept-charset="utf-8">
+        {% load bootstrap3 %}
+        {% bootstrap_form form layout="horizontal" horizontal_label_class='col-md-2' horizontal_field_class='col-md-10' %}
+        {% buttons layout="horizontal" %}
+        <button type="submit" class="btn btn-primary">
+            {% bootstrap_icon "edit" %} Save
+        </button>
+        {% endbuttons %}
     </form>
     {% endif %}
     {% endif %}
