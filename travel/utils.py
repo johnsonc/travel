@@ -87,15 +87,6 @@ def get_flags_from_image_by_size(url, sizes=None):
 
     return data
 
-#-------------------------------------------------------------------------------
-def send_message(user, title, message):
-    from delivery.delivery import send_mail
-    send_mail(title, 'From %s: (%s)\n\n%s' % (
-        user.get_full_name, 
-        user.email,
-        message
-    ))
-
 
 latlon_sym_re = re.compile(
     ur'''
