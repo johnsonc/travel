@@ -12,19 +12,15 @@ from travel import utils
 
 #-------------------------------------------------------------------------------
 def all_profiles(request):
-    data = {'profiles': travel.Profile.objects.public()}
-    return render(request, 'travel/profile/all.html', data)
+    return render(request, 'travel/profile/all.html', {
+        'profiles': travel.Profile.objects.public()
+    })
 
 
 #-------------------------------------------------------------------------------
 def profile(request, username):
     profile = get_object_or_404(travel.Profile, user__username=username)
     return render(request, 'travel/profile/profile.html', {'profile': profile})
-
-
-#-------------------------------------------------------------------------------
-def _add_todos(request):
-    return render(request, 'travel/construction.html')
 
 
 #-------------------------------------------------------------------------------
@@ -40,22 +36,19 @@ def todo_lists(request):
 #-------------------------------------------------------------------------------
 def todo_list(request, pk):
     todo = get_object_or_404(travel.ToDoList, pk=pk)
-    is_anon = request.user.is_anonymous()
-    
-    entities = []
-    total = done = 0
-    for entity in todo.entities.all():
-        total += 1
-        if is_anon:
-            logged = 0
-        else:
+    all_entities = list(todo.entities.all())
+    done = 0
+    if request.user.is_authenticated():
+        entities = []
+        for entity in all_entities:
             logged = entity.travellog_set.filter(user=request.user).count()
             if logged:
                 done += 1
+            entities.append((entity, logged))
+    else:
+        entities = [(e, 0) for e in all_entities]
     
-        entities.append((entity, logged))
-        
-    data = {'todo': todo, 'entities': entities, 'stats': {'total': total, 'done': done}}
+    data = {'todo': todo, 'entities': entities, 'stats': {'total': len(all_entities), 'done': done}}
     return render(request, 'travel/todo/detail.html', data)
 
 
@@ -79,20 +72,12 @@ def search_advanced(request):
     search = request.GET.get('search', '').strip()
     if search:
         lines = [line.strip() for line in search.splitlines()]
-        data['search'] = '\n'.join(lines)
-        q = models.Q()
-        for term in lines:
-            q |= (
-                models.Q(name__icontains=term)      |
-                models.Q(full_name__icontains=term) |
-                models.Q(locality__icontains=term)  |
-                models.Q(code__iexact=term)
-            )
-            
-        data['results'] = travel.Entity.objects.filter(q)
+        data.update(
+            search='\n'.join(lines),
+            results=travel.Entity.objects.advanced_search(lines)
+        )
         
     return render(request, 'travel/search/advanced.html', data)
-    
 
 
 #-------------------------------------------------------------------------------
@@ -126,23 +111,6 @@ def _entity_base(request, entity):
 
 
 #-------------------------------------------------------------------------------
-def _entity_edit(request, entity):
-    if request.method == 'POST':
-        form = forms.EditEntityForm(request.POST, instance=entity)
-        if form.is_valid():
-            form.save()
-            return http.HttpResponseRedirect(entity.get_absolute_url())
-    else:
-        form = forms.EditEntityForm(instance=entity)
-        
-    return render(
-        request,
-        'travel/entities/edit.html',
-        {'place': entity, 'form': form}
-    )
-
-
-#-------------------------------------------------------------------------------
 def _handle_entity(request, ref, code, aux, handler):
     if aux:
         entity = travel.Entity.objects.filter(type__abbr=ref, country__code=code, code=aux)
@@ -161,15 +129,6 @@ def _handle_entity(request, ref, code, aux, handler):
 #-------------------------------------------------------------------------------
 def entity(request, ref, code, aux=None):
     return _handle_entity(request, ref, code, aux, _entity_base)
-
-
-#-------------------------------------------------------------------------------
-@login_required
-def entity_edit(request, ref, code, aux=None):
-    if not request.user.is_superuser:
-        return _handle_entity(request, ref, code, aux, _entity_base)
-        
-    return _handle_entity(request, ref, code, aux, _entity_edit)
 
 
 #-------------------------------------------------------------------------------
@@ -206,6 +165,35 @@ def log_entry(request, username, pk):
         form = None
     
     return render(request, 'travel/log-entry.html', {'entry': entry, 'form':  form})
+
+################################################################################
+#
+# Admin utils below
+#
+################################################################################
+
+
+#-------------------------------------------------------------------------------
+def _entity_edit(request, entity):
+    if request.method == 'POST':
+        form = forms.EditEntityForm(request.POST, instance=entity)
+        if form.is_valid():
+            form.save()
+            return http.HttpResponseRedirect(entity.get_absolute_url())
+    else:
+        form = forms.EditEntityForm(instance=entity)
+
+    return render(
+        request,
+        'travel/entities/edit.html',
+        {'place': entity, 'form': form}
+    )
+
+
+#-------------------------------------------------------------------------------
+@utils.superuser_required
+def entity_edit(request, ref, code, aux=None):
+    return _handle_entity(request, ref, code, aux, _entity_edit)
 
 
 #-------------------------------------------------------------------------------

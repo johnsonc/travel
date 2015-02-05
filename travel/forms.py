@@ -63,25 +63,10 @@ class SearchForm(forms.Form):
 
 
 #===============================================================================
-class WidgetAttrsMixin(object):
-    
-    #---------------------------------------------------------------------------
-    def widget_attrs(self, widget):
-        attrs = super(WidgetAttrsMixin, self).widget_attrs(widget)
-        attrs.update({'class' : 'form-control input-sm'})
-        return attrs
-
-
-#===============================================================================
-class TravelDateUtilField(WidgetAttrsMixin, DateUtilField): pass
-class TravelRating(WidgetAttrsMixin, forms.ChoiceField): pass
-class TravelNote(WidgetAttrsMixin, TextField): pass
-
-#===============================================================================
 class TravelLogForm(forms.ModelForm):
-    arrival = TravelDateUtilField(required=False)
-    rating = TravelRating(choices=travel.TravelLog.RATING_CHOICES, initial='3')
-    note = TravelNote(required=False)
+    arrival = DateUtilField(required=False)
+    rating = forms.ChoiceField(choices=travel.TravelLog.RATING_CHOICES, initial='3')
+    note = TextField(required=False)
 
     #===========================================================================
     class Meta:

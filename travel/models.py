@@ -1,4 +1,5 @@
 import re
+import operator
 from datetime import datetime
 
 from django.conf import settings
@@ -13,11 +14,11 @@ from choice_enum import ChoiceEnumeration
 import travel.utils as travel_utils
 
 
-GOOGLE_MAPS             = 'http://maps.google.com/maps?q=%s'
-GOOGLE_MAPS_LATLON      = 'http://maps.google.com/maps?q=%s,+%s&iwloc=A&z=10'
-GOOGLE_SEARCH_URL       = 'http://www.google.com/search?as_q=%s'
-WIKIPEDIA_URL           = 'http://en.wikipedia.org/wiki/Special:Search?search=%s&go=Go'
-WORLD_HERITAGE_URL      = 'http://whc.unesco.org/en/list/%s'
+GOOGLE_MAPS             = 'http://maps.google.com/maps?q={}'
+GOOGLE_MAPS_LATLON      = 'http://maps.google.com/maps?q={},+{}&iwloc=A&z=10'
+GOOGLE_SEARCH_URL       = 'http://www.google.com/search?as_q={}'
+WIKIPEDIA_URL           = 'http://en.wikipedia.org/wiki/Special:Search?search={}&go=Go'
+WORLD_HERITAGE_URL      = 'http://whc.unesco.org/en/list/{}'
 BASE_FLAG_DIR           = path('img/flags')
 STAR                    = mark_safe('&#9733;')
 WORLD_HERITAGE_CATEGORY = { 'C': 'Cultural', 'N': 'Natural', 'M': 'Mixed' }
@@ -130,7 +131,7 @@ class ToDoList(models.Model):
 
     #---------------------------------------------------------------------------
     def __unicode__(self):
-        return u'%s' % self.title
+        return self.title
 
 
 
@@ -217,19 +218,30 @@ class EntityManager(models.Manager):
     RELATIONSHIP_MAP = {'co': 'country', 'st': 'state', 'cn': 'continent'}
     
     #---------------------------------------------------------------------------
-    def search(self, term, type=None):
-        term = term.strip()
-        qs = self.filter(type__abbr=type) if type else self.all()
-        if not term:
-            return qs
-        
-        return qs.filter(
+    @staticmethod
+    def _search_q(term):
+        return (
             models.Q(name__icontains=term)      |
             models.Q(full_name__icontains=term) |
             models.Q(locality__icontains=term)  |
             models.Q(code__iexact=term)
         )
+        
+    #---------------------------------------------------------------------------
+    def search(self, term, type=None):
+        term = term.strip() if term else term
+        if term and type:
+            return self.filter(self._search_q(term), type__abbr=type)
+        elif type:
+            return self.filter(type__abbr=type)
+        return self.none()
     
+    #---------------------------------------------------------------------------
+    def advanced_search(self, bits, type=None):
+        qq = reduce(operator.ior, [self._search_q(term) for term in bits])
+        qs = self.filter(qq)
+        return qs.filter(type__abbr=type) if type else qs
+        
     #---------------------------------------------------------------------------
     def related_entities(self, entity):
         relationship = self.RELATIONSHIP_MAP.get(entity.type.abbr)
@@ -262,12 +274,12 @@ class EntityManager(models.Manager):
 
 #-------------------------------------------------------------------------------
 def wikipedia_url(entity):
-    return WIKIPEDIA_URL % travel_utils.nice_url(entity.full_name)
+    return WIKIPEDIA_URL.format(travel_utils.nice_url(entity.full_name))
 
 
 #-------------------------------------------------------------------------------
 def world_heritage_url(entity):
-    return WORLD_HERITAGE_URL % entity.code
+    return WORLD_HERITAGE_URL.format(entity.code)
 
 
 _default_external_handler = ('Wikipedia', wikipedia_url)
@@ -332,11 +344,7 @@ class Entity(models.Model):
     def _permalink_args(self):
         code = self.code or self.id
         if self.type.abbr in ('st', 'wh'):
-            code = (
-                '%s-%s' % (self.country.code, code)
-                if self.country
-                else code
-            )
+            code = '{}-{}'.format(self.country.code, code) if self.country else code
         
         return [self.type.abbr, code]
         
@@ -352,7 +360,6 @@ class Entity(models.Model):
     def wikipedia_search_url(self):
         return WIKIPEDIA_URL % travel_utils.nice_url(entity.full_name)
         
-
     #---------------------------------------------------------------------------
     def _external_handler(self):
         return _external_url_handlers.get(self.type.abbr, _default_external_handler)
@@ -416,7 +423,7 @@ class Entity(models.Model):
         if abbr == 'co' or abbr == 'ct':
             return abbr
         elif abbr == 'st' and self.country:
-            return 'st/%s' % (self.country.code.lower(), )
+            return 'st/{}'.format(self.country.code.lower())
         return ''
     
     #---------------------------------------------------------------------------
@@ -446,9 +453,9 @@ class Entity(models.Model):
     @property
     def google_maps_url(self):
         if self.lat or self.lon:
-            return GOOGLE_MAPS_LATLON % (self.lat, self.lon)
+            return GOOGLE_MAPS_LATLON.format(self.lat, self.lon)
         else:
-            return GOOGLE_MAPS % (travel_utils.nice_url(self.name),)
+            return GOOGLE_MAPS.format(travel_utils.nice_url(self.name),)
 
 
 #===============================================================================
@@ -573,7 +580,7 @@ class TravelLog(models.Model):
 
     #---------------------------------------------------------------------------
     def __unicode__(self):
-        return u'%s | %s' % (self.entity, self.user)
+        return u'{} | {}'.format(self.entity, self.user)
 
     #---------------------------------------------------------------------------
     def get_absolute_url(self):

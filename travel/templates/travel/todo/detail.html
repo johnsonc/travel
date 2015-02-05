@@ -1,9 +1,10 @@
 {% extends "travel/base.html" %}
 {% block extra_head %}{{ block.super }}
     <style type="text/css" media="screen">
-        .todo-result tbody tr td:first-child { width: 40px; }
+        .todo-result tbody tr td:last-child { width: 40px; }
         .flag-32 { width: 36px; }
         .flag-32 img { box-shadow: 1px 2px 6px #777;}
+        td .glyphicon { font-size: 1.25em; color: #73a947;}
     </style>
 {% endblock extra_head %}
 {% block travel_heading %}Bucket List: {{ todo.title }}{% endblock %}
@@ -18,24 +19,25 @@
     <table class="todo-result table table-striped">
     <thead>
         <tr class="">
-            <th>Status</th>
+            <th></th>
             <th>Entity</th>
             <th>Visits</th>
-            <th></th>
+            <th>Status</th>
         </tr>
     </thead>
     <tbody>
         {% for obj,logged in entities %}
         <tr>
-            <td>
-                <i class="glyphicon glyphicon-{{ logged|yesno:"ok,remove" }}"></i>
+            <td class="flag-32">{% if obj.flag %}
+                <img src="{{ obj.flag.width_32.url }}" />{% endif %}
             </td>
             <td>
                 <a href="{{ obj.get_absolute_url }}">{{ obj }}</a>
             </td>
             <td>{{ logged }}</td>
-            <td class="flag-32">{% if obj.flag %}
-                <img src="{{ obj.flag.width_32.url }}" />{% endif %}
+            <td>{% if logged %}
+                <i class="glyphicon glyphicon-ok"></i>
+                {% endif %}
             </td>
         </tr>
         {% endfor %}
