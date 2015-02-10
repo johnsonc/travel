@@ -230,11 +230,15 @@ class EntityManager(models.Manager):
     #---------------------------------------------------------------------------
     def search(self, term, type=None):
         term = term.strip() if term else term
-        if term and type:
-            return self.filter(self._search_q(term), type__abbr=type)
-        elif type:
-            return self.filter(type__abbr=type)
-        return self.none()
+        qs = None
+        if term:
+            qs = self.filter(self._search_q(term))
+        
+        if type:
+            qs = qs or self
+            qs = qs.filter(type__abbr=type)
+            
+        return self.none() if qs is None else qs
     
     #---------------------------------------------------------------------------
     def advanced_search(self, bits, type=None):
@@ -340,6 +344,17 @@ class Entity(models.Model):
     def __unicode__(self):
         return self.name
     
+    #---------------------------------------------------------------------------
+    def descriptive_name(self):
+        abbr = self.type.abbr
+        if abbr in ('co', 'cn'):
+            pass
+        elif abbr == 'ct':
+            what = self.state or self.country
+            what = ', {}'.format(what) if what else ''
+            return '{}{}'.format(self, what)
+        return unicode(self)
+        
     #---------------------------------------------------------------------------
     def _permalink_args(self):
         code = self.code or self.id

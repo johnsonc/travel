@@ -32,7 +32,7 @@
                 <img src="{{ obj.flag.width_32.url }}" />{% endif %}
             </td>
             <td>
-                <a href="{{ obj.get_absolute_url }}">{{ obj }}</a>
+                <a href="{{ obj.get_absolute_url }}">{{ obj.descriptive_name }}</a>
             </td>
             <td>{{ logged }}</td>
             <td>{% if logged %}
