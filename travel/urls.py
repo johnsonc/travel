@@ -30,7 +30,6 @@ todo_patterns = patterns('',
     url(r'^(\d+)/$', views.todo_list, name='travel-todo'),
 )
 
-
 urlpatterns = patterns('',
     url(r'^search/',   include(search_patterns)),
     url(r'^i/(?P<ref>\w+)/',  include(item_patterns)),

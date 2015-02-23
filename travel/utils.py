@@ -12,7 +12,7 @@ from django.contrib.auth.decorators import user_passes_test
 
 
 _wiki_flag_url_re =  re.compile(r'(.*)/(\d+)px(.*)')
-_default_flag_sizes = (16, 32, 64, 128, 256, 512)
+_default_flag_sizes = (32, 128, 512)
 
 
 #-------------------------------------------------------------------------------

@@ -1,24 +1,11 @@
-import os
-from distutils.core import setup
+import os, sys
+from setuptools import setup, find_packages
 
-VERSION = '0.2' 
+if sys.argv[-1] == 'publish':
+    os.system('python setup.py sdist upload')
+    sys.exit(0)
 
-packages, data_files = [], []
-root_dir = os.path.dirname(__file__)
-if root_dir != '':
-    os.chdir(root_dir)
-    
-for dirpath, dirnames, filenames in os.walk('travel'):
-    # Ignore dirnames that start with '.'
-    if os.path.basename(dirpath).startswith('.'):
-        continue
-    if '__init__.py' in filenames:
-        pkg = dirpath.replace(os.path.sep, '.')
-        if os.path.altsep:
-            pkg = pkg.replace(os.path.altsep, '.')
-        packages.append(pkg)
-    elif filenames:
-        data_files.append([dirpath, [os.path.join(dirpath, f) for f in filenames]])
+VERSION = __import__('travel').get_version()
 
 setup(
     name='django-travel',
@@ -28,9 +15,9 @@ setup(
     author='David A Krauth',
     author_email='dakrauth@gmail.com',
     platforms=['any'],
-    license='New BSD License',
-    packages=packages,
-    data_files=data_files,
+    license='MIT License',
+    packages=find_packages(),
+    package_data={'travel': ['templates/travel/*', 'static/travel/*', 'media/img/*']},
     classifiers=[
         'Development Status :: 4 - Beta',
         'Environment :: Web Environment',

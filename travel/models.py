@@ -48,11 +48,8 @@ class Flag(models.Model):
     source = models.CharField(max_length=255)
     base_dir = models.CharField(max_length=8)
     ref = models.CharField(max_length=6)
-    width_16  = models.ImageField(upload_to=flag_upload(16), null=True)
     width_32  = models.ImageField(upload_to=flag_upload(32), null=True)
-    width_64  = models.ImageField(upload_to=flag_upload(64), null=True)
     width_128 = models.ImageField(upload_to=flag_upload(128), null=True)
-    width_256 = models.ImageField(upload_to=flag_upload(256), null=True)
     width_512 = models.ImageField(upload_to=flag_upload(512), null=True)
 
     objects = FlagManager()
@@ -508,7 +505,7 @@ class TravelLogManager(models.Manager):
               entity.locality,
               entity_co.name AS country_name,
               entity_co.code AS country_code,
-              CONCAT('{media}', flag_co.width_16) AS flag_co_url,
+              CONCAT('{media}', flag_co.width_32) AS flag_co_url,
               MIN(log.rating) AS rating,
               UNIX_TIMESTAMP(MAX(log.arrival)) * 1000 AS most_recent_visit,
               UNIX_TIMESTAMP(MIN(log.arrival)) * 1000 AS first_visit,
