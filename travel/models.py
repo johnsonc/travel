@@ -51,6 +51,7 @@ class Flag(models.Model):
     width_32  = models.ImageField(upload_to=flag_upload(32), null=True)
     width_128 = models.ImageField(upload_to=flag_upload(128), null=True)
     width_512 = models.ImageField(upload_to=flag_upload(512), null=True)
+    svg = models.FileField(upload_to=flag_upload(512), null=True)
 
     objects = FlagManager()
     
