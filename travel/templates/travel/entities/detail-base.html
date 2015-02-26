@@ -10,7 +10,7 @@
 {% endblock extra_head %}
 {% block travel_image %}
 {% if place.flag %}
-<a class="pull-right travel-image" href="{{ place.flag.width_512.url }}">
+<a class="pull-right travel-image" href="{{ place.flag.svg.url }}">
     <img class="flag" src="{{ place.flag.width_128.url }}"></a>
 {% endif %}
 {% endblock travel_image %}

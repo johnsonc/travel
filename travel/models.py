@@ -31,6 +31,10 @@ def flag_upload(size):
         return  '{}/{}/{}'.format(BASE_FLAG_DIR, instance.base_dir, name)
     return upload_func
 
+#-------------------------------------------------------------------------------
+def svg_upload(instance, filename):
+    return  '{}/{}/flag.svg'.format(BASE_FLAG_DIR, instance.base_dir)
+
 
 #===============================================================================
 class FlagManager(models.Manager):
@@ -50,8 +54,7 @@ class Flag(models.Model):
     ref = models.CharField(max_length=6)
     width_32  = models.ImageField(upload_to=flag_upload(32), null=True)
     width_128 = models.ImageField(upload_to=flag_upload(128), null=True)
-    width_512 = models.ImageField(upload_to=flag_upload(512), null=True)
-    svg = models.FileField(upload_to=flag_upload(512), null=True)
+    svg = models.FileField(upload_to=svg_upload, null=True)
 
     objects = FlagManager()
     
