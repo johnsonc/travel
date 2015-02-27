@@ -1,4 +1,5 @@
 import re
+import os
 import operator
 from datetime import datetime
 
@@ -63,6 +64,14 @@ class Flag(models.Model):
     def is_locked(self):
         #TODO **hack** - fixme!
         return False if (self.base_dir or self.ref) else True
+    
+    #---------------------------------------------------------------------------
+    @property
+    def image_url(self):
+        if self.svg:
+            if os.path.exists(self.svg.path):
+                return self.svg.url
+        return self.large.url
     
     #---------------------------------------------------------------------------
     def set_flags(self, url, base, ref, sizes):

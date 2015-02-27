@@ -11,8 +11,8 @@
 {% endblock extra_head %}
 {% block travel_image %}
 {% if place.flag %}
-<a class="pull-right travel-image" href="{% if place.flag.svg %}{{ place.flag.svg.url }}{% else %}{{ place.flag.large.url }}{% endif %}">
-    <img class="flag flag-md" src="{{ place.flag.svg.url }}"></a>
+<a class="pull-right travel-image" href="{{ place.flag.image_url }}">
+    <img class="flag flag-md" src="{{ place.flag.image_url }}"></a>
 {% endif %}
 {% endblock travel_image %}
 {% block travel_heading %}
