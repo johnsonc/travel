@@ -32,7 +32,7 @@ class FlagAdmin(admin.ModelAdmin):
         'source',
         'base_dir',
         'ref',
-        'width_32',
+        'thumb',
     )
 
 

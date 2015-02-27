@@ -19,8 +19,8 @@
 {% block listing %}
     {% for place in places %}
     <tr>
-        <td>{% if place.flag.width_32 %}
-            <img class="flag" src="{{ place.flag.width_32.url }}" />
+        <td>{% if place.flag.thumb %}
+            <img class="flag" src="{{ place.flag.thumb.url }}" />
         {% endif %}</td>
         <td>
             <a href="{{ place.get_absolute_url }}">{{ place.name }}</a><br>

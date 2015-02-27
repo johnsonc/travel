@@ -12,7 +12,7 @@
 {% endblock extra_head %}
 {% block travel_content %}
     <p>
-        <img style="border: 1px solid #ddd;" src="{{ place.flag.width_128.url }}">
+        <img style="border: 1px solid #ddd;" src="{{ place.flag.svg.url }}">
     </p>
     {% if user.is_superuser %}
     <form class="form-horizontal" action="" method="post" accept-charset="utf-8">

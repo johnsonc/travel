@@ -14,11 +14,11 @@
         </td>
         <td>{{ place.name }}{% if place.name != place.locality %}, {{ place.locality }}{% endif %}</td>
         <td>{% if place.state %}
-            <img class="flag" src="{{ place.state.flag.width_32.url }}" />
+            <img class="flag" src="{{ place.state.flag.thumb.url }}" />
             <a href="{{ place.state.get_absolute_url }}">{{ place.state }}</a>{% endif %}
         </td>
         <td>
-            <img class="flag" src="{{ place.country.flag.width_32.url }}" />
+            <img class="flag" src="{{ place.country.flag.thumb.url }}" />
             <a href="{{ place.country.get_absolute_url }}">{{ place.country }}</a>
         </td>
         <td>{% if place.id in checklist %}

@@ -29,7 +29,7 @@
         {% for obj,logged in entities %}
         <tr>
             <td class="flag-32">{% if obj.flag %}
-                <img src="{{ obj.flag.width_32.url }}" />{% endif %}
+                <img src="{{ obj.flag.thumb.url }}" />{% endif %}
             </td>
             <td>
                 <a href="{{ obj.get_absolute_url }}">{{ obj.descriptive_name }}</a>

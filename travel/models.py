@@ -52,8 +52,8 @@ class Flag(models.Model):
     source = models.CharField(max_length=255)
     base_dir = models.CharField(max_length=8)
     ref = models.CharField(max_length=6)
-    width_32  = models.ImageField(upload_to=flag_upload(32), null=True)
-    width_128 = models.ImageField(upload_to=flag_upload(128), null=True)
+    thumb  = models.ImageField(upload_to=flag_upload(32), null=True)
+    large = models.ImageField(upload_to=flag_upload(128), null=True)
     svg = models.FileField(upload_to=svg_upload, null=True)
 
     objects = FlagManager()
@@ -66,23 +66,22 @@ class Flag(models.Model):
     
     #---------------------------------------------------------------------------
     def set_flags(self, url, base, ref, sizes):
-        base_dir    = path(base)
         ref         = ref.lower()
-        static_root = path(settings.STATIC_ROOT)
-        parent_dir  = path(BASE_FLAG_DIR) / base_dir / ref
-        abs_dir     = static_root / parent_dir
+        media_root  = path(settings.MEDIA_ROOT)
+        parent_dir  = path(BASE_FLAG_DIR) / base / ref
+        abs_dir     = media_root / parent_dir
         path_fmt    = parent_dir / ('%s-%%s.png' % (ref,))
 
         if not abs_dir.exists():
             abs_dir.makedirs()
         
         self.source   = url
-        self.base_dir = base_dir
+        self.base_dir = base
         self.ref      = ref
         for size, bytes in sizes.iteritems():
             flag_path = path_fmt % size
             setattr(self, 'width_%s' % size, flag_path)
-            with open(static_root / flag_path, 'wb') as fp:
+            with open(media_root / flag_path, 'wb') as fp:
                 fp.write(bytes)
 
         self.save()
@@ -509,14 +508,14 @@ class TravelLogManager(models.Manager):
               entity.locality,
               entity_co.name AS country_name,
               entity_co.code AS country_code,
-              CONCAT('{media}', flag_co.width_32) AS flag_co_url,
+              CONCAT('{media}', flag_co.thumb) AS flag_co_url,
               MIN(log.rating) AS rating,
               UNIX_TIMESTAMP(MAX(log.arrival)) * 1000 AS most_recent_visit,
               UNIX_TIMESTAMP(MIN(log.arrival)) * 1000 AS first_visit,
               COUNT(log.entity_id) AS num_visits,
               etype.abbr AS type_abbr,
               etype.title AS type_title,
-              CONCAT('{media}', flag.width_32) AS flag_url
+              CONCAT('{media}', flag.thumb) AS flag_url
          FROM `travel_travellog`  AS log
     LEFT JOIN `travel_entity`     AS entity    ON log.entity_id     = entity.id
     LEFT JOIN `travel_entity`     AS entity_co ON entity.country_id = entity_co.id

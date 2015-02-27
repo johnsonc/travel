@@ -11,7 +11,7 @@
     {% for place in places %}
     <tr>
         <td>{% if place.flag %}
-            <img class="flag" src="{{ place.flag.width_32.url }}" />
+            <img class="flag" src="{{ place.flag.thumb.url }}" />
         {% endif %}</td>
         <td>
             <a href="{{ place.get_absolute_url }}">
@@ -24,7 +24,7 @@
         </td>
         <td>
             <a href="{{ place.country.get_absolute_url }}">
-                <img class="flag" src="{{ place.country.flag.width_32.url }}" />
+                <img class="flag" src="{{ place.country.flag.thumb.url }}" />
                 {{ place.country.name }}</a>
         </td>
         <td>{% if place.id in checklist %}

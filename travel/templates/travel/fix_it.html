@@ -31,12 +31,12 @@
                 <td>{{ place.locality }}</td>
                 <td>{% if place.state %}
                     <a href="{{ place.state.get_absolute_url}}">
-                        <img class="flag" src="{{ place.state.flag.width_32.url }}" />
+                        <img class="flag" src="{{ place.state.flag.thumb.url }}" />
                         {{ place.state.name }}</a>{% endif %}
                 </td>
                 <td>
                     <a href="{{ place.country.get_absolute_url }}">
-                        <img src="{{ place.country.flag.width_32.url }}" />
+                        <img src="{{ place.country.flag.thumb.url }}" />
                         {{ place.country.name }}</a>
                 </td>
             </tr>
