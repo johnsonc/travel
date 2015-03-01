@@ -1,6 +1,6 @@
 from django.conf.urls import *
 from django.views.generic import TemplateView
-from travel import views
+from travel import views, flag_game
 
 search_patterns = patterns('',
     url(r'^$',          views.search, name='travel-search'),
@@ -36,7 +36,7 @@ urlpatterns = patterns('',
     url(r'^add/',             include(add_patterns)),
     url(r'^profiles/',        include(profile_patterns)),
     url(r'^todo/',            include(todo_patterns)),
+    url(r'^flags/$',          flag_game.flag_game),
     url(r'^edit/i/(\w+)/(\w+)(?:-(\w+))?/$', views.entity_edit, name='travel-entity-edit'),
     url(r'^plugs/$', TemplateView.as_view(template_name='travel/plugs.html'), name='travel-plugs'),
-    
 )
