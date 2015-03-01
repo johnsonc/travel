@@ -25,6 +25,7 @@ STAR                    = mark_safe('&#9733;')
 WORLD_HERITAGE_CATEGORY = { 'C': 'Cultural', 'N': 'Natural', 'M': 'Mixed' }
 EXTRA_INFO              = { 'ap': 'IATA'}
 
+
 #-------------------------------------------------------------------------------
 def flag_upload(size):
     def upload_func(instance, filename):

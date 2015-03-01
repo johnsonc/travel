@@ -6,11 +6,6 @@ from travel import utils as travel_utils
 
 
 #===============================================================================
-class TextField(forms.CharField):
-    widget = forms.Textarea
-
-
-#===============================================================================
 class DateUtilField(forms.Field):
     default_error_messages = {
         'invalid': u'Enter a valid date/time. Try using YYYY/MM/DD HH:MM:SS',
@@ -66,7 +61,7 @@ class SearchForm(forms.Form):
 class TravelLogForm(forms.ModelForm):
     arrival = DateUtilField(required=False)
     rating = forms.ChoiceField(choices=travel.TravelLog.RATING_CHOICES, initial='3')
-    note = TextField(required=False)
+    note = forms.CharField(required=False, widget=forms.Textarea)
 
     #===========================================================================
     class Meta:
@@ -205,5 +200,5 @@ class NewStateForm(_NewEntityForm):
     #===========================================================================
     class Meta(_NewEntityForm.Meta):
         fields = entity_meta_fields()
-    
-# country = forms.ModelChoiceField(queryset=travel.Entity.objects.countries())
+
+
