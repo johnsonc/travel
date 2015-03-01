@@ -38,17 +38,6 @@ def svg_upload(instance, filename):
 
 
 #===============================================================================
-class FlagManager(models.Manager):
-    
-    #---------------------------------------------------------------------------
-    def get_flag_data_by_sizes(self, url, sizes=None):
-        if url.endswith('.svg.png'):
-            return travel_utils.get_wiki_flags_by_size(url, sizes)
-        else:
-            return travel_utils.get_flags_from_image_by_size(url, sizes)
-
-
-#===============================================================================
 class Flag(models.Model):
     source = models.CharField(max_length=255)
     base_dir = models.CharField(max_length=8)
@@ -57,8 +46,6 @@ class Flag(models.Model):
     large = models.ImageField(upload_to=flag_upload(128), null=True)
     svg = models.FileField(upload_to=svg_upload, null=True)
 
-    objects = FlagManager()
-    
     #---------------------------------------------------------------------------
     @property
     def is_locked(self):
@@ -74,7 +61,7 @@ class Flag(models.Model):
         return self.large.url
     
     #---------------------------------------------------------------------------
-    def set_flags(self, url, base, ref, sizes):
+    def update(self, url, base, ref, svg, thumb, large):
         ref         = ref.lower()
         media_root  = path(settings.MEDIA_ROOT)
         parent_dir  = path(BASE_FLAG_DIR) / base / ref
@@ -87,12 +74,23 @@ class Flag(models.Model):
         self.source   = url
         self.base_dir = base
         self.ref      = ref
-        for size, bytes in sizes.iteritems():
-            flag_path = path_fmt % size
-            setattr(self, 'width_%s' % size, flag_path)
-            with open(media_root / flag_path, 'wb') as fp:
-                fp.write(bytes)
-
+        
+        for attr, data, size in (('thumb', thumb, 32), ('large', large, 128)):
+            if data:
+                flag_path = path_fmt % size
+                setattr(self, attr, flag_path)
+                with open(media_root / flag_path, 'wb') as fp:
+                    fp.write(data)
+            else:
+                setattr(self, attr, None)
+        
+        if svg:
+            self.svg = parent_dir / 'flag.svg'
+            with open(media_root / parent_dir / 'flag.svg', 'wb') as fp:
+                fp.write(svg)
+        else:
+            self.svg = None
+            
         self.save()
 
 
@@ -456,14 +454,10 @@ class Entity(models.Model):
         return Entity.objects.filter(models.Q(**{key: self}), type=type)
         
     #---------------------------------------------------------------------------
-    def update_flags(self, flag_url, sizes=None):
-        if self.flag and not self.flag.is_locked:
-            flag = self.flag
-        else:
-            flag = Flag()
-
-        data = Flag.objects.get_flag_data_by_sizes(flag_url, sizes=sizes)
-        flag.set_flags(flag_url, self.flag_dir, self.code, data)
+    def update_flag(self, flag_url):
+        flag = self.flag if self.flag and not self.flag.is_locked else Flag()
+        svg, thumb, large = travel_utils.get_flag_data(flag_url)
+        flag.update(flag_url, self.flag_dir, self.code, svg, thumb, large)
         self.flag = flag
         self.save()
         return flag

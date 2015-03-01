@@ -110,27 +110,8 @@ class LatLonField(forms.CharField):
 
 
 #===============================================================================
-class FlagField(forms.CharField):
-    
-    #---------------------------------------------------------------------------
-    def clean(self, value):
-        url = super(FlagField, self).clean(value)
-        if url and url != self.initial:
-            try:
-                return url, travel.Flag.objects.get_flag_data_by_sizes(url)
-            except ValueError, why:
-                raise forms.ValidationError(why)
-
-
-#-------------------------------------------------------------------------------
-def _save_flag(instance, flag_data):
-    if flag_data:
-        instance.update_flags(*flag_data)
-
-
-#===============================================================================
 class EditEntityForm(forms.ModelForm):
-    flag_url = FlagField(label='Flag URL', required=False)
+    flag_url = forms.CharField(label='Flag URL', required=False)
     country = forms.ModelChoiceField(queryset=travel.Entity.objects.countries())
 
     #===========================================================================
@@ -161,19 +142,21 @@ class EditEntityForm(forms.ModelForm):
     #---------------------------------------------------------------------------
     def save(self):
         instance = super(EditEntityForm, self).save()
-        _save_flag(instance, self.cleaned_data.get('flag_url'))
+        flag_url = self.cleaned_data.get('flag_url')
+        if flag_url:
+            instance.update_flag(flag_url)
         return instance
 
 
 #-------------------------------------------------------------------------------
 def entity_meta_fields(*args):
-    return args + ('name', 'full_name', 'code', 'lat_lon', 'tz', 'flag_data')
+    return args + ('name', 'full_name', 'code', 'lat_lon', 'tz', 'flag_url')
 
 
 #===============================================================================
 class _NewEntityForm(forms.ModelForm):
     lat_lon = LatLonField(label='Lat/Lon', required=False)
-    flag_data = FlagField(label='Flag URL', required=False)
+    flag_url = forms.CharField(label='Flag URL', required=False)
     
     #===========================================================================
     class Meta:
@@ -200,7 +183,10 @@ class _NewEntityForm(forms.ModelForm):
             setattr(instance, key, value)
             
         instance.save()
-        _save_flag(instance, self.cleaned_data.get('flag_data'))
+        flag_url = self.cleaned_data.get('flag_url')
+        if flag_url:
+            instance.update_flag(flag_url)
+        
         return instance
 
 

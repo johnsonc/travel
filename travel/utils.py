@@ -12,7 +12,7 @@ from django.contrib.auth.decorators import user_passes_test
 
 
 _wiki_flag_url_re =  re.compile(r'(.*)/(\d+)px(.*)')
-_default_flag_sizes = (32, 128, 512)
+DEFAULT_FLAG_SIZES = (32, 128)
 
 
 #-------------------------------------------------------------------------------
@@ -46,7 +46,7 @@ def nice_url(text):
 def get_url_content(url):
     r = requests.get(url)
     if r.status_code != 200:
-        raise ValueError('Status %s (%s)' % (r.status_code, url))
+        return None
     
     return r.content
 
@@ -58,32 +58,53 @@ def make_resizer(size):
 
 
 #-------------------------------------------------------------------------------
-def get_wiki_flags_by_size(url, sizes=None):
+def get_wiki_flags_from_svg(url):
     '''Typical url format:
+
+    http://upload.wikimedia.org/wikipedia/commons/x/yz/Flag_of_XYZ.svg
     
-    http://upload.wikimedia.org/wikipedia/commons/thumb/x/yz/Flag_of_XYZ.svg/120px-Flag_of_XYZ.svg.png'''
-    data = {}
-    sizes = sizes or _default_flag_sizes
-    for size in sizes:
-        size_url = _wiki_flag_url_re.sub(r'\1/%spx\3' % size, url)
-        data[size] = get_url_content(size_url)
+    http://upload.wikimedia.org/wikipedia/commons/thumb/x/yz/Flag_of_XYZ.svg/120px-Flag_of_XYZ.svg.png
+    '''
+    data = [get_url_content(url)]
+    for size in DEFAULT_FLAG_SIZES:
+        pth, base = url.rsplit('/', 1)
+        size_url = '{}/{}/{}px-{}.png'.format(
+            pth.replace('/commons/', '/commons/thumb/'),
+            base,
+            size,
+            base
+        )
+        
+        data.append(get_url_content(size_url))
 
     return data
 
+
+
 #-------------------------------------------------------------------------------
-def get_flags_from_image_by_size(url, sizes=None):
+def get_flag_data(url):
+    norm_url = url.lower()
+    if norm_url.endswith('.svg'):
+        svg, thumb, large = get_wiki_flags_from_svg(url)
+        return svg, thumb, large
+    else:
+        thumb, large = get_flags_from_image_by_size(url)
+        return None, thumb, large
+
+
+#-------------------------------------------------------------------------------
+def get_flags_from_image_by_size(url):
     im = Image.open(io.BytesIO(get_url_content(url)))
     x1, y1 = size = im.size
     resize = make_resizer(size)
-    data = {}
-    sizes = sizes or _default_flag_sizes
-    for x1 in sizes:
+    data = []
+    for x1 in DEFAULT_FLAG_SIZES:
         x2, y2 = new_size = resize(x1)
         resample = Image.BICUBIC if x2 > x1 else Image.ANTIALIAS
         stream = io.BytesIO()
         new_im = im.resize(new_size, resample)
         new_im.save(stream, 'PNG')
-        data[x1] = stream.getvalue()
+        data.append(stream.getvalue())
 
     return data
 

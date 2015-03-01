@@ -356,7 +356,7 @@
         if(e.country_name) {
             co_html += co_html.length ? ', ' + e.country_name : e.country_name;
             if(e.flag_co_url) {
-                co_html += ' ' + img_tag(e.flag_co_url, 'flag');
+                co_html += ' ' + img_tag(e.flag_co_url, 'flag flag-sm');
             }
         }
 

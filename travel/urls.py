@@ -31,12 +31,11 @@ todo_patterns = patterns('',
 )
 
 urlpatterns = patterns('',
-    url(r'^search/',   include(search_patterns)),
+    url(r'^search/',          include(search_patterns)),
     url(r'^i/(?P<ref>\w+)/',  include(item_patterns)),
-    url(r'^add/',      include(add_patterns)),
-    url(r'^profiles/', include(profile_patterns)),
-    url(r'todo/',      include(todo_patterns)),
-    
+    url(r'^add/',             include(add_patterns)),
+    url(r'^profiles/',        include(profile_patterns)),
+    url(r'^todo/',            include(todo_patterns)),
     url(r'^edit/i/(\w+)/(\w+)(?:-(\w+))?/$', views.entity_edit, name='travel-entity-edit'),
     url(r'^plugs/$', TemplateView.as_view(template_name='travel/plugs.html'), name='travel-plugs'),
     

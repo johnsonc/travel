@@ -1,5 +1,6 @@
 {% extends "travel/entities/listing-base.html" %}
 {% block list_header %}
+    <th></th>
     <th>Name</th>
     <th>State</th>
     <th>County</th>
@@ -8,6 +9,7 @@
 {% block listing %}
     {% for place in places %}
     <tr>
+        <td>{% if not place.flag.is_locked %}<img src="{{ place.flag.thumb.url }}">{% endif %}</td>
         <td><a href="{{ place.get_absolute_url }}">{{ place.name }}</a></td>
         <td>{{ place.state.name }}</td>
         <td>{{ place.country }}</td>
