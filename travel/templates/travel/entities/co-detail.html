@@ -15,9 +15,8 @@
     {% if info.denom %}
     <dt>Demonym</dt>
     <dd>{{ info.denom }} <i>(sing.)</i>; {{ info.denoms }} <i>(pl.)</i></dd>{% endif %}
-    {% if info.languages %}
     <dt>Language(s)</dt>
-    <dd>{{ info.language_codes }}</dd>{% endif %}
+    <dd>{{ info.get_languages }}</dd>
     {% if info.electrical %}
     <dt>Electrical</dt>
     <dd>{% static 'img/plugs/' as plug_pth %}{% with info.electrical_info as el %}

@@ -662,6 +662,14 @@ class EntityInfo(models.Model):
     languages = models.ManyToManyField(TravelLanguage, blank=True)
     
     #---------------------------------------------------------------------------
+    def get_languages(self):
+        lang = ', '.join([l.name for l in self.languages.all()])
+        if self.language_codes:
+            lang = '{} ({})'.format(lang, self.language_codes)
+            
+        return lang or 'Unknown'
+        
+    #---------------------------------------------------------------------------
     def electrical_info(self):
         if self.electrical:
             v,h,p = self.electrical.split('/')
