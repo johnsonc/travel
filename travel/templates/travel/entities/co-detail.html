@@ -20,7 +20,7 @@
     {% if info.electrical %}
     <dt>Electrical</dt>
     <dd>{% static 'img/plugs/' as plug_pth %}{% with info.electrical_info as el %}
-        {{ el.volts }}V, {{ el.hz }}Hz, Connector type(s): {{ el.plugs|join:", " }}
+        {{ el.volts }}V, {{ el.hz }}Hz, <a href="{% url 'travel-plugs' %}">Connector type(s)</a>: {{ el.plugs|join:", " }}
         <br>{% for p in el.plugs %}
         <a href="{{ plug_pth }}{{ p.0.lower }}.jpg"><img style="width:75px" src="{{ plug_pth }}{{ p.0.lower }}.jpg"></a>
         {% endfor %}
