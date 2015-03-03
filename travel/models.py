@@ -150,15 +150,20 @@ class ProfileManager(models.Manager):
     def public(self):
         return self.filter(access=self.model.Access.PUBLIC).exclude(user__id=1)
 
+    #---------------------------------------------------------------------------
+    def for_user(self, user):
+        p, _ =  self.get_or_create(user=user)
+        return p
+
 
 #===============================================================================
 class Profile(models.Model):
     
     #===========================================================================
     class Access(ChoiceEnumeration):
-        PUBLIC    = ChoiceEnumeration.Option('PUB',  'Public', default=True)
+        PUBLIC    = ChoiceEnumeration.Option('PUB',  'Public')
         PRIVATE   = ChoiceEnumeration.Option('PRI',  'Private')
-        PROTECTED = ChoiceEnumeration.Option('PRO',  'Protected')
+        PROTECTED = ChoiceEnumeration.Option('PRO',  'Protected', default=True)
     
     user   = models.OneToOneField(User, related_name='travel_profile')
     access = models.CharField(
@@ -616,6 +621,15 @@ class TravelLog(models.Model):
         self.save()
 
 
+#===============================================================================
+class TravelLanguage(models.Model):
+    iso639_1 = models.CharField(blank=True, max_length=2)
+    iso639_3 = models.CharField(blank=True, max_length=3)
+    name     = models.CharField(max_length=60)
+
+    def __unicode__(self):
+        return self.name
+
 
 #===============================================================================
 class Currency(models.Model):
@@ -637,7 +651,7 @@ class EntityInfo(models.Model):
     currency = models.ForeignKey(Currency, blank=True, null=True)
     denom = models.CharField(blank=True, max_length=40)
     denoms = models.CharField(blank=True, max_length=60)
-    languages = models.CharField(blank=True, max_length=100)
+    language_codes = models.CharField(blank=True, max_length=100)
     phone = models.CharField(blank=True, max_length=20)
     electrical = models.CharField(blank=True, max_length=40)
     postal_code = models.CharField(blank=True, max_length=60)
@@ -645,7 +659,8 @@ class EntityInfo(models.Model):
     tld = models.CharField(blank=True, max_length=8)
     population = models.CharField(blank=True, max_length=12)
     area = models.CharField(blank=True, max_length=10)
-
+    languages = models.ManyToManyField(TravelLanguage, blank=True)
+    
     #---------------------------------------------------------------------------
     def electrical_info(self):
         if self.electrical:

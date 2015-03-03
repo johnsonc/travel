@@ -17,7 +17,7 @@
     <dd>{{ info.denom }} <i>(sing.)</i>; {{ info.denoms }} <i>(pl.)</i></dd>{% endif %}
     {% if info.languages %}
     <dt>Language(s)</dt>
-    <dd>{{ info.languages}}</dd>{% endif %}
+    <dd>{{ info.language_codes }}</dd>{% endif %}
     {% if info.electrical %}
     <dt>Electrical</dt>
     <dd>{% static 'img/plugs/' as plug_pth %}{% with info.electrical_info as el %}
