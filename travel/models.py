@@ -663,9 +663,9 @@ class EntityInfo(models.Model):
     
     #---------------------------------------------------------------------------
     def get_languages(self):
-        lang = ', '.join([l.name for l in self.languages.all()])
+        lang = u', '.join([l.name for l in self.languages.all()])
         if self.language_codes:
-            lang = '{} ({})'.format(lang, self.language_codes)
+            lang = u'{} ({})'.format(lang, self.language_codes)
             
         return lang or 'Unknown'
         
