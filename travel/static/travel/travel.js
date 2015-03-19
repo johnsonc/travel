@@ -127,7 +127,7 @@
             
             this.$el = $('#history');
             this.$el.find('thead th').click(sort_handler);
-            _.each(document.querySelectorAll('#id_type option'), function(e) {
+            _.each(document.querySelectorAll('#id_filter option'), function(e) {
                 if(summary[e.value]) {
                     e.text += ' ' + ' (' + summary[e.value] + ')';
                 }
@@ -244,7 +244,7 @@
     //--------------------------------------------------------------------------
     var get_filter_bits = function() {
         return {
-            type:      $$('id_type').value,
+            type:      $$('id_filter').value,
             co:        $$('id_co').value,
             timeframe: $$('id_timeframe').value,
             date:      get_datepicker_iso()
@@ -270,7 +270,7 @@
         $('.filter_ctrl').each(function() { this.value = ''; });
         
         if(bits.type) {
-            $$('id_type').value = bits.type;
+            $$('id_filter').value = bits.type;
         }
         if(bits.co) {
             $$('id_co').value = bits.co;
