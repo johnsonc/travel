@@ -5,15 +5,6 @@
     {% else %}Log entry for{% endif %}
     <a href="{{ entry.entity.get_absolute_url }}">{{ entry.entity.name }}</a>
 {% endblock %}
-{% block extra_head %}
-    <script type="text/javascript" src="{% static 'js/jquery-.js' %}" charset="utf-8"></script>
-    <script type="text/javascript">
-        $(function() {
-            $("#tabs").tabs();
-            Travelogue.log_entry_prep();
-        });
-    </script>
-{% endblock extra_head %}
 {% block travel_content %}
     {% if form %}
     {% include "travel/log-entry-form.html" %}

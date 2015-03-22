@@ -70,16 +70,18 @@ FLAG_GROUPS = [
     [u'GT', u'MX', u'PY', u'AR']
 ]
 
+EXCLUDED_IDS = [u'BV', u'CA', u'GF', u'HM', u'YT', u'RE', u'SJ', u'US', u'UM', u'WF']
+
 #-------------------------------------------------------------------------------
 def get_flag_game_data():
     countries = dict([
         (co.code, {"name": co.name, "id": co.code, "small": co.flag.thumb.url, "large": co.flag.large.url})
-        for co in travel.Entity.objects.countries().exclude(id__in=[37, 48, 87, 105, 147, 184, 215, 237, 238, 246])
+        for co in travel.Entity.objects.countries().exclude(code__in=EXCLUDED_IDS)
     ])
     return {'countries': json.dumps(countries), 'groups': json.dumps(FLAG_GROUPS)}
 
 #-------------------------------------------------------------------------------
 def flag_game(request):
     data = get_flag_game_data()
-    return render(request, 'travel/flag_game.html', data)
+    return render(request, 'travel/quiz/flags.html', data)
 

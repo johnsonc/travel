@@ -16,7 +16,7 @@
         entries for this Bucket list.
     </p>
     {% endif %}
-    <table class="todo-result table table-striped">
+    <table class="todo-result table table-striped travel-action">
     <thead>
         <tr class="">
             <th></th>
@@ -27,7 +27,7 @@
     </thead>
     <tbody>
         {% for obj,logged in entities %}
-        <tr>
+        <tr data-id="{{ obj.id }}">
             <td class="flag-32">{% if obj.flag %}
                 <img src="{{ obj.flag.thumb.url }}" />{% endif %}
             </td>
@@ -43,7 +43,6 @@
         {% endfor %}
     </tbody>
     </table>
-     
 {% endblock travel_content %}
 
 

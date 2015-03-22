@@ -92,23 +92,113 @@
     };
     
     //--------------------------------------------------------------------------
+    var country_cmp = function(a, b) {
+        return (a[1] > b[1]) ? 1 : (a[1] < b[1] ? -1 : 0);
+    };
+    
+    //--------------------------------------------------------------------------
+    var entity_url = function(e) {
+        return '/i/' + e.type_abbr + '/' + (
+            (e.type_abbr == 'wh' || e.type_abbr == 'st')
+          ? (e.country_code + '-' + e.code)
+          : e.code
+        ) + '/';
+    };
+
+    //--------------------------------------------------------------------------
+    var DOM = root.DOM = {
+        create: function(tag) {
+            var j, key, arg;
+            var el = document.createElement(tag);
+            for(var i = 1; i < arguments.length; i++) {
+                arg = arguments[i];
+                if(_.isPlainObject(arg)) {
+                    for(key in arg) {
+                        if(arg.hasOwnProperty(key)) {
+                            el.setAttribute(key, arg[key]);
+                        }
+                    }
+                }
+                else if(_.isArray(arg)) {
+                    for(j = 0; j < arg.length; j++) {
+                        el.appendChild(arg[j]);
+                    }
+                }
+                else {
+                    el.textContent = arg.toString();
+                }
+            }
+            return el;
+        }
+    };
+    
+    //--------------------------------------------------------------------------
+    var date_tags = function(dtw) {
+        return [
+            DOM.create('nobr', dtw.date_string),
+            DOM.create('nobr', dtw.time_string)
+        ];
+    };
+    
+    //--------------------------------------------------------------------------
+    var create_entity_row = function(e) {
+        var name_td = DOM.create('td');
+        var flag_td = DOM.create('td');
+        var extras = [];
+        var attrs = {
+            'data-id' : e.id,
+            'class': e.type_abbr + ' co-' + e.country_code ? e.country_code : (e.type_abbr == 'co' ? e.code : '')
+        };
+
+        name_td.appendChild(DOM.create('a', e.name, {'href': e.entity_url}));
+
+        if(e.flag_url) {
+            flag_td.appendChild(DOM.create('img', {'src': e.flag_url, 'class': 'flag'}));
+        }
+        
+        if(e.locality) {
+            extras.push(e.locality);
+        }
+
+        if(e.country_name) {
+            extras.push(e.country_name);
+        }
+
+        if(extras.length) {
+            name_td.appendChild(DOM.create('span', extras.join(', ')))
+        }
+        
+        if(e.flag_co_url) {
+            name_td.appendChild(DOM.create('img', {'src': e.flag_co_url, 'class': 'flag flag-sm'}));
+        }
+
+        return DOM.create('tr', attrs, [
+            flag_td,
+            DOM.create('td', e.type_title),
+            name_td,
+            DOM.create('td', date_tags(e.most_recent_visit)),
+            DOM.create('td', date_tags(e.first_visit)),
+            DOM.create('td', e.num_visits),
+            DOM.create('td', stars(e.rating))
+        ]);
+    };
+    
+    //--------------------------------------------------------------------------
     var profile_history = {
-        selector: '#history tbody',
         media_prefix: '/media/',
         initialize: function(history, conf) {
             var media_prefix = conf.media_prefix || this.media_prefix;
-            var $co_opts = $('#id_co');
+            var co_opts = $$('id_co');
             var summary = {};
+            var countries = {};
+
             this.filters = {'type': null, 'country_code': null};
-            
-            this.countries = {};
             this.all_entities = _.map(history, function(e) {
                 e.entity_url = entity_url(e);
                 e.most_recent_visit = date_wrapper(e.most_recent_visit);
                 e.first_visit = date_wrapper(e.first_visit);
-                e.html = make_entity_row(e);
                 if(e.country_code) {
-                    this.countries[e.country_code] = e.country_name;
+                    countries[e.country_code] = e.country_name;
                 }
                 increment(summary, e.type_abbr);
                 return e;
@@ -116,14 +206,12 @@
             summary[''] = history.length;
             console.log(summary);
             
-            _.each(
-                _.pairs(this.countries).sort(function(a,b) {
-                    return (a[1] > b[1]) ? 1 : (a[1] < b[1] ? -1 : 0); 
-                }),
-                function(item) {
-                    $co_opts.append('<option value="' + item[0] + '">' + item[1] + '</option>');
-                }
-            );
+            _.each(_.pairs(countries).sort(country_cmp), function(item) {
+                var opt = document.createElement('option');
+                opt.value = item[0];
+                opt.textContent = item[1];
+                co_opts.appendChild(opt);
+            });
             
             this.$el = $('#history');
             this.$el.find('thead th').click(sort_handler);
@@ -171,17 +259,23 @@
         },
         
         show_entities: function(entities) {
+            var i, start;
             var count = entities.length;
+            var el = document.querySelector('#history tbody');
+            var parent = el.parentElement;
             this.current_entities = entities;
+            $$('id_count').textContent = (count + ' entr' + (count > 1 ? 'ies' : 'y'));
 
-            $('#id_count').text(count + ' entr' + (count > 1 ? 'ies' : 'y'));
-            var html = _.reduce(entities, function(memo, e) {
-                return memo + e.html;
-            }, '');
-
-            this.$el.find('tbody').html(html);
+            start = new Date();
+            parent.removeChild(el);
+            el = DOM.create('tbody');
+            for(i = 0; i < entities.length; i++) {
+                el.appendChild(create_entity_row(entities[i]));
+            }
+            parent.appendChild(el);
+            console.log('delta', new Date() - start);
         },
-        
+
         sort: function(col, order) {
         }
         
@@ -267,7 +361,9 @@
         var dt = $$('id_date');
 
         console.log('bits', bits);
-        $('.filter_ctrl').each(function() { this.value = ''; });
+        _.each(document.querySelectorAll('.filter_ctrl'), function(e) {
+            e.value = '';
+        });
         
         if(bits.type) {
             $$('id_filter').value = bits.type;
@@ -280,7 +376,6 @@
         }
         if(bits.date) {
             dt.value = bits.date;
-            
         }
         else {
             dt.style.display = 'none';
@@ -300,79 +395,6 @@
             .datepicker(profile_datepicker_opts)
             .on('change input propertychange', on_filter_change);
         
-    };
-    
-    //--------------------------------------------------------------------------
-    var entity_url = function(e) {
-        return '/i/' + e.type_abbr + '/' + (
-            (e.type_abbr == 'wh' || e.type_abbr == 'st')
-          ? (e.country_code + '-' + e.code)
-          : e.code
-        ) + '/';
-    };
-
-    //--------------------------------------------------------------------------
-    var date_html = function(dtw) {
-        return make_tag('nobr', dtw.date_string, '<br>') + make_tag('nobr', dtw.time_string);
-    };
-    
-    //--------------------------------------------------------------------------
-    var make_tag = root.make_tag = function(name) {
-        var args = Array.prototype.slice.call(arguments, 1);
-        var tag = '<' + name;
-        var attrs;
-        if(typeof args[0] === 'object') {
-            attrs = args.shift();
-            for(var key in attrs) {
-                if(attrs.hasOwnProperty(key)) {
-                    tag += ' ' + key + '="' + attrs[key] + '"'
-                }
-            }
-        }
-        return tag + '>' + args.join('') + '</' + name + '>';
-    };
-    
-    //--------------------------------------------------------------------------
-    var img_tag = function(src, classes) {
-        var tag = '<img src="' + src + '"';
-        if(classes) {
-            tag += ' class="' + classes + '"';
-        }
-        return tag + '>';
-    }
-    
-    //--------------------------------------------------------------------------
-    var make_entity_row = function(e) {
-        var co_html = '';
-        var name_html = '<a href="' + e.entity_url + '">' + e.name + '</a>';
-        var attrs = {
-            'data-id' : e.id,
-            'class': e.type_abbr + ' co-' + e.country_code ? e.country_code : (e.type_abbr == 'co' ? e.code : '')
-        };
-        
-        if(e.locality) {
-            co_html += e.locality;
-        }
-        if(e.country_name) {
-            co_html += co_html.length ? ', ' + e.country_name : e.country_name;
-            if(e.flag_co_url) {
-                co_html += ' ' + img_tag(e.flag_co_url, 'flag flag-sm');
-            }
-        }
-
-        if(co_html.length) {
-            name_html += '<br>' + co_html;
-        }
-
-        return make_tag('tr', attrs, (
-              make_tag('td', e.flag_url ? img_tag(e.flag_url, 'flag') : '')
-            + make_tag('td', e.type_title)
-            + make_tag('td', name_html)
-            + make_tag('td', date_html(e.most_recent_visit))
-            + make_tag('td', date_html(e.first_visit))
-            + make_tag('td', e.num_visits)
-            + make_tag('td', stars(e.rating))
-        ));
     };
     
     //--------------------------------------------------------------------------
