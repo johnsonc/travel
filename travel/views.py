@@ -19,37 +19,27 @@ def all_profiles(request):
 
 #-------------------------------------------------------------------------------
 def profile(request, username):
-    profile = get_object_or_404(travel.Profile, user__username=username)
-    return render(request, 'travel/profile/profile.html', {'profile': profile})
+    return render(request, 'travel/profile/profile.html', {
+        'profile': get_object_or_404(travel.Profile, user__username=username)
+    })
 
 
 #-------------------------------------------------------------------------------
 def todo_lists(request):
-    if request.user.is_authenticated():
-        todos = travel.ToDoList.objects.all_for_user(request.user)
-    else:
-        todos = travel.ToDoList.objects.filter(is_public=True)
-
-    return render(request, 'travel/todo/listing.html', {'todos': todos})
+    return render(request, 'travel/todo/listing.html', {
+        'todos': travel.ToDoList.objects.for_user(request.user)
+    })
 
 
 #-------------------------------------------------------------------------------
 def todo_list(request, pk):
     todo = get_object_or_404(travel.ToDoList, pk=pk)
-    all_entities = list(todo.entities.all())
-    done = 0
-    if request.user.is_authenticated():
-        entities = []
-        for entity in all_entities:
-            logged = entity.travellog_set.filter(user=request.user).count()
-            if logged:
-                done += 1
-            entities.append((entity, logged))
-    else:
-        entities = [(e, 0) for e in all_entities]
-    
-    data = {'todo': todo, 'entities': entities, 'stats': {'total': len(all_entities), 'done': done}}
-    return render(request, 'travel/todo/detail.html', data)
+    done, entities = todo.user_results(request.user)
+    return render(request, 'travel/todo/detail.html', {
+        'todo': todo,
+        'entities': entities,
+        'stats': {'total': len(entities), 'done': done}
+    })
 
 
 #-------------------------------------------------------------------------------
@@ -57,9 +47,9 @@ def search(request):
     search_form = forms.SearchForm(request.GET)
     data = {'search_form': search_form}
     if search_form.is_valid():
-        q     = search_form.cleaned_data['search']
-        mtype = search_form.cleaned_data['type']
-        data.update(search=q, results=travel.Entity.objects.search(q, mtype))
+        q = search_form.cleaned_data['search']
+        by_type = search_form.cleaned_data['type']
+        data.update(search=q, results=travel.Entity.objects.search(q, by_type))
 
     return render(request, 'travel/search/search.html', data)
 

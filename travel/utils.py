@@ -8,11 +8,23 @@ from decimal import Decimal, localcontext
 import requests
 from PIL import Image
 from dateutil import parser
+from django.db import connection
+
 from django.contrib.auth.decorators import user_passes_test
 
 
-_wiki_flag_url_re =  re.compile(r'(.*)/(\d+)px(.*)')
 DEFAULT_FLAG_SIZES = (32, 128)
+
+#-------------------------------------------------------------------------------
+def custom_sql_as_dict(sql, args):
+    cursor = connection.cursor()
+    cursor.execute(sql, args)
+    description = cursor.description
+    return [
+        dict(zip([column[0] for column in description], row))
+        for row in cursor.fetchall()
+    ]
+
 
 
 #-------------------------------------------------------------------------------
@@ -24,7 +36,6 @@ superuser_required = user_passes_test(
 #===============================================================================
 class _ParserInfo(parser.parserinfo):
     parser.parserinfo.MONTHS[8] += ('Sept',)
-
     parser.parserinfo.WEEKDAYS[1] += ('Tues',)
     parser.parserinfo.WEEKDAYS[2] += ('Weds', 'Wedn')
     parser.parserinfo.WEEKDAYS[3] += ('Thurs', 'Thur')

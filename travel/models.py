@@ -8,9 +8,7 @@ from django.db import models, connection
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django.utils.safestring import mark_safe
-from django.utils.translation import ugettext_lazy as _
 
-from path import path
 from choice_enum import ChoiceEnumeration
 import travel.utils as travel_utils
 
@@ -20,7 +18,7 @@ GOOGLE_MAPS_LATLON      = 'http://maps.google.com/maps?q={},+{}&iwloc=A&z=10'
 GOOGLE_SEARCH_URL       = 'http://www.google.com/search?as_q={}'
 WIKIPEDIA_URL           = 'http://en.wikipedia.org/wiki/Special:Search?search={}&go=Go'
 WORLD_HERITAGE_URL      = 'http://whc.unesco.org/en/list/{}'
-BASE_FLAG_DIR           = path('img/flags')
+BASE_FLAG_DIR           = 'img/flags'
 STAR                    = mark_safe('&#9733;')
 WORLD_HERITAGE_CATEGORY = { 'C': 'Cultural', 'N': 'Natural', 'M': 'Mixed' }
 EXTRA_INFO              = { 'ap': 'IATA'}
@@ -29,7 +27,7 @@ EXTRA_INFO              = { 'ap': 'IATA'}
 #-------------------------------------------------------------------------------
 def flag_upload(size):
     def upload_func(instance, filename):
-        name = '{}-{}{}'.format(instance.ref, size, path(filename).ext)
+        name = '{}-{}{}'.format(instance.ref, size, os.path.splitext(filename)[1])
         return  '{}/{}/{}'.format(BASE_FLAG_DIR, instance.base_dir, name)
     return upload_func
 
@@ -63,11 +61,12 @@ class Flag(models.Model):
     
     #---------------------------------------------------------------------------
     def update(self, url, base, ref, svg, thumb, large):
+        join        = os.path.join
         ref         = ref.lower()
-        media_root  = path(settings.MEDIA_ROOT)
-        parent_dir  = path(BASE_FLAG_DIR) / base / ref
-        abs_dir     = media_root / parent_dir
-        path_fmt    = parent_dir / ('%s-%%s.png' % (ref,))
+        media_root  = settings.MEDIA_ROOT
+        parent_dir  = join(BASE_FLAG_DIR, base, ref)
+        abs_dir     = join(media_root, parent_dir)
+        path_fmt    = join(parent_dir, '%s-%%s.png' % (ref,))
 
         if not abs_dir.exists():
             abs_dir.makedirs()
@@ -80,14 +79,14 @@ class Flag(models.Model):
             if data:
                 flag_path = path_fmt % size
                 setattr(self, attr, flag_path)
-                with open(media_root / flag_path, 'wb') as fp:
+                with open(join(media_root, flag_path), 'wb') as fp:
                     fp.write(data)
             else:
                 setattr(self, attr, None)
         
         if svg:
-            self.svg = parent_dir / 'flag.svg'
-            with open(media_root / parent_dir / 'flag.svg', 'wb') as fp:
+            self.svg = join(parent_dir, 'flag.svg')
+            with open(join(media_root, parent_dir, 'flag.svg'), 'wb') as fp:
                 fp.write(svg)
         else:
             self.svg = None
@@ -99,8 +98,11 @@ class Flag(models.Model):
 class ToDoListManager(models.Manager):
     
     #---------------------------------------------------------------------------
-    def all_for_user(self, user):
-        return self.filter(models.Q(is_public=True) | models.Q(owner=user))
+    def for_user(self, user):
+        q = models.Q(is_public=True)
+        if user.is_authenticated:
+            q |= models.Q(owner=user)
+        return self.filter(q)
         
     #---------------------------------------------------------------------------
     def new_list(self, owner, title, entries, is_public=True, description=''):
@@ -141,6 +143,21 @@ class ToDoList(models.Model):
     def __unicode__(self):
         return self.title
 
+    #---------------------------------------------------------------------------
+    def user_results(self, user):
+        all_entities = self.entities.all()
+        done = 0
+        if user.is_authenticated():
+            entities = []
+            for entity in all_entities:
+                logged = entity.travellog_set.filter(user=user).count()
+                if logged:
+                    done += 1
+                entities.append((entity, logged))
+        else:
+            entities = [(e, 0) for e in all_entities]
+
+        return done, entities
 
 
 #===============================================================================
@@ -495,17 +512,6 @@ class EntityExtra(models.Model):
     ref = models.TextField()
 
 
-#-------------------------------------------------------------------------------
-def custom_sql_as_dict(sql, args):
-    cursor = connection.cursor()
-    cursor.execute(sql, args)
-    description = cursor.description
-    return [
-        dict(zip([column[0] for column in description], row))
-        for row in cursor.fetchall()
-    ]
-
-
 #===============================================================================
 class TravelLogManager(models.Manager):
     
@@ -551,7 +557,7 @@ class TravelLogManager(models.Manager):
     
     #---------------------------------------------------------------------------
     def _detailed_history(self, user):
-        return custom_sql_as_dict(self.DETAILED_HISTORY_SQL, [user.id])
+        return travel_utils.custom_sql_as_dict(self.DETAILED_HISTORY_SQL, [user.id])
 
     #---------------------------------------------------------------------------
     def history_json(self, user):
