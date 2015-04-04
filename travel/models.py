@@ -100,7 +100,7 @@ class ToDoListManager(models.Manager):
     #---------------------------------------------------------------------------
     def for_user(self, user):
         q = models.Q(is_public=True)
-        if user.is_authenticated:
+        if user.is_authenticated():
             q |= models.Q(owner=user)
         return self.filter(q)
         
