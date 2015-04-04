@@ -341,8 +341,8 @@ class Entity(models.Model):
     code      = models.CharField(max_length=6, db_index=True)
     name      = models.CharField(max_length=175)
     full_name = models.CharField(max_length=175)
-    lat       = models.DecimalField(max_digits=7, decimal_places=4, default='0.0')
-    lon       = models.DecimalField(max_digits=7, decimal_places=4, default='0.0')
+    lat       = models.DecimalField(max_digits=7, decimal_places=4, null=True, blank=True)
+    lon       = models.DecimalField(max_digits=7, decimal_places=4, null=True, blank=True)
     category  = models.CharField(blank=True, max_length=4)
     locality  = models.CharField(max_length=256, blank=True)
 
