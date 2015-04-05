@@ -1,0 +1,116 @@
+.almanac {
+    width: 14em;
+    border: 1px solid #ccc;
+    border-left: none;
+    font-size: 1.25em;
+}
+.almanac:before, .almanac:after {
+    content: " ";
+    display: table;
+}
+.almanac:after { clear: both; }
+.almanac .weekdays span, .almanac .month .week .day {
+    box-sizing: border-box;
+    width: 2em;
+    color: #333;
+    line-height: 2em;
+    text-align: center;
+    border-left: 1px solid #ccc;
+}
+.almanac .weekdays span,
+    .almanac div.month div.week div.day {
+    float:left;
+    display: inline-block;
+    height: 2em;
+}
+.almanac .weekdays span {
+    font-weight: bold;
+    background-color: #f0f0f0;
+    cursor: default;
+}
+.almanac .month .week .day {
+    cursor: pointer;
+    border-top: 1px solid #ccc;
+}
+.almanac .month .week .day:hover { background-color: #eee; }
+.almanac .month .week .day.other {
+    color: #999;
+    font-style: italic;
+}
+.almanac .month:before, .almanac .month:after {
+    content: " ";
+    display: table;
+}
+.almanac .selector {
+    text-align: center;
+    padding: 4px;
+    background: #339;
+}
+.almanac .selector select {
+    font-size: 2em;
+    vertical-align: middle;
+    margin-right: 4px;
+}
+.almanac .selector a {
+    text-decoration: none;
+    color: #fff;
+}
+.almanac .selector a:first-child { float: left; }
+.almanac .selector a:last-child { float: right; }
+.almanac .footer {
+    background-color: #f0f0f0;
+    text-align: center;
+    border-top: 1px solid #ccc;
+}
+.almanac .footer a {
+    font-size: smaller;
+    text-decoration: none;
+    margin: 6px;
+    display: inline-block;
+}
+.almanac.almanac-lg { width: 100%;}
+.almanac.almanac-lg table.month {
+    width: 100%;
+    border-collapse: collapse;
+}
+.almanac.almanac-lg .month .week .day,
+    .almanac.almanac-lg .weekdays span {
+        width: 14.2857143%;
+    }
+.almanac.almanac-lg .day ul {
+    margin: 1.5em 0 0 0;
+    line-height: 1.125em;
+    padding-left: 1.125em;
+    text-align: left;
+}
+.almanac.almanac-lg .day ul li {
+    white-space: nowrap;
+}
+.almanac table.month td {
+    height: 6em;
+    vertical-align: top;
+    padding: 0;
+}
+.almanac table.month td .day-num {
+    float: right;
+    display: inline-block;
+    font-size: 75%;
+    width: 1.25rem;
+    height: 1.25rem;
+    line-height: 1.75em;
+    color: #fff;
+    background-color: #999;
+    border-bottom-left-radius: .75em;
+}
+.almanac-container {
+    position: relative;
+}
+.almanac-container input {
+    width: 100px;
+}
+.almanac-container .almanac {
+    position: absolute;
+    left: 0;
+    top: 0;
+    background: #fff;
+}
