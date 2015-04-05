@@ -227,28 +227,21 @@ def add_entity_co(request):
     )
 
 
-NEW_ENTITY_FORMS = {
-    'st': forms.NewStateForm
-}
-
-
 #-------------------------------------------------------------------------------
 @utils.superuser_required
 def add_entity_by_co(request, code, abbr):
     entity_type = get_object_or_404(travel.EntityType, abbr=abbr)
     country = travel.Entity.objects.get(code=code, type__abbr='co')
 
-    Form = NEW_ENTITY_FORMS[abbr]
     if request.method == 'POST':
-        form = Form(request.POST)
+        form = forms.NewEntityForm(request.POST)
         if form.is_valid():
             entity = form.save(entity_type, country=country)
             return http.HttpResponseRedirect(entity.get_absolute_url())
     else:
-        form = Form()
+        form = forms.NewEntityForm()
     
-    return render(
-        request,
-        'travel/entities/add/add.html',
-        {'entity_type': entity_type, 'form': form}
-    )
+    return render(request, 'travel/entities/add/add.html', {
+        'entity_type': entity_type,
+        'form': form
+    })
