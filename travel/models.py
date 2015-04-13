@@ -1,14 +1,16 @@
 import re
 import os
 import operator
-from datetime import datetime
 
 from django.conf import settings
 from django.db import models, connection
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
+from django.utils import timezone
 from django.utils.safestring import mark_safe
+from django.utils.functional import cached_property
 
+import pytz
 from choice_enum import ChoiceEnumeration
 import travel.utils as travel_utils
 
@@ -426,17 +428,20 @@ class Entity(models.Model):
         return self.category
     
     #---------------------------------------------------------------------------
-    @property
+    @cached_property
     def timezone(self):
-        if not hasattr(self, '__timezone'):
-            timezone = self.tz
-            if not timezone and self.state:
-                timezone = self.state.timezone
-            if not timezone and self.country:
-                timezone = self.country.timezone
-            self.__timezone = timezone
-        return self.__timezone
-        
+        return (
+               self.tz
+            or (self.state and self.state.timezone)
+            or (self.country and self.country.timezone)
+            or pytz.utc
+        )
+    
+    #---------------------------------------------------------------------------
+    @property
+    def tzinfo(self):
+        return pytz.timezone(self.timezone)
+    
     #---------------------------------------------------------------------------
     def get_continent(self):
         if self.continent:
@@ -514,7 +519,7 @@ class EntityExtra(models.Model):
 
 #===============================================================================
 class TravelLogManager(models.Manager):
-    
+    DATE_FORMAT = '%%a, %%d %%b %%Y %%T GMT'
     DETAILED_HISTORY_SQL = '''SELECT
               log.id, 
               log.entity_id,
@@ -525,8 +530,8 @@ class TravelLogManager(models.Manager):
               entity_co.code AS country_code,
               CONCAT('{media}', flag_co.thumb) AS flag_co_url,
               MIN(log.rating) AS rating,
-              UNIX_TIMESTAMP(MAX(log.arrival)) * 1000 AS most_recent_visit,
-              UNIX_TIMESTAMP(MIN(log.arrival)) * 1000 AS first_visit,
+              DATE_FORMAT(MAX(log.arrival), '{fmt}') AS most_recent_visit,
+              DATE_FORMAT(MIN(log.arrival), '{fmt}') AS first_visit,
               COUNT(log.entity_id) AS num_visits,
               etype.abbr AS type_abbr,
               etype.title AS type_title,
@@ -539,7 +544,7 @@ class TravelLogManager(models.Manager):
     LEFT JOIN `travel_flag`       AS flag_co   ON entity_co.flag_id = flag_co.id
         WHERE `user_id` = %s
      GROUP BY `entity_id`
-     ORDER BY most_recent_visit DESC'''.format(media=settings.MEDIA_URL)
+     ORDER BY MAX(log.arrival) DESC'''.format(media=settings.MEDIA_URL, fmt=DATE_FORMAT)
     
     #---------------------------------------------------------------------------
     def history(self, user):
@@ -613,12 +618,19 @@ class TravelLog(models.Model):
         return u'{} | {}'.format(self.entity, self.user)
 
     #---------------------------------------------------------------------------
+    @property
+    def local_arrival(self):
+        return self.arrival.astimezone(self.entity.tzinfo)
+        
+    #---------------------------------------------------------------------------
     def get_absolute_url(self):
         return reverse('travel-log-entry', args=[self.user.username, self.id])
     
     #---------------------------------------------------------------------------
     def save(self, *args, **kws):
-        self.arrival = self.arrival or datetime.now()
+        if not self.arrival:
+            self.arrival = timezone.now()
+            
         return super(TravelLog, self).save(*args, **kws)
     
     #---------------------------------------------------------------------------

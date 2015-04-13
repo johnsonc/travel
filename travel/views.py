@@ -82,12 +82,12 @@ def _entity_base(request, entity):
     if request.user.is_authenticated():
         history = request.user.travellog_set.filter(entity=entity)
         if request.method == 'POST':
-            form = forms.TravelLogForm(request.POST)
+            form = forms.TravelLogForm(entity, request.POST)
             if form.is_valid():
-                form.save(request.user, entity)
+                form.save(request.user)
                 return http.HttpResponseRedirect(request.path)
         else:
-            form = forms.TravelLogForm()
+            form = forms.TravelLogForm(entity)
     else:
         form = None
         history = []
@@ -145,12 +145,12 @@ def log_entry(request, username, pk):
     entry = get_object_or_404(travel.TravelLog, user__username=username, pk=pk)
     if request.user == entry.user:
         if request.method == 'POST':
-            form = forms.TravelLogForm(request.POST, instance=entry)
+            form = forms.TravelLogForm(entry.entity, request.POST, instance=entry)
             if form.is_valid():
                 form.save(user=request.user)
                 return http.HttpResponseRedirect(request.path)
         else:
-            form = forms.TravelLogForm(instance=entry)
+            form = forms.TravelLogForm(entry.entity, instance=entry)
     else:
         form = None
     

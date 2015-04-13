@@ -77,12 +77,11 @@
         var dt = new Date(dt_str);
         var str = dt.toString().split(' ');
         var hours = dt.getHours();
-        var hours12 = hours ? hours % 12 : 12;
-        
+        var ampm = hours >= 12 ? 'pm' : 'am';
         return {
             'date': dt,
             'date_string': str[1] + ' ' + dt.getDate() + ', ' + dt.getFullYear(),
-            'time_string': str[0] + ' ' + hours12  + ':' + pad(dt.getMinutes()) + (hours > 12 ? 'pm' : 'am')
+            'time_string': str[0] + ' ' + (hours > 12 ? hours % 12 : hours)  + ':' + pad(dt.getMinutes()) + ampm
         }
     };
     

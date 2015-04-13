@@ -6,38 +6,12 @@ from travel import utils as travel_utils
 
 
 #===============================================================================
-class DateUtilField(forms.Field):
-    default_error_messages = {
-        'invalid': u'Enter a valid date/time. Try using YYYY/MM/DD HH:MM:SS',
-    }
-
-    #---------------------------------------------------------------------------
-    def clean(self, value):
-        """
-        Validates that the input can be converted to a datetime. Returns a
-        Python datetime.datetime object.
-        """
-        super(DateUtilField, self).clean(value)
-        if value in forms.fields.EMPTY_VALUES:
-            return None
-        elif isinstance(value, datetime):
-            return value
-        elif isinstance(value, date):
-            return datetime(value.year, value.month, value.day)
-
-        try:
-            return travel_utils.dt_parse(value)
-        except:
-            raise forms.ValidationError(self.error_messages['invalid'])
-
-
-#===============================================================================
 class SearchField(forms.CharField):
     
     #---------------------------------------------------------------------------
     def widget_attrs(self, widget):
         return {'placeholder': 'Search'}
-    
+
 
 #===============================================================================
 class SearchForm(forms.Form):
@@ -58,6 +32,32 @@ class SearchForm(forms.Form):
 
 
 #===============================================================================
+class DateUtilField(forms.Field):
+    default_error_messages = {
+        'invalid': u'Enter a valid date/time. Try using YYYY/MM/DD HH:MM:SS',
+    }
+
+    #---------------------------------------------------------------------------
+    def clean(self, value):
+        """
+        Validates that the input can be converted to a datetime. Returns a
+        Python datetime.datetime object.
+        """
+        value = super(DateUtilField, self).clean(value)
+        if value in forms.fields.EMPTY_VALUES:
+            return None
+        elif isinstance(value, datetime):
+            return value
+        elif isinstance(value, date):
+            return datetime(value.year, value.month, value.day)
+
+        try:
+            return travel_utils.dt_parse(value)
+        except:
+            raise forms.ValidationError(self.error_messages['invalid'])
+
+
+#===============================================================================
 class TravelLogForm(forms.ModelForm):
     arrival = DateUtilField(required=False)
     rating = forms.ChoiceField(choices=travel.TravelLog.RATING_CHOICES, initial='3')
@@ -69,25 +69,29 @@ class TravelLogForm(forms.ModelForm):
         fields = ('arrival', 'rating', 'note')
     
     #---------------------------------------------------------------------------
-    def __init__(self, *args, **kws):
-        super(TravelLogForm, self).__init__(*args, **kws)
+    def __init__(self, entity, *args, **kws):
         instance = kws.get('instance', None)
+        if instance and instance.arrival:
+            instance.arrival = instance.local_arrival.replace(tzinfo=None)
+            
+        super(TravelLogForm, self).__init__(*args, **kws)
+        self.entity = entity
         if instance and instance.notes:
             self.fields['note'].initial = instance.notes.text
-        
     #---------------------------------------------------------------------------
-    def save(self, user=None, entity=None):
+    def clean_arrival(self):
+        return self.entity.tzinfo.localize(self.cleaned_data['arrival'])
+    
+    #---------------------------------------------------------------------------
+    def save(self, user=None):
         data = self.cleaned_data
         entry = super(TravelLogForm, self).save(commit=False)
+        entry.entity = self.entity
         if user:
             entry.user = user
             
-        if entity:
-            entry.entity = entity
-            
         entry.save()
         entry.update_notes(data.get('note', ''))
-            
         return entry
 
 

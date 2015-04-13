@@ -7,7 +7,7 @@
 {% endblock %}
 {% block travel_content %}
     {% if form %}
-    {% include "travel/log-entry-form.html" %}
+    {% include "travel/log-entry-form.html" with entity=entry.entity %}
     {% else %}
     {% endif %}
 {% endblock travel_content %}

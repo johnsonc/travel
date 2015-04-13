@@ -74,7 +74,12 @@
         <dt>Code</dt>
         <dd>{{ place.code }}</dd>
         {% endif %}
-        
+        {% load tz %}
+         <dt>Time Zone</dt>
+         <dd>{% timezone place.tzinfo %}
+             {{ place.tzinfo.zone }}, {% now "e O" %} |
+             {% now "r" %}
+        {% endtimezone %}</dd>
         {% with place.related_entities as related %}
         {% if related %}
         <dt>Related</dt>
@@ -93,35 +98,26 @@
         {% block extra_details %}{% endblock extra_details %}
     </dl>
     
-    
     {% if user.is_authenticated %}
     {% with history|length as count %}
-    
     <h2>Your Travel Log <small><span class="label label-default">{{ count }} entr{{ count|pluralize:"y,ies" }}</span></small></h2>
-    
     <div class="panel panel-default">
         <div class="panel-heading">Add a log entry</div>
         <div class="panel-body">
-            {% include "travel/log-entry-form.html" %}
+            {% include "travel/log-entry-form.html" with entity=place %}
         </div>
     </div>
-    
     {% if count %}
     <div class="panel panel-default">
         <div class="panel-heading">Previous Log Entries</div>
         <table class="table table-striped">
         <thead>
-            <tr>
-                <th>Date</th>
-                <th>Time</th>
-                <th>Rating</th>
-                <th>Edit?</th>
-            </tr>
+            <tr><th>Date</th><th>Time</th><th>Rating</th><th>Edit?</th></tr>
         </thead>
         <tbody> {% for entry in history %}
             <tr>
-                <td>{{ entry.arrival|date:"D, j M y" }}</td>
-                <td>{{ entry.arrival|date:"P" }}</td>
+                <td>{{ entry.arrival|date:"D, M j, Y" }}</td>
+                <td>{{ entry.arrival|date:"P" }} {{ entry.arrival.tzinfo.zone }}</td>
                 <td>{{ entry.get_rating_display }}</td>
                 <td>
                     <a title="Edit this log entry" href="{{ entry.get_absolute_url }}">
