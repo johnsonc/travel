@@ -79,6 +79,7 @@ def by_locale(request, ref):
 
 #-------------------------------------------------------------------------------
 def _entity_base(request, entity):
+    form, history = None, []
     if request.user.is_authenticated():
         history = request.user.travellog_set.filter(entity=entity)
         if request.method == 'POST':
@@ -88,9 +89,6 @@ def _entity_base(request, entity):
                 return http.HttpResponseRedirect(request.path)
         else:
             form = forms.TravelLogForm(entity)
-    else:
-        form = None
-        history = []
 
     template = 'travel/entities/%s-detail.html' % entity.type.abbr
     return render(

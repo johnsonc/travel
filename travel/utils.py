@@ -173,7 +173,8 @@ def parse_latlon(s):
 
 DATE_FORMAT     = "%Y/%m/%d"
 TIME_FORMAT     = "%H:%M:%S"
-DATETIME_FORMAT = '%s %s' % (DATE_FORMAT, TIME_FORMAT)
+DATETIME_FORMAT = '{} {}'.format(DATE_FORMAT, TIME_FORMAT)
+DATETIME_FORMAT = '%a, %d %b %Y %H:%M:%S GMT'
 
 parse_date = lambda o: datetime.date(*[int(i) for i in o.split('/')])
 parse_time = lambda o: datetime.time(*[int(i) for i in o.split(':')])

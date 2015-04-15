@@ -74,12 +74,15 @@
         <dt>Code</dt>
         <dd>{{ place.code }}</dd>
         {% endif %}
+        
+        {% if place.tzinfo %}
         {% load tz %}
-         <dt>Time Zone</dt>
-         <dd>{% timezone place.tzinfo %}
-             {{ place.tzinfo.zone }}, {% now "e O" %} |
-             {% now "r" %}
-        {% endtimezone %}</dd>
+        <dt>Time Zone</dt>
+        <dd>{% timezone place.tzinfo %}
+            {{ place.tzinfo.zone }}, {% now "e O" %} |
+            {% now "r" %}{% endtimezone %}
+        </dd>
+        {% endif %}
         {% with place.related_entities as related %}
         {% if related %}
         <dt>Related</dt>

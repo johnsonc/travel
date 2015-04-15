@@ -4,6 +4,7 @@ import operator
 
 from django.conf import settings
 from django.db import models, connection
+from django.db.models import Count, Min, Max, Q
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django.utils import timezone
@@ -76,6 +77,7 @@ class Flag(models.Model):
         self.source   = url
         self.base_dir = base
         self.ref      = ref
+        self.svg      = None
         
         for attr, data, size in (('thumb', thumb, 32), ('large', large, 128)):
             if data:
@@ -90,9 +92,7 @@ class Flag(models.Model):
             self.svg = join(parent_dir, 'flag.svg')
             with open(join(media_root, parent_dir, 'flag.svg'), 'wb') as fp:
                 fp.write(svg)
-        else:
-            self.svg = None
-            
+        
         self.save()
 
 
@@ -101,9 +101,9 @@ class ToDoListManager(models.Manager):
     
     #---------------------------------------------------------------------------
     def for_user(self, user):
-        q = models.Q(is_public=True)
+        q = Q(is_public=True)
         if user.is_authenticated():
-            q |= models.Q(owner=user)
+            q |= Q(owner=user)
         return self.filter(q)
         
     #---------------------------------------------------------------------------
@@ -171,8 +171,7 @@ class ProfileManager(models.Manager):
 
     #---------------------------------------------------------------------------
     def for_user(self, user):
-        p, _ =  self.get_or_create(user=user)
-        return p
+        return self.get_or_create(user=user)[0]
 
 
 #===============================================================================
@@ -185,11 +184,7 @@ class Profile(models.Model):
         PROTECTED = ChoiceEnumeration.Option('PRO',  'Protected', default=True)
     
     user   = models.OneToOneField(User, related_name='travel_profile')
-    access = models.CharField(
-        max_length=3, 
-        choices=Access.CHOICES,
-        default=Access.DEFAULT
-    )
+    access = models.CharField(max_length=3, choices=Access.CHOICES, default=Access.DEFAULT)
     
     objects = ProfileManager()
     
@@ -202,23 +197,9 @@ class Profile(models.Model):
         return unicode(self.user)
         
     #---------------------------------------------------------------------------
-    def history(self):
-        return TravelLog.objects.history(self.user)
-    
-    #---------------------------------------------------------------------------
     def history_json(self):
         return TravelLog.objects.history_json(self.user)
     
-    #---------------------------------------------------------------------------
-    def history_details(self):
-        history = list(self.history())
-        countries = sorted(
-            set([(h.entity.name, h.entity.code) for h in history if h.entity.type.abbr == 'co']),
-            key=lambda e: e[0]
-        )
-        
-        return {'history': history, 'countries': countries}
-        
     #---------------------------------------------------------------------------
     is_public    = property(lambda self: self.access == self.Access.PUBLIC)
     is_private   = property(lambda self: self.access == self.Access.PRIVATE)
@@ -227,8 +208,8 @@ class Profile(models.Model):
 
 #-------------------------------------------------------------------------------
 def profile_factory(sender, instance, created=False, **kws):
-        if created:
-            Profile.objects.get_or_create(user=instance)
+    if created:
+        Profile.objects.get_or_create(user=instance)
 
 
 models.signals.post_save.connect(profile_factory, sender=User)
@@ -247,16 +228,14 @@ class EntityType(models.Model):
 #===============================================================================
 class EntityManager(models.Manager):
 
-    RELATIONSHIP_MAP = {'co': 'country', 'st': 'state', 'cn': 'continent'}
-    
     #---------------------------------------------------------------------------
     @staticmethod
     def _search_q(term):
         return (
-            models.Q(name__icontains=term)      |
-            models.Q(full_name__icontains=term) |
-            models.Q(locality__icontains=term)  |
-            models.Q(code__iexact=term)
+            Q(name__icontains=term)      |
+            Q(full_name__icontains=term) |
+            Q(locality__icontains=term)  |
+            Q(code__iexact=term)
         )
         
     #---------------------------------------------------------------------------
@@ -277,24 +256,7 @@ class EntityManager(models.Manager):
         qq = reduce(operator.ior, [self._search_q(term) for term in bits])
         qs = self.filter(qq)
         return qs.filter(type__abbr=type) if type else qs
-        
-    #---------------------------------------------------------------------------
-    def related_entities(self, entity):
-        relationship = self.RELATIONSHIP_MAP.get(entity.type.abbr)
-        if relationship:
-            cursor = connection.cursor()
-            cursor.execute(
-                '''SELECT et.`abbr`, COUNT(t.`type_id`)
-                     FROM `travel_entity` AS t
-               INNER JOIN `travel_entitytype` AS et ON t.`type_id` = et.id 
-                    WHERE t.`%s_id` = %%s
-                 GROUP BY t.`type_id` ''' % (relationship,),
-                [entity.id]
-            )
-            return cursor.fetchall()
-            
-        return ()
-        
+    
     #---------------------------------------------------------------------------
     def countries(self):
         return self.filter(type__abbr='co')
@@ -358,20 +320,31 @@ class Entity(models.Model):
 
     objects   = EntityManager()
     
-    RELATED_DETAILS = {
-        'co': 'Countries',
-        'st': 'States, provinces, territories, etc',
-        'ct': 'Cities',
-        'ap': 'Airports',
-        'np': 'National Parks',
-        'lm': 'Landmarks',
-        'wh': 'World Heriage Sites',
-    }
-    
     #===========================================================================
     class Meta:
         ordering = ('name',)
-
+    
+    #===========================================================================
+    class Related:
+        ENTITY_TYPES = {'co': 'entity__country', 'st': 'entity__state'}
+        DETAILS = {
+            'co': 'Countries',
+            'st': 'States, provinces, territories, etc',
+            'ct': 'Cities',
+            'ap': 'Airports',
+            'np': 'National Parks',
+            'lm': 'Landmarks',
+            'wh': 'World Heriage Sites',
+        }
+        BY_TYPE_PARAMS = {
+            'co': 'country',
+            'st': 'state',
+            'cn': {
+                'co': 'continent',
+                'default': 'country__continent'
+            }
+        }
+    
     #---------------------------------------------------------------------------
     def __unicode__(self):
         return self.name
@@ -434,7 +407,7 @@ class Entity(models.Model):
                self.tz
             or (self.state and self.state.timezone)
             or (self.country and self.country.timezone)
-            or pytz.utc
+            or 'UTC'
         )
     
     #---------------------------------------------------------------------------
@@ -459,11 +432,25 @@ class Entity(models.Model):
     
     #---------------------------------------------------------------------------
     @property
+    def relationships(self):
+        abbr = self.type.abbr
+        qs = None
+        if abbr == 'cn':
+            qs = EntityType.objects.distinct().filter(
+                Q(entity__continent=self) | Q(entity__country__continent=self)
+            )
+        else:
+            key = self.Related.ENTITY_TYPES.get(abbr)
+            qs = EntityType.objects.distinct().filter(**{key: self})
+
+        return qs.annotate(cnt=Count('abbr')).values_list('abbr', 'cnt') if qs else ()
+
+    #---------------------------------------------------------------------------
+    @property
     def related_entities(self):
-        rels = Entity.objects.related_entities(self)
         return [
-            {'abbr': abbr, 'text': self.RELATED_DETAILS[abbr], 'count': cnt}
-            for abbr, cnt in rels
+            {'abbr': abbr, 'text': self.Related.DETAILS[abbr], 'count': cnt}
+            for abbr, cnt in self.relationships
         ]
         
     #---------------------------------------------------------------------------
@@ -478,8 +465,11 @@ class Entity(models.Model):
     
     #---------------------------------------------------------------------------
     def related_by_type(self, type):
-        key = Entity.objects.RELATIONSHIP_MAP[self.type.abbr]
-        return Entity.objects.filter(models.Q(**{key: self}), type=type)
+        key = self.Related.BY_TYPE_PARAMS[self.type.abbr]
+        if isinstance(key, dict):
+            key = key.get(type.abbr, key['default'])
+        print key, self, type
+        return Entity.objects.filter(**{key: self, 'type': type})
         
     #---------------------------------------------------------------------------
     def update_flag(self, flag_url):
@@ -519,72 +509,28 @@ class EntityExtra(models.Model):
 
 #===============================================================================
 class TravelLogManager(models.Manager):
-    DATE_FORMAT = '%%a, %%d %%b %%Y %%T GMT'
-    DETAILED_HISTORY_SQL = '''SELECT
-              log.id, 
-              log.entity_id,
-              entity.code,
-              entity.name,
-              entity.locality,
-              entity_co.name AS country_name,
-              entity_co.code AS country_code,
-              CONCAT('{media}', flag_co.thumb) AS flag_co_url,
-              MIN(log.rating) AS rating,
-              DATE_FORMAT(MAX(log.arrival), '{fmt}') AS most_recent_visit,
-              DATE_FORMAT(MIN(log.arrival), '{fmt}') AS first_visit,
-              COUNT(log.entity_id) AS num_visits,
-              etype.abbr AS type_abbr,
-              etype.title AS type_title,
-              CONCAT('{media}', flag.thumb) AS flag_url
-         FROM `travel_travellog`  AS log
-    LEFT JOIN `travel_entity`     AS entity    ON log.entity_id     = entity.id
-    LEFT JOIN `travel_entity`     AS entity_co ON entity.country_id = entity_co.id
-    LEFT JOIN `travel_entitytype` AS etype     ON entity.type_id    = etype.id
-    LEFT JOIN `travel_flag`       AS flag      ON entity.flag_id    = flag.id
-    LEFT JOIN `travel_flag`       AS flag_co   ON entity_co.flag_id = flag_co.id
-        WHERE `user_id` = %s
-     GROUP BY `entity_id`
-     ORDER BY MAX(log.arrival) DESC'''.format(media=settings.MEDIA_URL, fmt=DATE_FORMAT)
     
     #---------------------------------------------------------------------------
-    def history(self, user):
-        return self.raw(
-            '''SELECT   *, 
-                        MAX(arrival) AS most_recent_visit,
-                        MIN(arrival) AS first_visit,
-                        COUNT(entity_id) AS num_visits
-                 FROM   `travel_travellog`
-                WHERE   `user_id` = %s
-             GROUP BY   `entity_id`
-             ORDER BY   most_recent_visit DESC''',
-             [user.id]
+    def user_history(self, user):
+        return Entity.objects.filter(travellog__user=user).distinct().annotate(
+            num_visits=Count('travellog__user'),
+            first_visit=Min('travellog__arrival'),
+            recent_visit=Max('travellog__arrival'),
+            rating=Min('travellog__rating')
+        ).order_by('-recent_visit').values(
+            'id', 'code', 'name', 'locality', 'country__name', 'country__code',
+            'country__flag__thumb', 'rating', 'recent_visit', 'first_visit',
+            'num_visits', 'type__abbr', 'type__title', 'flag__thumb',
         )
-    
-    #---------------------------------------------------------------------------
-    def _detailed_history(self, user):
-        return travel_utils.custom_sql_as_dict(self.DETAILED_HISTORY_SQL, [user.id])
 
     #---------------------------------------------------------------------------
     def history_json(self, user):
-        results = travel_utils.json_dumps(self._detailed_history(user))
-        return results
+        return travel_utils.json_dumps(list(self.user_history(user)))
 
-    #---------------------------------------------------------------------------
-    def recent_countries(self, user):
-        return self.raw(
-            '''SELECT   tl.*, MIN(tl.arrival) AS most_recent_visit
-                 FROM   `travel_travellog` tl
-           INNER JOIN   `travel_entity` e on tl.entity_id = e.id
-                WHERE   `user_id` = %s AND `e`.`type_id` = 2
-             GROUP BY   `entity_id`
-             ORDER BY   most_recent_visit DESC''',
-             [user.id]
-        )
-    
     #---------------------------------------------------------------------------
     def checklist(self, user):
         return dict(
-            self.filter(user=user).values_list('entity').annotate(count=models.Count('entity'))
+            self.filter(user=user).values_list('entity').annotate(count=Count('entity'))
         )
 
 

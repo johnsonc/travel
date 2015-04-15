@@ -3,16 +3,16 @@
 //------------------------------------------------------------------------------
 // entity = {
 //    "rating": 3,
-//    "entity_id": 1463,
+//    "id": 1463,
 //    "code": "BUD",
-//    "type_title": "Airport",
+//    "type__title": "Airport",
 //    "num_visits": 1,
-//    "flag_url": "img/ap-32.png",
-//    "type_abbr": "ap",
+//    "flag__thumb": "img/ap-32.png",
+//    "type__abbr": "ap",
 //    "id": 276
-//    "country_code": "HU",
-//    "country_name": "Hungary",
-//    "most_recent_visit": "2013-12-29 08:00:00",
+//    "country__code": "HU",
+//    "country__name": "Hungary",
+//    "recent_visit": "2013-12-29 08:00:00",
 //    "first_visit": "2013-12-29 08:00:00",
 //    "name": "Budapest Ferenc Liszt International Airport"
 // }
@@ -43,10 +43,10 @@
     
     var sorters = {
         'type': function(a, b) {
-            if(b.type_title > a.type_title) {
+            if(b.type__title > a.type__title) {
                 return 1;
             }
-            if(a.type_title < b.type_title) {
+            if(a.type__title < b.type__title) {
                 return -1;
             }
             if(b.name > a.name) {
@@ -60,7 +60,7 @@
             }
             return (a.name < b.name) ? -1 : 0;
         },
-        'recent': function(a, b) { return b.most_recent_visit.date - a.most_recent_visit.date; },
+        'recent': function(a, b) { return b.recent_visit.date - a.recent_visit.date; },
         'first':  function(a, b) { return b.first_visit.date - a.first_visit.date; },
         'logs':   function(a, b) { return b.num_visits - a.num_visits; },
         'rating': function(a, b) { return a.rating - b.rating; }
@@ -74,7 +74,8 @@
     
     //--------------------------------------------------------------------------
     var date_wrapper = function(dt_str) {
-        var dt = new Date(dt_str);
+        var dt = new Date(dt_str.value);
+        console.log(dt_str, dt);
         var str = dt.toString().split(' ');
         var hours = dt.getHours();
         var ampm = hours >= 12 ? 'pm' : 'am';
@@ -97,9 +98,9 @@
     
     //--------------------------------------------------------------------------
     var entity_url = function(e) {
-        return '/i/' + e.type_abbr + '/' + (
-            (e.type_abbr == 'wh' || e.type_abbr == 'st')
-          ? (e.country_code + '-' + e.code)
+        return '/i/' + e.type__abbr + '/' + (
+            (e.type__abbr == 'wh' || e.type__abbr == 'st')
+          ? (e.country__code + '-' + e.code)
           : e.code
         ) + '/';
     };
@@ -146,36 +147,36 @@
         var extras = [];
         var attrs = {
             'data-id' : e.id,
-            'class': e.type_abbr + ' co-' + e.country_code ? e.country_code : (e.type_abbr == 'co' ? e.code : '')
+            'class': e.type__abbr + ' co-' + e.country__code ? e.country__code : (e.type__abbr == 'co' ? e.code : '')
         };
 
         name_td.appendChild(DOM.create('a', e.name, {'href': e.entity_url}));
 
-        if(e.flag_url) {
-            flag_td.appendChild(DOM.create('img', {'src': e.flag_url, 'class': 'flag'}));
+        if(e.flag__thumb) {
+            flag_td.appendChild(DOM.create('img', {'src': e.flag__thumb, 'class': 'flag'}));
         }
         
         if(e.locality) {
             extras.push(e.locality);
         }
 
-        if(e.country_name) {
-            extras.push(e.country_name);
+        if(e.country__name) {
+            extras.push(e.country__name);
         }
 
         if(extras.length) {
             name_td.appendChild(DOM.create('span', extras.join(', ')))
         }
         
-        if(e.flag_co_url) {
-            name_td.appendChild(DOM.create('img', {'src': e.flag_co_url, 'class': 'flag flag-sm'}));
+        if(e.country__flag__thumb) {
+            name_td.appendChild(DOM.create('img', {'src': e.country__flag__thumb, 'class': 'flag flag-sm'}));
         }
 
         return DOM.create('tr', attrs, [
             flag_td,
-            DOM.create('td', e.type_title),
+            DOM.create('td', e.type__title),
             name_td,
-            DOM.create('td', date_tags(e.most_recent_visit)),
+            DOM.create('td', date_tags(e.recent_visit)),
             DOM.create('td', date_tags(e.first_visit)),
             DOM.create('td', e.num_visits),
             DOM.create('td', stars(e.rating))
@@ -191,15 +192,19 @@
             var summary = {};
             var countries = {};
 
-            this.filters = {'type': null, 'country_code': null};
+            this.filters = {'type': null, 'country__code': null};
             this.all_entities = _.map(history, function(e) {
                 e.entity_url = entity_url(e);
-                e.most_recent_visit = date_wrapper(e.most_recent_visit);
+                e.recent_visit = date_wrapper(e.recent_visit);
                 e.first_visit = date_wrapper(e.first_visit);
-                if(e.country_code) {
-                    countries[e.country_code] = e.country_name;
+                e.flag__thumb = media_prefix + e.flag__thumb;
+                if(e.country__flag__thumb) {
+                    e.country__flag__thumb = media_prefix + e.country__flag__thumb;
                 }
-                increment(summary, e.type_abbr);
+                if(e.country__code) {
+                    countries[e.country__code] = e.country__name;
+                }
+                increment(summary, e.type__abbr);
                 return e;
             }, this);
             summary[''] = history.length;
@@ -234,19 +239,19 @@
                 entities = _.filter(entities, function(e) {
                     var good = true;
                     if(type) {
-                        good &= (e.type_abbr === type);
+                        good &= (e.type__abbr === type);
                     }
 
                     if(co) {
-                        good &= (e.country_code === co || (e.type_abbr === 'co' && e.code === co));
+                        good &= (e.country__code === co || (e.type__abbr === 'co' && e.code === co));
                     }
                     
                     if(tf && dt) {
                         if(tf == '+') {
-                            good &= (e.most_recent_visit.date >= dt);
+                            good &= (e.recent_visit.date >= dt);
                         }
                         else if(tf == '-') {
-                            good &= (e.most_recent_visit.date <= dt);
+                            good &= (e.recent_visit.date <= dt);
                         }
                     }
 
