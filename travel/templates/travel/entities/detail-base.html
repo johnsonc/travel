@@ -4,102 +4,114 @@
     <style type="text/css" media="screen">
         .related-content { padding-left: 1em; }
         .travel-body { position: relative; }
-        .travel-body > a.travel-image { position: absolute; top: 20px; right: 20px; }
+        .travel-body .images { text-align: right; }
+        .travel-body .images > a img {
+            display: block;
+            width: 100%;
+            padding: 4px;
+            box-shadow: 1px 1px 4px rgba(0, 0, 0, 0.5);
+            margin-bottom: 1em;
+        }
         .travel-body > h1, .travel-body > .entity-details { margin-right: 128px; }
         .flag-md { width: 128px; height: auto;}
     </style>
 {% endblock extra_head %}
-{% block travel_image %}
-{% if place.flag %}
-<a class="pull-right travel-image" href="{{ place.flag.image_url }}">
-    <img class="flag flag-md" src="{{ place.flag.image_url }}"></a>
-{% endif %}
-{% endblock travel_image %}
+
 {% block travel_heading %}
     {{ place.name }}&nbsp;{% if user.is_superuser %}<a href="{{ place.get_edit_url }}"><small class="glyphicon glyphicon-edit"></small></a>{% endif %}
 {% endblock %}
 {% block travel_content %}
-    <dl class="dl-horizontal entity-details">
-        <dt>Official name</dt>
-        <dd>
-            {{ place.full_name }} |
-            <a class="external" href="{{ place.external_url }}">{{ place.external_url_name }} <small class="glyphicon glyphicon-new-window"></small></a>
+<div class="row">
+    <div class="col-xs-8">
+        <dl class="dl-horizontal entity-details">
+            <dt>Official name</dt>
+            <dd>
+                {{ place.full_name }} |
+                <a class="external" href="{{ place.external_url }}">{{ place.external_url_name }} <small class="glyphicon glyphicon-new-window"></small></a>
             
-        </dd>
+            </dd>
         
-        {% if place.capital %}
-        <dt>Capital</dt>
-        <dd>
-            <a href="{{ place.capital.get_absolute_url }}">{{ place.capital.name }}</a> |
-            <a class="mapit" href="{{ place.capital.google_maps_url }}">Map</a>
-        </dd>
-        {% endif %}
-
-        {% if place.country %}
-        <dt>Country</dt>
-        <dd>
-            <a href="{{ place.country.get_absolute_url }}">{{ place.country }}</a>
-        </dd>
-        {% endif %}
-        
-        {% with place.get_continent as continent %}
-        {% if continent %}
-        <dt>Continent</dt>
-        <dd>
-            <a href="{{ continent.get_absolute_url }}">{{ continent }}</a>
-        </dd>
-        {% endif %}
-        {% endwith %}
-        
-        {% if place.state %}
-        <dt>State</dt>
-        <dd>
-            <a href="{{ place.state.get_absolute_url }}">{{ place.state }}</a>
-        </dd>
-        {% endif %}
-        
-        {% if place.locality or place.lat %}
-        <dt>Location</dt>
-        <dd>
-            {% if place.locality %}{{ place.locality }}<br>{% endif %}
-            {% if place.lat and place.lon %}
-            <a class="latlon mapit" href="{{ place.google_maps_url }}">
-                {{ place.lat }}&deg; Lat, {{ place.lon }}&deg; Lon</a>
-            <span class="latlon"></span>
+            {% if place.capital %}
+            <dt>Capital</dt>
+            <dd>
+                <a href="{{ place.capital.get_absolute_url }}">{{ place.capital.name }}</a> |
+                <a class="mapit" href="{{ place.capital.google_maps_url }}">Map</a>
+            </dd>
             {% endif %}
-        </dd>
-        {% endif %}
+
+            {% if place.country %}
+            <dt>Country</dt>
+            <dd>
+                <a href="{{ place.country.get_absolute_url }}">{{ place.country }}</a>
+            </dd>
+            {% endif %}
         
-        {% if place.code %}
-        <dt>Code</dt>
-        <dd>{{ place.code }}</dd>
-        {% endif %}
+            {% with place.get_continent as continent %}
+            {% if continent %}
+            <dt>Continent</dt>
+            <dd>
+                <a href="{{ continent.get_absolute_url }}">{{ continent }}</a>
+            </dd>
+            {% endif %}
+            {% endwith %}
         
-        {% if place.tzinfo %}
-        {% load tz %}
-        <dt>Time Zone</dt>
-        <dd>{% timezone place.tzinfo %}
-            {{ place.tzinfo.zone }}, {% now "e O" %} |
-            {% now "r" %}{% endtimezone %}
-        </dd>
-        {% endif %}
-        {% with place.related_entities as related %}
-        {% if related %}
-        <dt>Related</dt>
-        <dd id="related">{% block related %}
-            <ul class="related-content">{% for rel in place.related_entities %}
-                <li>
-                    <a href="{% url 'travel-entity-relationships' place.type.abbr place.code rel.abbr %}">
-                        <span>{{ rel.count }}</span> {{ rel.text }}</a>
-                </li>
-                {% endfor %}
-            </ul>{% endblock related %}
-        </dd>
-        {% endif %}
-        {% endwith %}
+            {% if place.state %}
+            <dt>State</dt>
+            <dd>
+                <a href="{{ place.state.get_absolute_url }}">{{ place.state }}</a>
+            </dd>
+            {% endif %}
         
-        {% block extra_details %}{% endblock extra_details %}
-    </dl>
+            {% if place.locality or place.lat %}
+            <dt>Location</dt>
+            <dd>
+                {% if place.locality %}{{ place.locality }}<br>{% endif %}
+                {% if place.lat and place.lon %}
+                <a class="latlon mapit" href="{{ place.google_maps_url }}">
+                    {{ place.lat }}&deg; Lat, {{ place.lon }}&deg; Lon</a>
+                <span class="latlon"></span>
+                {% endif %}
+            </dd>
+            {% endif %}
+        
+            {% if place.code %}
+            <dt>Code</dt>
+            <dd>{{ place.code }}</dd>
+            {% endif %}
+        
+            {% if place.tzinfo %}
+            {% load tz %}
+            <dt>Time Zone</dt>
+            <dd>{% timezone place.tzinfo %}
+                {{ place.tzinfo.zone }}, {% now "e O" %} |
+                {% now "r" %}{% endtimezone %}
+            </dd>
+            {% endif %}
+            {% with place.related_entities as related %}
+            {% if related %}
+            <dt>Related</dt>
+            <dd id="related">{% block related %}
+                <ul class="related-content">{% for rel in place.related_entities %}
+                    <li>
+                        <a href="{% url 'travel-entity-relationships' place.type.abbr place.code rel.abbr %}">
+                            <span>{{ rel.count }}</span> {{ rel.text }}</a>
+                    </li>
+                    {% endfor %}
+                </ul>{% endblock related %}
+            </dd>
+            {% endif %}
+            {% endwith %}
+        
+            {% block extra_details %}{% endblock extra_details %}
+        </dl>
+    </div>
+    <div class="col-xs-4 images">
+    {% block travel_images %}
+        {% if place.flag %}<a class="travel-image" href="{{ place.flag.image_url }}">
+            <img class="flag flag-md" src="{{ place.flag.image_url }}"></a>{% endif %}
+    {% endblock travel_images %}
+    </div>
+</div>
     
     {% if user.is_authenticated %}
     {% with history|length as count %}

@@ -609,6 +609,17 @@ class Currency(models.Model):
 
 
 #===============================================================================
+class EntityImage(object):
+    
+    #---------------------------------------------------------------------------
+    def __init__(self, entity, location):
+        fn = entity.code.lower() + '.gif'
+        self.fqdn = os.path.join(settings.MEDIA_ROOT, 'img', location, fn)
+        self.exists = os.path.exists(self.fqdn)
+        self.url = '/'.join([settings.MEDIA_URL, 'img', location, fn])
+
+
+#===============================================================================
 class EntityInfo(models.Model):
     entity = models.OneToOneField(Entity)
     iso3 = models.CharField(blank=True, max_length=3)
@@ -626,6 +637,7 @@ class EntityInfo(models.Model):
     languages = models.ManyToManyField(TravelLanguage, blank=True)
     
     #---------------------------------------------------------------------------
+    @cached_property
     def get_languages(self):
         lang = u', '.join([l.name for l in self.languages.all()])
         if self.language_codes:
@@ -634,9 +646,19 @@ class EntityInfo(models.Model):
         return lang or 'Unknown'
         
     #---------------------------------------------------------------------------
+    @cached_property
     def electrical_info(self):
         if self.electrical:
             v,h,p = self.electrical.split('/')
             return {'volts': v, 'hertz': h, 'plugs': p.split(',')}
         return {}
 
+    #---------------------------------------------------------------------------
+    @cached_property
+    def locator(self):
+        return EntityImage(self.entity, 'locator')
+    
+    #---------------------------------------------------------------------------
+    @cached_property
+    def map(self):
+        return EntityImage(self.entity, 'map')
