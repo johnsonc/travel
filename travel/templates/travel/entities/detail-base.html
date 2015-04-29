@@ -28,9 +28,8 @@
             <dd>
                 {{ place.full_name }} |
                 <a class="external" href="{{ place.external_url }}">{{ place.external_url_name }} <small class="glyphicon glyphicon-new-window"></small></a>
-            
             </dd>
-        
+            
             {% if place.capital %}
             <dt>Capital</dt>
             <dd>
@@ -84,7 +83,7 @@
             <dt>Time Zone</dt>
             <dd>{% timezone place.tzinfo %}
                 {{ place.tzinfo.zone }}, {% now "e O" %} |
-                {% now "r" %}{% endtimezone %}
+                <span class="tz-clock" data-datestr="{% now "r" %}">{% now "r" %}</span>{% endtimezone %}
             </dd>
             {% endif %}
             {% with place.related_entities as related %}
@@ -101,9 +100,52 @@
             </dd>
             {% endif %}
             {% endwith %}
-        
             {% block extra_details %}{% endblock extra_details %}
         </dl>
+        {% if user.is_authenticated %}
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h2 class="panel-title">Add a log entry</h2>
+            </div>
+            <div class="panel-body">
+                {% include "travel/log-entry-form.html" with entity=place %}
+            </div>
+        </div>
+        {% with history|length as count %}
+        {% if count %}
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h2 class="panel-title">Previous Log Entries <span class="label label-default">{{ count }} entr{{ count|pluralize:"y,ies" }}</span></h2>
+            </div>
+            <table class="table table-striped">
+            <thead>
+                <tr><th>Arrival</th><th>Rating</th><th>Edit?</th></tr>
+            </thead>
+            <tbody> {% for entry in history %}
+                <tr>
+                    <td>{{ entry.arrival|date:"D, M j, Y" }} &mdash; {{ entry.arrival|date:"P" }} {{ entry.arrival.tzinfo.zone }}</td>
+                    <td>{{ entry.get_rating_display }}</td>
+                    <td>
+                        <a title="Edit this log entry" href="{{ entry.get_absolute_url }}">
+                            <i class="glyphicon glyphicon-edit"></i></a>
+                    </td>
+                </tr>
+                {% if entry.notes %}
+                <tr>
+                    <td colspan="4">
+                        <blockquote>
+                        {{ entry.notes.safe_html }}
+                        </blockquote>
+                    </td>
+                </tr>{% endif %} {% endfor %}
+            </tbody>
+            </table>
+        </div>
+        {% endif %}
+
+        {% endwith %}
+        {% endif %}
+        
     </div>
     <div class="col-xs-4 images">
     {% block travel_images %}
@@ -112,50 +154,8 @@
     {% endblock travel_images %}
     </div>
 </div>
-    
-    {% if user.is_authenticated %}
-    {% with history|length as count %}
-    <h2>Your Travel Log <small><span class="label label-default">{{ count }} entr{{ count|pluralize:"y,ies" }}</span></small></h2>
-    <div class="panel panel-default">
-        <div class="panel-heading">Add a log entry</div>
-        <div class="panel-body">
-            {% include "travel/log-entry-form.html" with entity=place %}
-        </div>
-    </div>
-    {% if count %}
-    <div class="panel panel-default">
-        <div class="panel-heading">Previous Log Entries</div>
-        <table class="table table-striped">
-        <thead>
-            <tr><th>Date</th><th>Time</th><th>Rating</th><th>Edit?</th></tr>
-        </thead>
-        <tbody> {% for entry in history %}
-            <tr>
-                <td>{{ entry.arrival|date:"D, M j, Y" }}</td>
-                <td>{{ entry.arrival|date:"P" }} {{ entry.arrival.tzinfo.zone }}</td>
-                <td>{{ entry.get_rating_display }}</td>
-                <td>
-                    <a title="Edit this log entry" href="{{ entry.get_absolute_url }}">
-                        <i class="glyphicon glyphicon-edit"></i></a>
-                </td>
-            </tr>
-            {% if entry.notes %}
-            <tr>
-                <td colspan="4">
-                    <blockquote>
-                    {{ entry.notes.safe_html }}
-                    </blockquote>
-                </td>
-            </tr>{% endif %} {% endfor %}
-        </tbody>
-        </table>
-    </div>
-    {% endif %}
-    
-    {% endwith %}
-    {% endif %}
 {% endblock travel_content %}
-{% block end_body %}
-    <script type="text/javascript">
-    </script>
+{% block end_body %}{{ block.super }}
+<script type="text/javascript">
+</script>
 {% endblock end_body %}
