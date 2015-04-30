@@ -23,7 +23,7 @@ def read_entities(fn, delimiter='|'):
 
 
 #===============================================================================
-class EntityCache(object):
+class TravelEntityCache(object):
     
     #---------------------------------------------------------------------------
     def __init__(self):
@@ -36,18 +36,18 @@ class EntityCache(object):
         '''
         if not key in self.cache:
             print 'Getting', key
-            self.cache[key] = travel.Entity.objects.get(type__abbr=key[0], code=key[1])
+            self.cache[key] = travel.TravelEntity.objects.get(type__abbr=key[0], code=key[1])
             
         return self.cache[key]
 
 
 #===============================================================================
-class EntityLoader(object):
+class TravelEntityLoader(object):
     
     #---------------------------------------------------------------------------
     def __init__(self):
-        self.types = dict([(et.abbr, et) for et in travel.EntityType.objects.all()]
-        self.cache = EntityCache()
+        self.types = dict([(et.abbr, et) for et in travel.TravelEntityType.objects.all()]
+        self.cache = TravelEntityCache()
     
     #---------------------------------------------------------------------------
     def create_flag(self, entity, flag_url):
@@ -60,7 +60,7 @@ class EntityLoader(object):
 
     #---------------------------------------------------------------------------
     def create_city(self, co, st, name, full_name=''):
-        city, new = travel.Entity.objects.get_or_create(
+        city, new = travel.TravelEntity.objects.get_or_create(
             type=self.types['ct'],
             name=name,
             country=co,
@@ -87,7 +87,7 @@ class EntityLoader(object):
         )
     
         print 'Attrs', attrs
-        subnat, new = travel.Entity.objects.get_or_create(
+        subnat, new = travel.TravelEntity.objects.get_or_create(
             type=self.types['st'],
             country=co,
             code=code,
@@ -107,7 +107,7 @@ class EntityLoader(object):
     #-------------------------------------------------------------------------------
     def process_entity_file(filename, delimiter='|'):
         #co|NL|st|South Holland||ZH|P|The Hague|http://upload.wikimedia.org/wikipedia/commons/thumb/6/63/Flag_Zuid-Holland.svg/27px-Flag_Zuid-Holland.svg.png
-        Subnational = travel.Entity.Subnational
+        Subnational = travel.TravelEntity.Subnational
         lines = read_entities(filename, delimiter)
         print 'File:', filename, 'Lines:', len(lines)
     
@@ -120,7 +120,7 @@ class EntityLoader(object):
                 if kind == 'st':
                     parent = self.cache[keys]
                     entity = self.create_st(parent, fields)
-                    print 'Entity: %s' % entity
+                    print 'TravelEntity: %s' % entity
                 
                 else:
                     print 'Skipped: %s, Line  #%d' % (kind, lineno)
@@ -134,7 +134,7 @@ class Command(BaseCommand):
 
     #---------------------------------------------------------------------------
     def handle(self, *args, **options):
-        loader = EntityLoader()
+        loader = TravelEntityLoader()
         for arg in args:
             loader.process_entity_file(arg)
         

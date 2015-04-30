@@ -3,7 +3,7 @@ from travel import models as travel
 
 
 #===============================================================================
-class EntityAdmin(admin.ModelAdmin):
+class TravelEntityAdmin(admin.ModelAdmin):
     list_display = (
         'id',
         'type',
@@ -18,7 +18,7 @@ class EntityAdmin(admin.ModelAdmin):
 
 
 #===============================================================================
-class EntityTypeAdmin(admin.ModelAdmin):
+class TravelEntityTypeAdmin(admin.ModelAdmin):
     list_display = ( 
         'abbr',
         'title',
@@ -66,8 +66,8 @@ class TravelLogAdmin(admin.ModelAdmin):
     )
 
 
-admin.site.register(travel.Entity, EntityAdmin)
-admin.site.register(travel.EntityType, EntityTypeAdmin)
+admin.site.register(travel.TravelEntity, TravelEntityAdmin)
+admin.site.register(travel.TravelEntityType, TravelEntityTypeAdmin)
 admin.site.register(travel.Flag, FlagAdmin)
 admin.site.register(travel.Profile, ProfileAdmin)
 admin.site.register(travel.ToDoList, ToDoListAdmin)

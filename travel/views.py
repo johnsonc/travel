@@ -49,7 +49,7 @@ def search(request):
     if search_form.is_valid():
         q = search_form.cleaned_data['search']
         by_type = search_form.cleaned_data['type']
-        data.update(search=q, results=travel.Entity.objects.search(q, by_type))
+        data.update(search=q, results=travel.TravelEntity.objects.search(q, by_type))
 
     return render(request, 'travel/search/search.html', data)
 
@@ -64,7 +64,7 @@ def search_advanced(request):
         lines = [line.strip() for line in search.splitlines()]
         data.update(
             search='\n'.join(lines),
-            results=travel.Entity.objects.advanced_search(lines)
+            results=travel.TravelEntity.objects.advanced_search(lines)
         )
         
     return render(request, 'travel/search/advanced.html', data)
@@ -72,8 +72,8 @@ def search_advanced(request):
 
 #-------------------------------------------------------------------------------
 def by_locale(request, ref):
-    etype = get_object_or_404(travel.EntityType, abbr=ref)
-    data = {'type': etype, 'places': etype.entity_set.all()}
+    etype = get_object_or_404(travel.TravelEntityType, abbr=ref)
+    data = {'type': etype, 'places': etype.travelentity_set.all()}
     return render(request, 'travel/entities/%s-listing.html' % ref, data)
 
 
@@ -101,9 +101,9 @@ def _entity_base(request, entity):
 #-------------------------------------------------------------------------------
 def _handle_entity(request, ref, code, aux, handler):
     if aux:
-        entity = travel.Entity.objects.filter(type__abbr=ref, country__code=code, code=aux)
+        entity = travel.TravelEntity.objects.filter(type__abbr=ref, country__code=code, code=aux)
     else:
-        entity = travel.Entity.objects.filter(type__abbr=ref, code=code)
+        entity = travel.TravelEntity.objects.filter(type__abbr=ref, code=code)
 
     n = len(entity)
     if n == 0:
@@ -121,7 +121,7 @@ def entity(request, ref, code, aux=None):
 
 #-------------------------------------------------------------------------------
 def entity_relationships(request, ref, code, rel):
-    places = travel.Entity.objects.filter(type__abbr=ref, code=code)
+    places = travel.TravelEntity.objects.filter(type__abbr=ref, code=code)
     count  = places.count()
     
     if count == 0:
@@ -130,7 +130,7 @@ def entity_relationships(request, ref, code, rel):
         return render(request, 'travel/search/search.html', {'results': places})
 
     place = places[0]
-    etype  = get_object_or_404(travel.EntityType, abbr=rel)
+    etype  = get_object_or_404(travel.TravelEntityType, abbr=rel)
     return render(request, 'travel/entities/%s-listing.html' % rel, {
         'type': etype,
         'places': place.related_by_type(etype),
@@ -164,12 +164,12 @@ def log_entry(request, username, pk):
 #-------------------------------------------------------------------------------
 def _entity_edit(request, entity):
     if request.method == 'POST':
-        form = forms.EditEntityForm(request.POST, instance=entity)
+        form = forms.EditTravelEntityForm(request.POST, instance=entity)
         if form.is_valid():
             form.save()
             return http.HttpResponseRedirect(entity.get_absolute_url())
     else:
-        form = forms.EditEntityForm(instance=entity)
+        form = forms.EditTravelEntityForm(instance=entity)
 
     return render(
         request,
@@ -198,18 +198,18 @@ def start_add_entity(request):
                 reverse('travel-entity-add-by-co', args=(co, abbr))
             )
     
-    entity_types = travel.EntityType.objects.exclude(abbr__in=['cn', 'co'])
+    entity_types = travel.TravelEntityType.objects.exclude(abbr__in=['cn', 'co'])
     return render(
         request,
         'travel/entities/add/start.html',
-        {'types': entity_types, 'countries': travel.Entity.objects.countries()}
+        {'types': entity_types, 'countries': travel.TravelEntity.objects.countries()}
     )
 
 
 #-------------------------------------------------------------------------------
 @utils.superuser_required
 def add_entity_co(request):
-    entity_type = get_object_or_404(travel.EntityType, abbr='co')
+    entity_type = get_object_or_404(travel.TravelEntityType, abbr='co')
     if request.method == 'POST':
         form = forms.NewCountryForm(request.POST)
         if form.is_valid():
@@ -228,16 +228,16 @@ def add_entity_co(request):
 #-------------------------------------------------------------------------------
 @utils.superuser_required
 def add_entity_by_co(request, code, abbr):
-    entity_type = get_object_or_404(travel.EntityType, abbr=abbr)
-    country = travel.Entity.objects.get(code=code, type__abbr='co')
+    entity_type = get_object_or_404(travel.TravelEntityType, abbr=abbr)
+    country = travel.TravelEntity.objects.get(code=code, type__abbr='co')
 
     if request.method == 'POST':
-        form = forms.NewEntityForm(request.POST)
+        form = forms.NewTravelEntityForm(request.POST)
         if form.is_valid():
             entity = form.save(entity_type, country=country)
             return http.HttpResponseRedirect(entity.get_absolute_url())
     else:
-        form = forms.NewEntityForm()
+        form = forms.NewTravelEntityForm()
     
     return render(request, 'travel/entities/add/add.html', {
         'entity_type': entity_type,
