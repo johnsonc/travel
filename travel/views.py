@@ -73,7 +73,7 @@ def search_advanced(request):
 #-------------------------------------------------------------------------------
 def by_locale(request, ref):
     etype = get_object_or_404(travel.TravelEntityType, abbr=ref)
-    data = {'type': etype, 'places': etype.travelentity_set.all()}
+    data = {'type': etype, 'places': etype.entity_set.all()}
     return render(request, 'travel/entities/%s-listing.html' % ref, data)
 
 

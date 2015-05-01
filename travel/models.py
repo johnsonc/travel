@@ -310,7 +310,7 @@ class TravelEntity(models.Model):
         AUTONOMOUS_COMMUNITY = ChoiceEnumeration.Option('A', 'Autonomous Community')
 
     geonameid = models.IntegerField(default=0)
-    type      = models.ForeignKey(TravelEntityType, related_name='entity')
+    type      = models.ForeignKey(TravelEntityType, related_name='entity_set')
     code      = models.CharField(max_length=6, db_index=True)
     name      = models.CharField(max_length=175)
     full_name = models.CharField(max_length=175)
@@ -336,7 +336,7 @@ class TravelEntity(models.Model):
     
     #===========================================================================
     class Related:
-        ENTITY_TYPES = {'co': 'entity__country', 'st': 'entity__state'}
+        ENTITY_TYPES = {'co': 'entity_set__country', 'st': 'entity_set__state'}
         DETAILS = {
             'co': 'Countries',
             'st': 'States, provinces, territories, etc',
