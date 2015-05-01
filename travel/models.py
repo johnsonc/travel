@@ -447,7 +447,7 @@ class TravelEntity(models.Model):
         qs = None
         if abbr == 'cn':
             qs = TravelEntityType.objects.distinct().filter(
-                Q(entity__continent=self) | Q(entity__country__continent=self)
+                Q(entity_set__continent=self) | Q(entity_set__country__continent=self)
             )
         else:
             key = self.Related.ENTITY_TYPES.get(abbr)
@@ -478,7 +478,6 @@ class TravelEntity(models.Model):
         key = self.Related.BY_TYPE_PARAMS[self.type.abbr]
         if isinstance(key, dict):
             key = key.get(type.abbr, key['default'])
-        print key, self, type
         return TravelEntity.objects.filter(**{key: self, 'type': type})
         
     #---------------------------------------------------------------------------
