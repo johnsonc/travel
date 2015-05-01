@@ -19,57 +19,33 @@ class TravelEntityAdmin(admin.ModelAdmin):
 
 #===============================================================================
 class TravelEntityTypeAdmin(admin.ModelAdmin):
-    list_display = ( 
-        'abbr',
-        'title',
-    )
+    list_display = ('abbr', 'title')
 
 
 #===============================================================================
-class FlagAdmin(admin.ModelAdmin):
-    list_display = ( 
-        'id',
-        'source',
-        'base_dir',
-        'ref',
-        'thumb',
-    )
+class TravelFlagAdmin(admin.ModelAdmin):
+    list_display = ('id', 'source', 'base_dir', 'ref', 'thumb')
 
 
 #===============================================================================
-class ProfileAdmin(admin.ModelAdmin):
-    list_display = ( 
-        'user',
-        'access',
-    )
+class TravelProfileAdmin(admin.ModelAdmin):
+    list_display = ('user', 'access')
 
 
 #===============================================================================
 class ToDoListAdmin(admin.ModelAdmin):
-    list_display = ( 
-        'id',
-        'owner',
-        'title',
-        'is_public',
-        'description',
-    )
+    list_display = ('id', 'owner', 'title', 'is_public', 'description')
 
 
 #===============================================================================
 class TravelLogAdmin(admin.ModelAdmin):
-    list_display = ( 
-        'id',
-        'arrival',
-        'rating',
-        'user',
-        'entity',
-    )
+    list_display = ('id', 'arrival', 'rating', 'user', 'entity')
 
 
 admin.site.register(travel.TravelEntity, TravelEntityAdmin)
 admin.site.register(travel.TravelEntityType, TravelEntityTypeAdmin)
-admin.site.register(travel.Flag, FlagAdmin)
-admin.site.register(travel.Profile, ProfileAdmin)
+admin.site.register(travel.TravelFlag, TravelFlagAdmin)
+admin.site.register(travel.TravelProfile, TravelProfileAdmin)
 admin.site.register(travel.ToDoList, ToDoListAdmin)
 admin.site.register(travel.TravelLog, TravelLogAdmin)
 

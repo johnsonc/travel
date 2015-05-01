@@ -13,14 +13,14 @@ from travel import utils
 #-------------------------------------------------------------------------------
 def all_profiles(request):
     return render(request, 'travel/profile/all.html', {
-        'profiles': travel.Profile.objects.public()
+        'profiles': travel.TravelProfile.objects.public()
     })
 
 
 #-------------------------------------------------------------------------------
 def profile(request, username):
     return render(request, 'travel/profile/profile.html', {
-        'profile': get_object_or_404(travel.Profile, user__username=username)
+        'profile': get_object_or_404(travel.TravelProfile, user__username=username)
     })
 
 

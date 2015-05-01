@@ -40,7 +40,7 @@ def svg_upload(instance, filename):
 
 
 #===============================================================================
-class Flag(models.Model):
+class TravelFlag(models.Model):
     source = models.CharField(max_length=255)
     base_dir = models.CharField(max_length=8)
     ref = models.CharField(max_length=6)
@@ -48,6 +48,9 @@ class Flag(models.Model):
     large = models.ImageField(upload_to=flag_upload(128), null=True)
     svg = models.FileField(upload_to=svg_upload, null=True)
 
+    class Meta:
+        db_table = 'travel_flag'
+    
     #---------------------------------------------------------------------------
     @property
     def is_locked(self):
@@ -163,7 +166,7 @@ class ToDoList(models.Model):
 
 
 #===============================================================================
-class ProfileManager(models.Manager):
+class TravelProfileManager(models.Manager):
     
     #---------------------------------------------------------------------------
     def public(self):
@@ -175,7 +178,7 @@ class ProfileManager(models.Manager):
 
 
 #===============================================================================
-class Profile(models.Model):
+class TravelProfile(models.Model):
     
     #===========================================================================
     class Access(ChoiceEnumeration):
@@ -186,7 +189,10 @@ class Profile(models.Model):
     user   = models.OneToOneField(User, related_name='travel_profile')
     access = models.CharField(max_length=3, choices=Access.CHOICES, default=Access.DEFAULT)
     
-    objects = ProfileManager()
+    objects = TravelProfileManager()
+    
+    class Meta:
+        db_table = 'travel_profile'
     
     #---------------------------------------------------------------------------
     def public_url(self):
@@ -209,7 +215,7 @@ class Profile(models.Model):
 #-------------------------------------------------------------------------------
 def profile_factory(sender, instance, created=False, **kws):
     if created:
-        Profile.objects.get_or_create(user=instance)
+        TravelProfile.objects.get_or_create(user=instance)
 
 
 models.signals.post_save.connect(profile_factory, sender=User)
@@ -304,7 +310,7 @@ class TravelEntity(models.Model):
         AUTONOMOUS_COMMUNITY = ChoiceEnumeration.Option('A', 'Autonomous Community')
 
     geonameid = models.IntegerField(default=0)
-    type      = models.ForeignKey(TravelEntityType)
+    type      = models.ForeignKey(TravelEntityType, related_name='entity')
     code      = models.CharField(max_length=6, db_index=True)
     name      = models.CharField(max_length=175)
     full_name = models.CharField(max_length=175)
@@ -313,7 +319,7 @@ class TravelEntity(models.Model):
     category  = models.CharField(blank=True, max_length=4)
     locality  = models.CharField(max_length=256, blank=True)
 
-    flag      = models.ForeignKey(Flag, null=True, blank=True,on_delete=models.SET_NULL)
+    flag      = models.ForeignKey(TravelFlag, null=True, blank=True,on_delete=models.SET_NULL)
     capital   = models.ForeignKey('self', related_name='capital_set',   blank=True, null=True)
     state     = models.ForeignKey('self', related_name='state_set',     blank=True, null=True)
     country   = models.ForeignKey('self', related_name='country_set',   blank=True, null=True)
@@ -477,7 +483,7 @@ class TravelEntity(models.Model):
         
     #---------------------------------------------------------------------------
     def update_flag(self, flag_url):
-        flag = self.flag if self.flag and not self.flag.is_locked else Flag()
+        flag = self.flag if self.flag and not self.flag.is_locked else TravelFlag()
         svg, thumb, large = travel_utils.get_flag_data(flag_url)
         flag.update(flag_url, self.flag_dir, self.code, svg, thumb, large)
         self.flag = flag
@@ -605,7 +611,7 @@ class TravelLanguage(models.Model):
 
 
 #===============================================================================
-class Currency(models.Model):
+class TravelCurrency(models.Model):
     iso = models.CharField(max_length=4, primary_key=True)
     name = models.CharField(max_length=50)
     fraction = models.CharField(blank=True, max_length=8)
@@ -613,6 +619,10 @@ class Currency(models.Model):
     sign = models.CharField(blank=True, max_length=4)
     alt_sign = models.CharField(blank=True, max_length=4)
 
+    class Meta:
+        db_table = 'travel_currency'
+    
+    #---------------------------------------------------------------------------
     def __unicode__(self):
         return self.name
 
@@ -630,9 +640,9 @@ class EntityImage(object):
 
 #===============================================================================
 class TravelEntityInfo(models.Model):
-    entity = models.OneToOneField(TravelEntity)
+    entity = models.OneToOneField(TravelEntity, related_name='entityinfo')
     iso3 = models.CharField(blank=True, max_length=3)
-    currency = models.ForeignKey(Currency, blank=True, null=True)
+    currency = models.ForeignKey(TravelCurrency, blank=True, null=True)
     denom = models.CharField(blank=True, max_length=40)
     denoms = models.CharField(blank=True, max_length=60)
     language_codes = models.CharField(blank=True, max_length=100)
@@ -644,6 +654,13 @@ class TravelEntityInfo(models.Model):
     population = models.CharField(blank=True, max_length=12)
     area = models.CharField(blank=True, max_length=10)
     languages = models.ManyToManyField(TravelLanguage, blank=True)
+    
+    class Meta:
+        db_table = 'travel_entityinfo'
+    
+    #---------------------------------------------------------------------------
+    def __unicode__(self):
+        return '<{}: {}>'.format('TravelEntityInfo', self.entity.name)
     
     #---------------------------------------------------------------------------
     @cached_property
