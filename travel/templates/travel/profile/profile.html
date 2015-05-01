@@ -2,15 +2,17 @@
 {% block travel_heading %}Travelogue for {{ profile.user.username }}{% endblock %}
 {% block travel_content %}
     {% if profile.is_public %}
-    <style media="screen">
-        #show_countries { display: inline-block;}
-    </style>
     <div id="id_summary"></div>
-    <div class="form-inline well well-sm" style="padding: 8px; border: 1px solid #dfd7ca;">
+    <style media="screen">
+        .profile-filter { padding: 8px 8px 0 8px ; border: 1px solid #dfd7ca; }
+        .profile-filter > .form-group { display: inline-block; margin-bottom: 8px; }
+        .profile-filter .form-control { display: inline-block; width: auto; }
+        #show_countries { display: inline-block; }
+        #id_count { white-space: nowrap; }
+    </style>
+    <div class="profile-filter form-inline well well-sm">
         <div class="form-group">
             <label for="id_filter">Filter by</label>
-        </div>
-        <div class="form-group">
             <select id="id_filter" class="filter_ctrl form-control input-sm">
                 <option value="">-- All entries --</option>
                 <option value="cn">Continents</option>
@@ -20,35 +22,25 @@
                 <option value="ct">Cities</option>
                 <option value="np">National Parks</option>
                 <option value="lm">Landmarks</option>
-                <option value="wh">World Heritage sites</option>
+                <option value="wh">World Heritage</option>
             </select>
         </div>
-        <div id="show_countries">
-            <div class="form-group">
-                <label for="id_co">in</label>
-            </div>
-            <div class="form-group">
-                <select id="id_co" class="filter_ctrl form-control input-sm">
-                    <option value="">-- All countries --</option>
-                </select>
-            </div>
+        <div class="form-group" id="show_countries">
+            <label for="id_co">in</label>
+            <select id="id_co" class="filter_ctrl form-control input-sm">
+                <option value="">-- All countries --</option>
+            </select>
         </div>
         <div class="form-group">
             <label for="id_timeframe">and</label>
-        </div>
-        <div class="form-group">
             <select id="id_timeframe" class="filter_ctrl form-control input-sm">
                 <option value="">-- All Dates --</option>
                 <option value="-">Before</option>
                 <option value="+">After</option>
             </select>
-        </div>
-        <div class="form-group">
             <input type="text" id="id_date" class="form-control input-sm">
         </div>
-        <div class="form-group">
-            <span id="id_count"></span>
-        </div>
+        <div class="form-group" id="id_count"></div>
     </div>
     <table id="history" class="table table-hover table-condensed table-striped">
         <thead>
