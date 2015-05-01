@@ -5,9 +5,9 @@ from scipy.spatial import cKDTree as KDTree
 if 1:
     try:
         from django.db.models import Q
-        from travel.models import Entity
+        from travel.models import TravelEntity
     except ImportError:
-        Entity = None
+        TravelEntity = None
 
 # location of geocode data to download
 GEOCODE_URL = 'http://download.geonames.org/export/dump/cities1000.zip'
@@ -81,7 +81,7 @@ class TravelGeocodeData(BaseGeocodeData):
     def __init__(self, type_abbr=None):
         #type__abbr__in=['cn', 'lm']
         values = ('code', 'name', 'lat', 'lon', 'type__abbr', 'country__code')
-        qs = Entity.objects.filter(lat__isnull=False)
+        qs = TravelEntity.objects.filter(lat__isnull=False)
         if type_abbr:
             qs = qs.filter(type__abbr=type_abbr)
         

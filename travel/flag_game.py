@@ -76,7 +76,7 @@ EXCLUDED_IDS = [u'BV', u'CA', u'GF', u'HM', u'YT', u'RE', u'SJ', u'US', u'UM', u
 def get_flag_game_data():
     countries = dict([
         (co.code, {"name": co.name, "id": co.code, "small": co.flag.thumb.url, "large": co.flag.large.url})
-        for co in travel.Entity.objects.countries().exclude(code__in=EXCLUDED_IDS)
+        for co in travel.TravelEntity.objects.countries().exclude(code__in=EXCLUDED_IDS)
     ])
     return {'countries': json.dumps(countries), 'groups': json.dumps(FLAG_GROUPS)}
 

@@ -128,7 +128,7 @@ class ToDoList(models.Model):
     is_public = models.BooleanField(default=True)
     description = models.TextField(blank=True)
     subscribers = models.ManyToManyField(User, related_name='todo_subscriber_set')
-    entities = models.ManyToManyField('Entity', related_name='todo_list_set')
+    entities = models.ManyToManyField('TravelEntity', related_name='todo_list_set')
     last_update = models.DateTimeField(auto_now=True)
     
     objects = ToDoListManager()
@@ -216,9 +216,12 @@ models.signals.post_save.connect(profile_factory, sender=User)
 
 
 #===============================================================================
-class EntityType(models.Model):
+class TravelEntityType(models.Model):
     abbr  = models.CharField(max_length=4, db_index=True)
     title = models.CharField(max_length=25)
+    
+    class Meta:
+        db_table = 'travel_entitytype'
 
     #---------------------------------------------------------------------------
     def __unicode__(self):
@@ -226,7 +229,7 @@ class EntityType(models.Model):
 
 
 #===============================================================================
-class EntityManager(models.Manager):
+class TravelEntityManager(models.Manager):
 
     #---------------------------------------------------------------------------
     @staticmethod
@@ -287,7 +290,7 @@ _external_url_handlers = {
 
 
 #===============================================================================
-class Entity(models.Model):
+class TravelEntity(models.Model):
     
     #===========================================================================
     class Subnational(ChoiceEnumeration):
@@ -301,7 +304,7 @@ class Entity(models.Model):
         AUTONOMOUS_COMMUNITY = ChoiceEnumeration.Option('A', 'Autonomous Community')
 
     geonameid = models.IntegerField(default=0)
-    type      = models.ForeignKey(EntityType)
+    type      = models.ForeignKey(TravelEntityType)
     code      = models.CharField(max_length=6, db_index=True)
     name      = models.CharField(max_length=175)
     full_name = models.CharField(max_length=175)
@@ -318,11 +321,12 @@ class Entity(models.Model):
     tz        = models.CharField('timezone', max_length=40, blank=True)
     #extras    = models.TextField(blank=True)
 
-    objects   = EntityManager()
+    objects   = TravelEntityManager()
     
     #===========================================================================
     class Meta:
         ordering = ('name',)
+        db_table = 'travel_entity'
     
     #===========================================================================
     class Related:
@@ -426,7 +430,7 @@ class Entity(models.Model):
     @property
     def type_detail(self):
         if self.type.abbr == 'st':
-            return Entity.Subnational.CHOICES_DICT.get(self.category, self.type.title)
+            return TravelEntity.Subnational.CHOICES_DICT.get(self.category, self.type.title)
             
         return self.type.title
     
@@ -436,12 +440,12 @@ class Entity(models.Model):
         abbr = self.type.abbr
         qs = None
         if abbr == 'cn':
-            qs = EntityType.objects.distinct().filter(
+            qs = TravelEntityType.objects.distinct().filter(
                 Q(entity__continent=self) | Q(entity__country__continent=self)
             )
         else:
             key = self.Related.ENTITY_TYPES.get(abbr)
-            qs = EntityType.objects.distinct().filter(**{key: self})
+            qs = TravelEntityType.objects.distinct().filter(**{key: self})
 
         return qs.annotate(cnt=Count('abbr')).values_list('abbr', 'cnt') if qs else ()
 
@@ -469,7 +473,7 @@ class Entity(models.Model):
         if isinstance(key, dict):
             key = key.get(type.abbr, key['default'])
         print key, self, type
-        return Entity.objects.filter(**{key: self, 'type': type})
+        return TravelEntity.objects.filter(**{key: self, 'type': type})
         
     #---------------------------------------------------------------------------
     def update_flag(self, flag_url):
@@ -495,16 +499,21 @@ class Entity(models.Model):
 
 
 #===============================================================================
-class EntityExtraType(models.Model):
+class TravelEntityExtraType(models.Model):
     abbr  = models.CharField(max_length=4, db_index=True)
     descr = models.CharField(max_length=25)
 
+    class Meta:
+        db_table = 'travel_entityextratype'
 
 #===============================================================================
-class EntityExtra(models.Model):
-    entity = models.ForeignKey(Entity)
-    type = models.ForeignKey(EntityExtraType)
+class TravelEntityExtra(models.Model):
+    entity = models.ForeignKey(TravelEntity)
+    type = models.ForeignKey(TravelEntityExtraType)
     ref = models.TextField()
+
+    class Meta:
+        db_table = 'travel_entityextra'
 
 
 #===============================================================================
@@ -512,7 +521,7 @@ class TravelLogManager(models.Manager):
     
     #---------------------------------------------------------------------------
     def user_history(self, user):
-        return Entity.objects.filter(travellog__user=user).distinct().annotate(
+        return TravelEntity.objects.filter(travellog__user=user).distinct().annotate(
             num_visits=Count('travellog__user'),
             first_visit=Min('travellog__arrival'),
             recent_visit=Max('travellog__arrival'),
@@ -550,7 +559,7 @@ class TravelLog(models.Model):
     rating = models.PositiveSmallIntegerField(choices=RATING_CHOICES, default=3)
     user = models.ForeignKey(User, related_name='travellog_set')
     notes = models.TextField(blank=True)
-    entity = models.ForeignKey(Entity)
+    entity = models.ForeignKey(TravelEntity)
     
     objects = TravelLogManager()
     
@@ -620,8 +629,8 @@ class EntityImage(object):
 
 
 #===============================================================================
-class EntityInfo(models.Model):
-    entity = models.OneToOneField(Entity)
+class TravelEntityInfo(models.Model):
+    entity = models.OneToOneField(TravelEntity)
     iso3 = models.CharField(blank=True, max_length=3)
     currency = models.ForeignKey(Currency, blank=True, null=True)
     denom = models.CharField(blank=True, max_length=40)
