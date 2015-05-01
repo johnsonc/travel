@@ -1,7 +1,7 @@
 {% extends "travel/base.html" %}
 {% block travel_heading %}Travelogue for {{ profile.user.username }}{% endblock %}
 {% block travel_content %}
-    {% if profile.is_public %}
+    {% if profile.is_public or profile.user == request.user %}
     <div id="id_summary"></div>
     <style media="screen">
         .profile-filter { padding: 8px 8px 0 8px ; border: 1px solid #dfd7ca; }
