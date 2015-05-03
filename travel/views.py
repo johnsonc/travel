@@ -33,16 +33,32 @@ def todo_lists(request):
 
 #-------------------------------------------------------------------------------
 def _todo_list_for_user(request, todo, user):
-    #set(travel.TravelLog.objects.filter(
-    #    user__username=username,
-    #    entity__id__in=eids
-    #).values_list('entity__id', flat=True))
-    
     done, entities = todo.user_results(user)
     return render(request, 'travel/todo/detail.html', {
         'todo': todo,
         'entities': entities,
         'stats': {'total': len(entities), 'done': done}
+    })
+
+
+#-------------------------------------------------------------------------------
+def todo_comparison(request, pk, usernames):
+    print 'usernames', usernames
+    todo = get_object_or_404(travel.ToDoList, pk=pk)
+    eids = todo.entities.values_list('id', flat=True)
+    results = []
+    for username in usernames.split('/'):
+        results.append({
+            'username': username,
+            'entities': set(travel.TravelLog.objects.filter(
+                user__username=username,
+                entity__id__in=eids
+            ).values_list('entity__id', flat=True))
+        })
+    
+    return render(request, 'travel/todo/compare.html', {
+        'todo': todo,
+        'results': results
     })
 
 

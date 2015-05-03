@@ -1,0 +1,44 @@
+{% extends "travel/base.html" %}
+{% block extra_head %}{{ block.super }}
+    <style type="text/css" media="screen">
+        .todo-result tbody tr td:last-child { width: 40px; }
+        .flag-32 { width: 36px; }
+        .flag-32 img { box-shadow: 1px 2px 6px #777;}
+        td .glyphicon { font-size: 1.25em; color: #73a947;}
+    </style>
+{% endblock extra_head %}
+{% block travel_heading %}Bucket List: {{ todo.title }}{% endblock %}
+{% block travel_content %}
+    <p>{{ todo.description }}</p>
+    <table class="todo-result table table-striped travel-action">
+    <thead>
+        <tr class="">
+            <th></th>
+            <th>Entity</th>
+            {% for result in results %}
+            <th class="text-center">{{ result.username }}</th>
+            {% endfor %}
+        </tr>
+    </thead>
+    <tbody>
+        {% for obj in todo.entities.all %}
+        <tr data-id="{{ obj.id }}">
+            <td class="flag-32">{% if obj.flag %}
+                <img src="{{ obj.flag.thumb.url }}" />{% endif %}
+            </td>
+            <td>
+                <a href="{{ obj.get_absolute_url }}">{{ obj.descriptive_name }}</a>
+            </td>
+            {% for result in results  %}
+            <td class="text-center" style="font-size: 1.125em">{% if obj.id in result.entities %}
+                <i class="glyphicon glyphicon-ok-circle"></i>{% endif %}
+            </td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+    </tbody>
+    </table>
+{% endblock travel_content %}
+
+
+
