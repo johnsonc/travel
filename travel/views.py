@@ -32,14 +32,31 @@ def todo_lists(request):
 
 
 #-------------------------------------------------------------------------------
-def todo_list(request, pk):
-    todo = get_object_or_404(travel.ToDoList, pk=pk)
-    done, entities = todo.user_results(request.user)
+def _todo_list_for_user(request, todo, user):
+    #set(travel.TravelLog.objects.filter(
+    #    user__username=username,
+    #    entity__id__in=eids
+    #).values_list('entity__id', flat=True))
+    
+    done, entities = todo.user_results(user)
     return render(request, 'travel/todo/detail.html', {
         'todo': todo,
         'entities': entities,
         'stats': {'total': len(entities), 'done': done}
     })
+
+
+#-------------------------------------------------------------------------------
+def todo_list(request, pk):
+    todo = get_object_or_404(travel.ToDoList, pk=pk)
+    return _todo_list_for_user(request, todo, request.user)
+
+
+#-------------------------------------------------------------------------------
+def todo_list_for_user(request, pk, username):
+    user = get_object_or_404(User, username=username)
+    todo = get_object_or_404(travel.ToDoList, pk=pk)
+    return _todo_list_for_user(request, todo, user)
 
 
 #-------------------------------------------------------------------------------

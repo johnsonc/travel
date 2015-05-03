@@ -3,7 +3,7 @@ import os
 import operator
 
 from django.conf import settings
-from django.db import models, connection
+from django.db import models
 from django.db.models import Count, Min, Max, Q
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
@@ -14,7 +14,7 @@ from django.utils.functional import cached_property
 import pytz
 from choice_enum import ChoiceEnumeration
 import travel.utils as travel_utils
-
+from .managers import *
 
 GOOGLE_MAPS             = 'http://maps.google.com/maps?q={}'
 GOOGLE_MAPS_LATLON      = 'http://maps.google.com/maps?q={},+{}&iwloc=A&z=10'
@@ -24,7 +24,6 @@ WORLD_HERITAGE_URL      = 'http://whc.unesco.org/en/list/{}'
 BASE_FLAG_DIR           = 'img/flags'
 STAR                    = mark_safe('&#9733;')
 WORLD_HERITAGE_CATEGORY = { 'C': 'Cultural', 'N': 'Natural', 'M': 'Mixed' }
-EXTRA_INFO              = { 'ap': 'IATA'}
 
 
 #-------------------------------------------------------------------------------
@@ -33,6 +32,7 @@ def flag_upload(size):
         name = '{}-{}{}'.format(instance.ref, size, os.path.splitext(filename)[1])
         return  '{}/{}/{}'.format(BASE_FLAG_DIR, instance.base_dir, name)
     return upload_func
+
 
 #-------------------------------------------------------------------------------
 def svg_upload(instance, filename):
@@ -100,31 +100,6 @@ class TravelFlag(models.Model):
 
 
 #===============================================================================
-class ToDoListManager(models.Manager):
-    
-    #---------------------------------------------------------------------------
-    def for_user(self, user):
-        q = Q(is_public=True)
-        if user.is_authenticated():
-            q |= Q(owner=user)
-        return self.filter(q)
-        
-    #---------------------------------------------------------------------------
-    def new_list(self, owner, title, entries, is_public=True, description=''):
-        tdl = self.create(
-            owner=owner, 
-            title=title, 
-            is_public=is_public, 
-            description=description
-        )
-        
-        for e in entries:
-            e.todos.create(todo=tdl)
-            
-        return tdl
-
-
-#===============================================================================
 class ToDoList(models.Model):
     owner = models.ForeignKey(User)
     title = models.CharField(max_length=100)
@@ -166,18 +141,6 @@ class ToDoList(models.Model):
 
 
 #===============================================================================
-class TravelProfileManager(models.Manager):
-    
-    #---------------------------------------------------------------------------
-    def public(self):
-        return self.filter(access=self.model.Access.PUBLIC).exclude(user__id=1)
-
-    #---------------------------------------------------------------------------
-    def for_user(self, user):
-        return self.get_or_create(user=user)[0]
-
-
-#===============================================================================
 class TravelProfile(models.Model):
     
     #===========================================================================
@@ -204,7 +167,7 @@ class TravelProfile(models.Model):
         
     #---------------------------------------------------------------------------
     def history_json(self):
-        return TravelLog.objects.history_json(self.user)
+        return TravelLog.history_json(self.user)
     
     #---------------------------------------------------------------------------
     is_public    = property(lambda self: self.access == self.Access.PUBLIC)
@@ -232,51 +195,6 @@ class TravelEntityType(models.Model):
     #---------------------------------------------------------------------------
     def __unicode__(self):
         return self.title
-
-
-#===============================================================================
-class TravelEntityManager(models.Manager):
-
-    #---------------------------------------------------------------------------
-    @staticmethod
-    def _search_q(term):
-        return (
-            Q(name__icontains=term)      |
-            Q(full_name__icontains=term) |
-            Q(locality__icontains=term)  |
-            Q(code__iexact=term)
-        )
-        
-    #---------------------------------------------------------------------------
-    def search(self, term, type=None):
-        term = term.strip() if term else term
-        qs = None
-        if term:
-            qs = self.filter(self._search_q(term))
-        
-        if type:
-            qs = qs or self
-            qs = qs.filter(type__abbr=type)
-            
-        return self.none() if qs is None else qs
-    
-    #---------------------------------------------------------------------------
-    def advanced_search(self, bits, type=None):
-        qq = reduce(operator.ior, [self._search_q(term) for term in bits])
-        qs = self.filter(qq)
-        return qs.filter(type__abbr=type) if type else qs
-    
-    #---------------------------------------------------------------------------
-    def countries(self):
-        return self.filter(type__abbr='co')
-    
-    #---------------------------------------------------------------------------
-    def country(self, code):
-        return self.get(code=code, type__abbr='co')
-
-    #---------------------------------------------------------------------------
-    def country_dict(self):
-        return dict([(e.code, e) for e in self.countries()])
 
 
 #-------------------------------------------------------------------------------
@@ -504,52 +422,6 @@ class TravelEntity(models.Model):
 
 
 #===============================================================================
-class TravelEntityExtraType(models.Model):
-    abbr  = models.CharField(max_length=4, db_index=True)
-    descr = models.CharField(max_length=25)
-
-    class Meta:
-        db_table = 'travel_entityextratype'
-
-#===============================================================================
-class TravelEntityExtra(models.Model):
-    entity = models.ForeignKey(TravelEntity)
-    type = models.ForeignKey(TravelEntityExtraType)
-    ref = models.TextField()
-
-    class Meta:
-        db_table = 'travel_entityextra'
-
-
-#===============================================================================
-class TravelLogManager(models.Manager):
-    
-    #---------------------------------------------------------------------------
-    def user_history(self, user):
-        return TravelEntity.objects.filter(travellog__user=user).distinct().annotate(
-            num_visits=Count('travellog__user'),
-            first_visit=Min('travellog__arrival'),
-            recent_visit=Max('travellog__arrival'),
-            rating=Min('travellog__rating')
-        ).order_by('-recent_visit').values(
-            'id', 'code', 'name', 'locality', 'country__name', 'country__code',
-            'country__flag__thumb', 'rating', 'recent_visit', 'first_visit',
-            'num_visits', 'type__abbr', 'type__title', 'flag__thumb',
-        )
-
-    #---------------------------------------------------------------------------
-    def history_json(self, user):
-        return travel_utils.json_dumps(list(self.user_history(user)))
-
-    #---------------------------------------------------------------------------
-    def checklist(self, user):
-        return dict(
-            self.filter(user=user).values_list('entity').annotate(count=Count('entity'))
-        )
-
-
-
-#===============================================================================
 class TravelLog(models.Model):
     
     RATING_CHOICES = (
@@ -597,6 +469,25 @@ class TravelLog(models.Model):
     def update_notes(self, note):
         self.notes = note
         self.save()
+
+    #---------------------------------------------------------------------------
+    @classmethod
+    def user_history(cls, user):
+        return TravelEntity.objects.filter(travellog__user=user).distinct().annotate(
+            num_visits=Count('travellog__user'),
+            first_visit=Min('travellog__arrival'),
+            recent_visit=Max('travellog__arrival'),
+            rating=Min('travellog__rating')
+        ).order_by('-recent_visit').values(
+            'id', 'code', 'name', 'locality', 'country__name', 'country__code',
+            'country__flag__thumb', 'rating', 'recent_visit', 'first_visit',
+            'num_visits', 'type__abbr', 'type__title', 'flag__thumb',
+        )
+
+    #---------------------------------------------------------------------------
+    @classmethod
+    def history_json(cls, user):
+        return travel_utils.json_dumps(list(cls.user_history(user)))
 
 
 #===============================================================================

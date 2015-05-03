@@ -26,8 +26,9 @@ profile_patterns = [
 ]
 
 todo_patterns = [
-    url(r'^$',       views.todo_lists, name='travel-todos'),
-    url(r'^(\d+)/$', views.todo_list, name='travel-todo'),
+    url(r'^$',               views.todo_lists, name='travel-todos'),
+    url(r'^(\d+)/$',         views.todo_list, name='travel-todo'),
+    url(r'^(\d+)/([^/]+)/$', views.todo_list_for_user, name='travel-todo-for_user'),
 ]
 
 quiz_patterns = [
