@@ -11,14 +11,14 @@
             <th>Entries</th>
         </tr>
     </thead>
-    <tbody>{% for todo in todos  %}
+    <tbody>{% for bucket_list in bucket_lists  %}
         <tr>
-            <td><span class="glyphicon glyphicon-{{ todo.is_public|yesno:"globe,user" }}"></span></td>
-            <td><a href="{{ todo.get_absolute_url }}">{{ todo }}</a></td>
+            <td><span class="glyphicon glyphicon-{{ bucket_list.is_public|yesno:"globe,user" }}"></span></td>
+            <td><a href="{{ bucket_list.get_absolute_url }}">{{ bucket_list }}</a></td>
             <td>
-                {{ todo.description }}{% if todo.is_private %}<sup>*</sup>{% endif %}
+                {{ bucket_list.description }}{% if bucket_list.is_private %}<sup>*</sup>{% endif %}
             </td>
-            <td>{{ todo.entities.count }}</td>
+            <td>{{ bucket_list.entities.count }}</td>
         </tr>
         {% endfor %}
     </tbody>

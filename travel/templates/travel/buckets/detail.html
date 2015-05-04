@@ -1,22 +1,22 @@
 {% extends "travel/base.html" %}
 {% block extra_head %}{{ block.super }}
     <style type="text/css" media="screen">
-        .todo-result tbody tr td:last-child { width: 40px; }
+        .bucket-result tbody tr td:last-child { width: 40px; }
         .flag-32 { width: 36px; }
         .flag-32 img { box-shadow: 1px 2px 6px #777;}
         td .glyphicon { font-size: 1.25em; color: #73a947;}
     </style>
 {% endblock extra_head %}
-{% block travel_heading %}Bucket List: {{ todo.title }}{% endblock %}
+{% block travel_heading %}Bucket List: {{ bucket_list.title }}{% endblock %}
 {% block travel_content %}
-    <p>{{ todo.description }}</p>
+    <p>{{ bucket_list.description }}</p>
     {% if user.is_authenticated %}
-    <p class="todo-summary">
+    <p class="bucket-summary">
         You have completed <strong>{{ stats.done }}</strong> of <strong>{{ stats.total }}</strong>
         entries for this Bucket list.
     </p>
     {% endif %}
-    <table class="todo-result table table-striped travel-action">
+    <table class="bucket-result table table-striped travel-action">
     <thead>
         <tr class="">
             <th></th>

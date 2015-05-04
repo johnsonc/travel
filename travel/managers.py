@@ -3,7 +3,7 @@ from django.db.models import Manager, Q, Count, Min, Max
 
 __all__ = (
     'TravelProfileManager',
-    'ToDoListManager',
+    'TravelBucketListManager',
     'TravelEntityManager',
     'TravelLogManager', 
 )
@@ -22,7 +22,7 @@ class TravelProfileManager(Manager):
 
 
 #===============================================================================
-class ToDoListManager(Manager):
+class TravelBucketListManager(Manager):
     
     #---------------------------------------------------------------------------
     def for_user(self, user):

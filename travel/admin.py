@@ -33,7 +33,7 @@ class TravelProfileAdmin(admin.ModelAdmin):
 
 
 #===============================================================================
-class ToDoListAdmin(admin.ModelAdmin):
+class TravelBucketListAdmin(admin.ModelAdmin):
     list_display = ('id', 'owner', 'title', 'is_public', 'description')
 
 
@@ -46,7 +46,7 @@ admin.site.register(travel.TravelEntity, TravelEntityAdmin)
 admin.site.register(travel.TravelEntityType, TravelEntityTypeAdmin)
 admin.site.register(travel.TravelFlag, TravelFlagAdmin)
 admin.site.register(travel.TravelProfile, TravelProfileAdmin)
-admin.site.register(travel.ToDoList, ToDoListAdmin)
+admin.site.register(travel.TravelBucketList, TravelBucketListAdmin)
 admin.site.register(travel.TravelLog, TravelLogAdmin)
 
 

@@ -139,7 +139,7 @@ latlon_sym_re = re.compile(
 latlon_dec_re = re.compile(
     ur'''
         ([+-]?\d+\.\d+)
-        \s*,?\s*
+        \s*[,/]?\s*
         ([+-]?\d+\.\d+)
     ''',
     re.VERBOSE

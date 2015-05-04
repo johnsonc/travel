@@ -25,11 +25,11 @@ profile_patterns = [
     url(r'^([^/]+)/log/(\d+)/$', views.log_entry, name='travel-log-entry'),
 ]
 
-todo_patterns = [
-    url(r'^$',               views.todo_lists, name='travel-todos'),
-    url(r'^(\d+)/$',         views.todo_list, name='travel-todo'),
-    url(r'^(\d+)/([^/]+)/$', views.todo_list_for_user, name='travel-todo-for_user'),
-    url(r'^(\d+)/(.+)/$', views.todo_comparison, name='travel-todo-for_user'),
+bucket_list_patterns = [
+    url(r'^$',               views.bucket_lists, name='travel-buckets'),
+    url(r'^(\d+)/$',         views.bucket_list, name='travel-bucket'),
+    url(r'^(\d+)/([^/]+)/$', views.bucket_list_for_user, name='travel-bucket-for_user'),
+    url(r'^(\d+)/(.+)/$',    views.bucket_list_comparison, name='travel-bucket-for_user'),
 ]
 
 quiz_patterns = [
@@ -41,7 +41,7 @@ urlpatterns = patterns('',
     url(r'^i/(?P<ref>\w+)/',  include(item_patterns)),
     url(r'^add/',             include(add_patterns)),
     url(r'^profiles/',        include(profile_patterns)),
-    url(r'^todo/',            include(todo_patterns)),
+    url(r'^buckets/',         include(bucket_list_patterns)),
     url(r'^quiz/',            include(quiz_patterns)),
     url(r'^edit/i/(\w+)/(\w+)(?:-(\w+))?/$', views.entity_edit, name='travel-entity-edit'),
     url(r'^plugs/$', TemplateView.as_view(template_name='travel/plugs.html'), name='travel-plugs'),

@@ -25,54 +25,55 @@ def profile(request, username):
 
 
 #-------------------------------------------------------------------------------
-def todo_lists(request):
-    return render(request, 'travel/todo/listing.html', {
-        'todos': travel.ToDoList.objects.for_user(request.user)
+def bucket_lists(request):
+    return render(request, 'travel/buckets/listing.html', {
+        'bucket_lists': travel.TravelBucketList.objects.for_user(request.user)
     })
 
 
 #-------------------------------------------------------------------------------
-def _todo_list_for_user(request, todo, user):
-    done, entities = todo.user_results(user)
-    return render(request, 'travel/todo/detail.html', {
-        'todo': todo,
-        'entities': entities,
-        'stats': {'total': len(entities), 'done': done}
-    })
-
-
-#-------------------------------------------------------------------------------
-def todo_comparison(request, pk, usernames):
-    print 'usernames', usernames
-    todo = get_object_or_404(travel.ToDoList, pk=pk)
-    eids = todo.entities.values_list('id', flat=True)
+def bucket_list_comparison(request, pk, usernames):
+    bucket_list = get_object_or_404(travel.TravelBucketList, pk=pk)
+    entities = bucket_list.entities.select_related()
+    ids = [e.id for e in entities]
     results = []
     for username in usernames.split('/'):
         results.append({
             'username': username,
             'entities': set(travel.TravelLog.objects.filter(
                 user__username=username,
-                entity__id__in=eids
+                entity__id__in=ids
             ).values_list('entity__id', flat=True))
         })
     
-    return render(request, 'travel/todo/compare.html', {
-        'todo': todo,
+    return render(request, 'travel/buckets/compare.html', {
+        'bucket_list': bucket_list,
+        'entities': entities,
         'results': results
     })
 
 
 #-------------------------------------------------------------------------------
-def todo_list(request, pk):
-    todo = get_object_or_404(travel.ToDoList, pk=pk)
-    return _todo_list_for_user(request, todo, request.user)
+def _bucket_list_for_user(request, bucket_list, user):
+    done, entities = bucket_list.user_results(user)
+    return render(request, 'travel/buckets/detail.html', {
+        'bucket_list': bucket_list,
+        'entities': entities,
+        'stats': {'total': len(entities), 'done': done}
+    })
 
 
 #-------------------------------------------------------------------------------
-def todo_list_for_user(request, pk, username):
+def bucket_list(request, pk):
+    bucket_list = get_object_or_404(travel.TravelBucketList, pk=pk)
+    return _bucket_list_for_user(request, bucket_list, request.user)
+
+
+#-------------------------------------------------------------------------------
+def bucket_list_for_user(request, pk, username):
     user = get_object_or_404(User, username=username)
-    todo = get_object_or_404(travel.ToDoList, pk=pk)
-    return _todo_list_for_user(request, todo, user)
+    bucket_list = get_object_or_404(travel.TravelBucketList, pk=pk)
+    return _bucket_list_for_user(request, bucket_list, user)
 
 
 #-------------------------------------------------------------------------------
@@ -106,8 +107,12 @@ def search_advanced(request):
 #-------------------------------------------------------------------------------
 def by_locale(request, ref):
     etype = get_object_or_404(travel.TravelEntityType, abbr=ref)
-    data = {'type': etype, 'places': etype.entity_set.all()}
-    return render(request, 'travel/entities/%s-listing.html' % ref, data)
+    return render(request, 'travel/entities/%s-listing.html' % ref, {
+        'type': etype,
+        'places': list(etype.entity_set.select_related(
+            'entity', 'flag', 'capital', 'state', 'country', 'continent'
+        ))
+    })
 
 
 #-------------------------------------------------------------------------------

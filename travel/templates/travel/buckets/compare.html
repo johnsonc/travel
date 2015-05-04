@@ -1,16 +1,16 @@
 {% extends "travel/base.html" %}
 {% block extra_head %}{{ block.super }}
     <style type="text/css" media="screen">
-        .todo-result tbody tr td:last-child { width: 40px; }
+        .bucket-result tbody tr td:last-child { width: 40px; }
         .flag-32 { width: 36px; }
         .flag-32 img { box-shadow: 1px 2px 6px #777;}
         td .glyphicon { font-size: 1.25em; color: #73a947;}
     </style>
 {% endblock extra_head %}
-{% block travel_heading %}Bucket List: {{ todo.title }}{% endblock %}
+{% block travel_heading %}Bucket List: {{ bucket_list.title }}{% endblock %}
 {% block travel_content %}
-    <p>{{ todo.description }}</p>
-    <table class="todo-result table table-striped travel-action">
+    <p>{{ bucket_list.description }}</p>
+    <table class="bucket-result table table-striped travel-action">
     <thead>
         <tr class="">
             <th></th>
@@ -21,7 +21,7 @@
         </tr>
     </thead>
     <tbody>
-        {% for obj in todo.entities.all %}
+        {% for obj in entities %}
         <tr data-id="{{ obj.id }}">
             <td class="flag-32">{% if obj.flag %}
                 <img src="{{ obj.flag.thumb.url }}" />{% endif %}

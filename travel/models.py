@@ -1,6 +1,7 @@
 import re
 import os
 import operator
+from collections import Counter
 
 from django.conf import settings
 from django.db import models
@@ -74,8 +75,8 @@ class TravelFlag(models.Model):
         abs_dir     = join(media_root, parent_dir)
         path_fmt    = join(parent_dir, '%s-%%s.png' % (ref,))
 
-        if not abs_dir.exists():
-            abs_dir.makedirs()
+        if not os.path.exists(abs_dir):
+            os.makedirs(abs_dir)
         
         self.source   = url
         self.base_dir = base
@@ -100,7 +101,7 @@ class TravelFlag(models.Model):
 
 
 #===============================================================================
-class ToDoList(models.Model):
+class TravelBucketList(models.Model):
     owner = models.ForeignKey(User)
     title = models.CharField(max_length=100)
     is_public = models.BooleanField(default=True)
@@ -109,7 +110,7 @@ class ToDoList(models.Model):
     entities = models.ManyToManyField('TravelEntity', related_name='todo_list_set')
     last_update = models.DateTimeField(auto_now=True)
     
-    objects = ToDoListManager()
+    objects = TravelBucketListManager()
 
     #===========================================================================
     class Meta:
@@ -117,7 +118,7 @@ class ToDoList(models.Model):
 
     #---------------------------------------------------------------------------
     def get_absolute_url(self):
-        return reverse('travel-todo', args=[self.id])
+        return reverse('travel-bucket', args=[self.id])
 
     #---------------------------------------------------------------------------
     def __unicode__(self):
@@ -125,18 +126,20 @@ class ToDoList(models.Model):
 
     #---------------------------------------------------------------------------
     def user_results(self, user):
-        all_entities = self.entities.all()
-        done = 0
-        if user.is_authenticated():
-            entities = []
-            for entity in all_entities:
-                logged = entity.travellog_set.filter(user=user).count()
-                if logged:
-                    done += 1
-                entities.append((entity, logged))
-        else:
-            entities = [(e, 0) for e in all_entities]
+        all_entities = self.entities.select_related()
+        if not user.is_authenticated():
+            return 0, [(e, 0) for e in all_entities]
 
+        logged_entities = Counter(TravelLog.objects.filter(
+            user=user,
+            entity__in=all_entities
+        ).values_list('entity__id', flat=True))
+
+        entities = [
+            (entity, logged_entities.get(entity.id, 0))
+            for entity in all_entities
+        ]
+        done = sum([1 if b else 0 for a,b in entities])
         return done, entities
 
 
