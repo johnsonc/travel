@@ -4,10 +4,17 @@ from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django.shortcuts import get_object_or_404, render
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import user_passes_test
 
 from travel import models as travel
 from travel import forms
 from travel import utils
+
+
+#-------------------------------------------------------------------------------
+superuser_required = user_passes_test(
+    lambda u: u.is_authenticated() and u.is_active and u.is_superuser
+)
 
 
 #-------------------------------------------------------------------------------

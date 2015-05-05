@@ -5,32 +5,27 @@ import json
 import datetime
 from urllib import quote_plus
 from decimal import Decimal, localcontext
+from django.db import connection
 import requests
 from PIL import Image
 from dateutil import parser
-from django.db import connection
-
-from django.contrib.auth.decorators import user_passes_test
 
 
 DEFAULT_FLAG_SIZES = (32, 128)
 
-#-------------------------------------------------------------------------------
-def custom_sql_as_dict(sql, args):
-    cursor = connection.cursor()
-    cursor.execute(sql, args)
-    description = cursor.description
-    return [
-        dict(zip([column[0] for column in description], row))
-        for row in cursor.fetchall()
-    ]
+# 
+# #-------------------------------------------------------------------------------
+# def custom_sql_as_dict(sql, args):
+#     cursor = connection.cursor()
+#     cursor.execute(sql, args)
+#     description = cursor.description
+#     return [
+#         dict(zip([column[0] for column in description], row))
+#         for row in cursor.fetchall()
+#     ]
 
 
 
-#-------------------------------------------------------------------------------
-superuser_required = user_passes_test(
-    lambda u: u.is_authenticated() and u.is_active and u.is_superuser
-)
 
 
 #===============================================================================
@@ -122,12 +117,12 @@ def get_flags_from_image_by_size(url):
 
 latlon_sym_re = re.compile(
     ur'''
-        ([+-]?\d+)[\xba\xb0]\s*
+        ([+-]?\d+)[\xba\xb0]?\s*
         (?:(\d+)['\u2032])?\s*
         (?:(\d+)["\u2033])?\s*
         ([NS])?
-        \s*,?\s*
-        ([+-]?\d+)[\xba\xb0]\s*
+        \s*[,/]?\s*
+        ([+-]?\d+)[\xba\xb0]?\s*
         (?:(\d+)['\u2032])?\s*
         (?:(\d+)["\u2033])?\s*
         ([EW])?
@@ -159,6 +154,8 @@ def parse_latlon(s):
     m = latlon_sym_re.search(s.strip())
     if m:
         lat_d, lat_m, lat_s, lat_dir, lon_d, lon_m, lon_s, lon_dir = m.groups()
+        lat_dir = lat_dir or 'N'
+        lon_dir = lon_dir or 'E'
         lat = make_decimal_value(lat_d, lat_m, lat_s, lat_dir.lower() == 's')
         lon = make_decimal_value(lon_d, lon_m, lon_s, lon_dir.lower() == 'w')
         
@@ -181,6 +178,8 @@ parse_time = lambda o: datetime.time(*[int(i) for i in o.split(':')])
 
 #-------------------------------------------------------------------------------
 def parse_datetime(o):
+    print o
+    return datetime.datetime.strptime(o, DATETIME_FORMAT)
     dt, tm = o.split()
     return datetime.datetime.combine(parse_date(dt), parse_time(tm))
 
@@ -238,39 +237,54 @@ def json_loads(s, object_hook=object_hook, **kws):
 
 #-------------------------------------------------------------------------------
 def json_encoding_test():
+    print '-' * 40
     data = dict(
         a_date=datetime.date(2011, 4, 22),
         a_time=datetime.time(16, 59, 59),
         a_datetime=datetime.datetime(2009, 2, 9, 8, 15),
         a_decimal=Decimal('19.65')
     )
-    out = dumps(data)
+    out = json_dumps(data)
     print out
-    result = loads(out)
+    result = json_loads(out)
     print result
     print result == data
     
 
 #-------------------------------------------------------------------------------
 def lat_lon_test():
-    a = u'º'
-    b = u'°'
-    print a == b
-    print repr(a), repr(b)
-    ll = '42º23′'
-    #print 'll', parse_latlon(ll.decode('utf8'))
+    print '-' * 40
+    a, b = u'º', u'°'
+    print a == b, repr(a), repr(b)
 
-    us = u'41\xba 23\u2032 0\u2033 N, 2\xba 11\u2032 0\u2033 E'
-    s1 = '41º23′N 2°11′E'
-    s2 = '-41° 23′ 7″ N, 2° 11′ 0″ E'
-    s3 = '41º,11°'
+    tests = [
+        '12.34, 56.78',
+        '50°51′N 5°41′E'.decode('utf8'),
 
-    print 'us', parse_latlon(us)
-    print 's1', parse_latlon(s1.decode('utf8'))
-    print 's2', parse_latlon(s2.decode('utf8'))
-    print 's3', parse_latlon(s3.decode('utf8'))
-    print 'dc', parse_latlon('12.34, 56.78')
+        u'41\xb0 23\u2032 0\u2033 N, 2\xb0 11\u2032 0\u2033 E',
+        u'12\xb0 N, 56\xb0W',
 
+        u'12.34 N, 56.78 W',
+
+        '41º23′N 2°11′E'.decode('utf8'),
+        '-41° 23′ 7″ N, 2° 11′ 0″ E'.decode('utf8'),
+        '41º,11°'.decode('utf8'),
+    ]
+    
+    total, good = 0, 0
+    for i, test in enumerate(tests):
+        total += 1
+        print i
+        print test
+        print repr(test)
+        try:
+            result = parse_latlon(test)
+            good += 1
+            print result
+        except ValueError as why:
+            print '***** {}'.format(why.message)
+        print
+    print '{} of {} good'.format(good, total)
 
 ################################################################################
 if __name__ == '__main__':
