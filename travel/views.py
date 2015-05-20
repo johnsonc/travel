@@ -224,13 +224,13 @@ def _entity_edit(request, entity):
 
 
 #-------------------------------------------------------------------------------
-@utils.superuser_required
+@superuser_required
 def entity_edit(request, ref, code, aux=None):
     return _handle_entity(request, ref, code, aux, _entity_edit)
 
 
 #-------------------------------------------------------------------------------
-@utils.superuser_required
+@superuser_required
 def start_add_entity(request):
     abbr = request.GET.get('type')
     if abbr:
@@ -252,7 +252,7 @@ def start_add_entity(request):
 
 
 #-------------------------------------------------------------------------------
-@utils.superuser_required
+@superuser_required
 def add_entity_co(request):
     entity_type = get_object_or_404(travel.TravelEntityType, abbr='co')
     if request.method == 'POST':
@@ -271,7 +271,7 @@ def add_entity_co(request):
 
 
 #-------------------------------------------------------------------------------
-@utils.superuser_required
+@superuser_required
 def add_entity_by_co(request, code, abbr):
     entity_type = get_object_or_404(travel.TravelEntityType, abbr=abbr)
     country = travel.TravelEntity.objects.get(code=code, type__abbr='co')

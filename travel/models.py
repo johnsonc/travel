@@ -45,18 +45,13 @@ class TravelFlag(models.Model):
     source = models.CharField(max_length=255)
     base_dir = models.CharField(max_length=8)
     ref = models.CharField(max_length=6)
-    thumb  = models.ImageField(upload_to=flag_upload(32), null=True)
-    large = models.ImageField(upload_to=flag_upload(128), null=True)
-    svg = models.FileField(upload_to=svg_upload, null=True)
-
+    thumb  = models.ImageField(upload_to=flag_upload(32), blank=True)
+    large = models.ImageField(upload_to=flag_upload(128), blank=True)
+    svg = models.FileField(upload_to=svg_upload, blank=True)
+    is_locked = models.BooleanField(default=False)
+    
     class Meta:
         db_table = 'travel_flag'
-    
-    #---------------------------------------------------------------------------
-    @property
-    def is_locked(self):
-        #TODO **hack** - fixme!
-        return False if (self.base_dir or self.ref) else True
     
     #---------------------------------------------------------------------------
     @property

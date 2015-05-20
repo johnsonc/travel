@@ -3,7 +3,28 @@ from django import forms
 from django.conf import settings
 from travel import models as travel
 from travel import utils as travel_utils
+import pytz
 
+#-------------------------------------------------------------------------------
+def _tz_choices():
+    choices = []
+    nested = {}
+    for t in pytz.all_timezones:
+        bits = t.split('/', 1)
+        if len(bits) == 1:
+            choices.append((t, t))
+        else:
+            a, b = bits
+            nested.setdefault(a, []).append((t, t))
+    
+    choices.sort()
+    for key in sorted(nested.keys()):
+        values = sorted(nested[key])
+        choices.append((key, values))
+
+    return choices
+
+TZ_CHOICES = _tz_choices()
 
 #===============================================================================
 class SearchField(forms.CharField):
@@ -109,64 +130,70 @@ class LatLonField(forms.CharField):
 
 
 #===============================================================================
-class EditTravelEntityForm(forms.ModelForm):
+class BaseTravelEntityForm(forms.ModelForm):
+    tz = forms.ChoiceField(label='Timezone', required=False, choices=TZ_CHOICES,  initial='UTC')
+    lat_lon = LatLonField(label='Lat/Lon', required=False)
     flag_url = forms.CharField(label='Flag URL', required=False)
-    country = forms.ModelChoiceField(queryset=travel.TravelEntity.objects.countries())
 
     #===========================================================================
     class Meta:
         model = travel.TravelEntity
         fields = (
-            'country',
             'name',
             'full_name',
             'code',
-            'lat',
-            'lon',
             'locality',
+            'lat_lon',
             'tz',
             'flag_url',
         )
+
     #---------------------------------------------------------------------------
     def __init__(self, *args, **kws):
-        super(EditTravelEntityForm, self).__init__(*args, **kws)
+        super(BaseTravelEntityForm, self).__init__(*args, **kws)
+        self.fields['full_name'].required = False
         instance = kws.get('instance', None)
         if instance:
             if instance.type:
-                if instance.type.abbr in ('co', 'cn'):
+                if instance.type.abbr in ('co', 'cn') and 'country' in self.fields:
                     del self.fields['country']
-            if instance.flag and instance.flag.source:
-                self.fields['flag_url'].initial = instance.flag.source
+            if instance.flag:
+                if instance.flag.is_locked:
+                    del self.fields['flag_url']
+                elif instance.flag.source:
+                    self.fields['flag_url'].initial = instance.flag.source
+
+    #---------------------------------------------------------------------------
+    def save_flag(self, instance):
+        if 'flag_url' in self.cleaned_data:
+            flag_url = self.cleaned_data.get('flag_url')
+            if flag_url:
+                instance.update_flag(flag_url)
         
     #---------------------------------------------------------------------------
-    def save(self):
-        instance = super(EditTravelEntityForm, self).save()
-        flag_url = self.cleaned_data.get('flag_url')
-        if flag_url:
-            instance.update_flag(flag_url)
+    def save(self, *args, **kws):
+        lat_lon = self.cleaned_data.get('lat_lon')
+        if lat_lon:
+            instance.lat, instance.lon = lat_lon
+
+        instance = super(BaseTravelEntityForm, self).save(*args, **kws)
+        if kws.get('commit', False) and 'flag_url' in self.cleaned_data:
+            self.save_flag(instance)
+        
         return instance
 
 
-#-------------------------------------------------------------------------------
-def entity_meta_fields(*args):
-    return args + ('name', 'full_name', 'code', 'lat_lon', 'tz', 'flag_url')
+#===============================================================================
+class EditTravelEntityForm(BaseTravelEntityForm):
+    country = forms.ModelChoiceField(queryset=travel.TravelEntity.objects.countries())
+    
+    #===========================================================================
+    class Meta(BaseTravelEntityForm.Meta):
+        fields = ('country',) + BaseTravelEntityForm.Meta.fields
 
 
 #===============================================================================
-class NewTravelEntityForm(forms.ModelForm):
-    lat_lon = LatLonField(label='Lat/Lon', required=False)
-    flag_url = forms.CharField(label='Flag URL', required=False)
-    
-    #===========================================================================
-    class Meta:
-        model = travel.TravelEntity
-        fields = entity_meta_fields()
-    
-    #---------------------------------------------------------------------------
-    def __init__(self, *args, **kws):
-        super(NewTravelEntityForm, self).__init__(*args, **kws)
-        self.fields['full_name'].required = False
-        self.fields['tz'].required = False
+class NewTravelEntityForm(BaseTravelEntityForm):
     
     #---------------------------------------------------------------------------
     def save(self, entity_type, **extra_fields):
@@ -174,18 +201,11 @@ class NewTravelEntityForm(forms.ModelForm):
         instance.type = entity_type
         instance.full_name = instance.full_name or instance.name
         
-        lat_lon = self.cleaned_data.get('lat_lon')
-        if lat_lon:
-            instance.lat, instance.lon = lat_lon
-            
         for key, value in extra_fields.items():
             setattr(instance, key, value)
             
         instance.save()
-        flag_url = self.cleaned_data.get('flag_url')
-        if flag_url:
-            instance.update_flag(flag_url)
-        
+        self.save_flag(instance)
         return instance
 
 
@@ -195,6 +215,5 @@ class NewCountryForm(NewTravelEntityForm):
 
     #===========================================================================
     class Meta(NewTravelEntityForm.Meta):
-        fields = entity_meta_fields('continent')
-
+        fields = ('continent',) + NewTravelEntityForm.Meta.fields
 
