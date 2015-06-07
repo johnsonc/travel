@@ -153,7 +153,7 @@ def _get_entities(ref, code, aux):
 
 #-------------------------------------------------------------------------------
 def _handle_entity(request, ref, code, aux, handler):
-    entity = _get_entities(reg, code, aux)
+    entity = _get_entities(ref, code, aux)
     n = len(entity)
     if n == 0:
         raise http.Http404
