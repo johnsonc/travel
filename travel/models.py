@@ -285,6 +285,14 @@ class TravelEntity(models.Model):
             what = ', {}'.format(what) if what else ''
             return '{}{}'.format(self, what)
         return unicode(self)
+    
+    #---------------------------------------------------------------------------
+    @cached_property
+    def code_url_bit(self):
+        code = self.code or self.id
+        if self.type.abbr in ('st', 'wh'):
+            code = '{}-{}'.format(self.country.code, code) if self.country else code
+        return code
         
     #---------------------------------------------------------------------------
     def _permalink_args(self):
@@ -292,7 +300,7 @@ class TravelEntity(models.Model):
         if self.type.abbr in ('st', 'wh'):
             code = '{}-{}'.format(self.country.code, code) if self.country else code
         
-        return [self.type.abbr, code]
+        return [self.type.abbr, self.code_url_bit]
         
     #---------------------------------------------------------------------------
     def get_absolute_url(self):

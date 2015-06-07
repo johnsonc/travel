@@ -92,7 +92,7 @@
             <dd id="related">{% block related %}
                 <ul class="related-content">{% for rel in place.related_entities %}
                     <li>
-                        <a href="{% url 'travel-entity-relationships' place.type.abbr place.code rel.abbr %}">
+                        <a href="{% url 'travel-entity-relationships' place.type.abbr place.code_url_bit rel.abbr %}">
                             <span>{{ rel.count }}</span> {{ rel.text }}</a>
                     </li>
                     {% endfor %}

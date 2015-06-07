@@ -10,7 +10,7 @@ search_patterns = [
 item_patterns = [
     url(r'^$',                                 views.by_locale, name='travel-by-locale'),
     url(r'^(?P<code>\w+)(?:-(?P<aux>\w+))?/$', views.entity, name='travel-entity'),
-    url(r'^(?P<code>\w+)/(?P<rel>\w+)/$',      views.entity_relationships, name='travel-entity-relationships'),
+    url(r'^(?P<code>\w+)(?:-(?P<aux>\w+))?/(?P<rel>\w+)/$', views.entity_relationships, name='travel-entity-relationships'),
 ]
 
 add_patterns = [

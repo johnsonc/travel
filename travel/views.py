@@ -144,12 +144,16 @@ def _entity_base(request, entity):
 
 
 #-------------------------------------------------------------------------------
-def _handle_entity(request, ref, code, aux, handler):
+def _get_entities(ref, code, aux):
     if aux:
-        entity = travel.TravelEntity.objects.filter(type__abbr=ref, country__code=code, code=aux)
-    else:
-        entity = travel.TravelEntity.objects.filter(type__abbr=ref, code=code)
+        return travel.TravelEntity.objects.filter(type__abbr=ref, country__code=code, code=aux)
 
+    return travel.TravelEntity.objects.filter(type__abbr=ref, code=code)
+
+
+#-------------------------------------------------------------------------------
+def _handle_entity(request, ref, code, aux, handler):
+    entity = _get_entities(reg, code, aux)
     n = len(entity)
     if n == 0:
         raise http.Http404
@@ -165,8 +169,8 @@ def entity(request, ref, code, aux=None):
 
 
 #-------------------------------------------------------------------------------
-def entity_relationships(request, ref, code, rel):
-    places = travel.TravelEntity.objects.filter(type__abbr=ref, code=code)
+def entity_relationships(request, ref, code, rel, aux=None):
+    places = _get_entities(ref, code, aux)
     count  = places.count()
     
     if count == 0:
