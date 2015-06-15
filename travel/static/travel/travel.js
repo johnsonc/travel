@@ -34,13 +34,6 @@
     
     _.templateSettings.interpolate = /{{([\s\S]+?)}}/g;
     
-    var profile_datepicker_opts = {
-        changeMonth: true,
-        changeYear: true,
-        showButtonPanel: true,
-        yearRange: 'c-50:nnnn'
-    };
-    
     var sorters = {
         'type': function(a, b) {
             if(b.type__title > a.type__title) {
@@ -75,7 +68,7 @@
     //--------------------------------------------------------------------------
     var date_wrapper = function(dt_str) {
         var dt = new Date(dt_str.value);
-        console.log(dt_str, dt);
+        //console.log(dt_str, dt);
         var str = dt.toString().split(' ');
         var hours = dt.getHours();
         var ampm = hours >= 12 ? 'pm' : 'am';
@@ -330,8 +323,9 @@
 
     //--------------------------------------------------------------------------
     var get_datepicker_iso = function() {
-        var dt = $('#id_date').datepicker('getDate');
+        var dt = document.getElementById('id_date').value;
         if(dt) {
+            dt = new Date(dt);
             return dt.getFullYear()
                  + '-' + pad(dt.getMonth() + 1)
                  + '-' + pad(dt.getDate());
@@ -395,9 +389,24 @@
             $$('id_date').style.display = this.value ? 'inline-block' : 'none';
         })
         on_hash_change();
-        $('#id_date')
-            .datepicker(profile_datepicker_opts)
-            .on('change input propertychange', on_filter_change);
+        var picker = new Pikaday({
+            field: document.getElementById('id_date'),
+            format: 'YYYY-MM-DD',
+            minDate: new Date(1920,1,1),
+            yearRange: [1920, (new Date()).getFullYear()],
+            onSelect: function(dt) {
+                console.log(dt);
+                console.log(this);
+            }
+        });
+        // .datepicker({
+        //     changeMonth: true,
+        //     changeYear: true,
+        //     showButtonPanel: true,
+        //     yearRange: 'c-50:nnnn'
+        // });
+        
+        $('#id_date').on('change input propertychange', on_filter_change);
         
     };
     

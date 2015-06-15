@@ -3,6 +3,9 @@
 {% block extra_head %}
 <style type="text/css" media="screen">
     #item { padding: 4px; margin-bottom: 1em; }
+    #item:before, #item:after { content:""; display:block; }
+    #item:after { clear:both; }
+    
     #item-wrap.correct { background: #a5d7a4; }
     #item-wrap.incorrect { background: #d7a5a4; }
     #item > div {
@@ -33,7 +36,7 @@
             </h2>
         </div>
         <div class="panel-body" id="item-wrap">
-            <div id="item" class="clearfix"></div>
+            <div id="item"></div>
         </div>
         <div class="panel-footer">
             <div class="clearfix">
