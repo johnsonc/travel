@@ -531,7 +531,7 @@ class EntityImage(object):
         fn = entity.code.lower() + '.gif'
         self.fqdn = os.path.join(settings.MEDIA_ROOT, 'img', location, fn)
         self.exists = os.path.exists(self.fqdn)
-        self.url = '/'.join([settings.MEDIA_URL, 'img', location, fn])
+        self.url = settings.MEDIA_URL + '/'.join(['img', location, fn])
 
 
 #===============================================================================
@@ -574,6 +574,12 @@ class TravelEntityInfo(models.Model):
             v,h,p = self.electrical.split('/')
             return {'volts': v, 'hertz': h, 'plugs': p.split(',')}
         return {}
+    
+    #---------------------------------------------------------------------------
+    @cached_property
+    def images(self):
+        images = [self.map, self.locator]
+        return [i for i in images if i.exists]
 
     #---------------------------------------------------------------------------
     @cached_property

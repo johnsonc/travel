@@ -83,7 +83,7 @@
             <dt>Time Zone</dt>
             <dd>{% timezone place.tzinfo %}
                 {{ place.tzinfo.zone }}, {% now "e O" %} |
-                <span class="tz-clock" data-datestr="{% now "r" %}">{% now "r" %}</span>{% endtimezone %}
+                <span class="tz-clock" data-timezone="{{ place.tzinfo.zone }}">{% now "r" %}</span>{% endtimezone %}
             </dd>
             {% endif %}
             {% with place.related_entities as related %}
@@ -157,5 +157,16 @@
 {% endblock travel_content %}
 {% block end_body %}{{ block.super }}
 <script type="text/javascript">
+    (function() {
+        function update_time() {
+            _.each(document.querySelectorAll('.tz-clock'), function(el) {
+                var tz = el.getAttribute('data-timezone');
+                el.textContent = moment().tz(tz).format('MMMM Do YYYY, h:mm:ss a');
+            });
+            setTimeout(update_time, 1000)
+        };
+        
+        update_time();
+    })();
 </script>
 {% endblock end_body %}
