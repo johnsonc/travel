@@ -1,5 +1,5 @@
 {% extends "travel/base.html" %}
-{% load url from future %}
+{% load travel_tags %}
 {% block extra_head %}
     <style type="text/css" media="screen">
         .related-content { padding-left: 1em; }
@@ -45,14 +45,12 @@
             </dd>
             {% endif %}
         
-            {% with place.get_continent as continent %}
-            {% if continent %}
+            {% having place.get_continent as continent %}
             <dt>Continent</dt>
             <dd>
                 <a href="{{ continent.get_absolute_url }}">{{ continent }}</a>
             </dd>
-            {% endif %}
-            {% endwith %}
+            {% endhaving %}
         
             {% if place.state %}
             <dt>State</dt>
@@ -86,8 +84,7 @@
                 <span class="tz-clock" data-timezone="{{ place.tzinfo.zone }}">{% now "r" %}</span>{% endtimezone %}
             </dd>
             {% endif %}
-            {% with place.related_entities as related %}
-            {% if related %}
+            {% having place.related_entities as related %}
             <dt>Related</dt>
             <dd id="related">{% block related %}
                 <ul class="related-content">{% for rel in place.related_entities %}
@@ -98,8 +95,7 @@
                     {% endfor %}
                 </ul>{% endblock related %}
             </dd>
-            {% endif %}
-            {% endwith %}
+            {% endhaving %}
             {% block extra_details %}{% endblock extra_details %}
         </dl>
         {% if user.is_authenticated %}
@@ -111,8 +107,7 @@
                 {% include "travel/log-entry-form.html" with entity=place %}
             </div>
         </div>
-        {% with history|length as count %}
-        {% if count %}
+        {% having history|length as count %}
         <div class="panel panel-default">
             <div class="panel-heading">
                 <h2 class="panel-title">Previous Log Entries <span class="label label-default">{{ count }} entr{{ count|pluralize:"y,ies" }}</span></h2>
@@ -141,9 +136,7 @@
             </tbody>
             </table>
         </div>
-        {% endif %}
-
-        {% endwith %}
+        {% endhaving %}
         {% endif %}
         
     </div>

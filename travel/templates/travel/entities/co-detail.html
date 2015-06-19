@@ -1,5 +1,5 @@
 {% extends "travel/entities/detail-base.html" %}
-{% load staticfiles humanize %}
+{% load staticfiles humanize travel_tags %}
 {% block extra_head %}{{ block.super }}
     <style media="screen">
         img.plug {  margin: 4px; width: 45%; max-width: 200px; }
@@ -13,8 +13,7 @@
     {% endif %}
 {% endblock travel_images %}
 {% block extra_details %}
-    {% with place.entityinfo as info %}
-    {% if info %}
+    {% having place.entityinfo as info %}
     <dt>Area</dt>
     <dd>{% if info.area %}{{ info.area|intcomma }} km<sup>2</sup>{% else %}<em>Unknown</em>{% endif %}</dd>
     <dt>Population</dt>
@@ -38,6 +37,5 @@
         {% endfor %}
     {% endwith %}
     </dd>{% endif %}
-    {% endif %}
-    {% endwith %}
+    {% endhaving %}
 {% endblock extra_details %}

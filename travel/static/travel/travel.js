@@ -18,7 +18,7 @@
 // }
 //------------------------------------------------------------------------------
 
-;var Travelogue = (function($) {
+;var Travelogue = (function() {
     var root = this;
     var $$ = _.bind(document.getElementById, document);
     var type_mapping = {
@@ -59,6 +59,9 @@
         'rating': function(a, b) { return a.rating - b.rating; }
     };
     
+    var DATE_STRING = 'MMM Do YYYY';
+    var TIME_STRING = 'ddd h:ssa';
+    
     //--------------------------------------------------------------------------
     var stars = (function() {
         var STARS = '★★★★★';
@@ -66,38 +69,54 @@
     }());
     
     //--------------------------------------------------------------------------
-    var date_wrapper = function(dt_str) {
-        var dt = new Date(dt_str.value);
-        //console.log(dt_str, dt);
-        var str = dt.toString().split(' ');
-        var hours = dt.getHours();
-        var ampm = hours >= 12 ? 'pm' : 'am';
-        return {
-            'date': dt,
-            'date_string': str[1] + ' ' + dt.getDate() + ', ' + dt.getFullYear(),
-            'time_string': str[0] + ' ' + (hours > 12 ? hours % 12 : hours)  + ':' + pad(dt.getMinutes()) + ampm
-        }
-    };
-    
-    //--------------------------------------------------------------------------
     var increment = function(obj, field) {
         obj[field] = obj[field] ? obj[field]  + 1 : 1;
     };
     
     //--------------------------------------------------------------------------
-    var country_cmp = function(a, b) {
-        return (a[1] > b[1]) ? 1 : (a[1] < b[1] ? -1 : 0);
+    var entity_url = function(e) {
+        var bit = e.code;
+        if(e.type__abbr == 'wh' || e.type__abbr == 'st') {
+            bit = e.country__code + '-' + bit;
+        } 
+        return '/i/' + e.type__abbr + '/' + bit + '/';
     };
     
     //--------------------------------------------------------------------------
-    var entity_url = function(e) {
-        return '/i/' + e.type__abbr + '/' + (
-            (e.type__abbr == 'wh' || e.type__abbr == 'st')
-          ? (e.country__code + '-' + e.code)
-          : e.code
-        ) + '/';
-    };
-
+    var Iter = {
+        each: function(items, callback, ctx) {
+            var results = [];
+            ctx = ctx || items;
+            for(var i = 0, length = items.length; i < length; i++) {
+                results.push(callback.call(ctx, items[i], i));
+            }
+            return results;
+        },
+        filter: function(items, callback, ctx) {
+            var results = [];
+            ctx = ctx || items;
+            for(var i = 0, length = items.length; i < length; i++) {
+                if(callback.call(ctx, items[i], i) === true) {
+                    results.push(items[i]);
+                }
+            }
+            return results;
+        },
+        keys: function(obj, callback, ctx) {
+            var items = [];
+            ctx = ctx || obj;
+            for(var k in obj) {
+                if(obj.hasOwnProperty(k)) {
+                    items.push(k);
+                    if(callback) {
+                        callback.call(ctx, k, obj[k]);
+                    }
+                }
+            }
+            return items;
+        }
+    }
+    
     //--------------------------------------------------------------------------
     var DOM = root.DOM = {
         create: function(tag) {
@@ -106,30 +125,40 @@
             for(var i = 1; i < arguments.length; i++) {
                 arg = arguments[i];
                 if(_.isPlainObject(arg)) {
-                    for(key in arg) {
-                        if(arg.hasOwnProperty(key)) {
-                            el.setAttribute(key, arg[key]);
-                        }
-                    }
+                    DOM.set_attrs(el, arg);
                 }
                 else if(_.isArray(arg)) {
-                    for(j = 0; j < arg.length; j++) {
-                        el.appendChild(arg[j]);
-                    }
+                    DOM.append_children(el, arg);
                 }
                 else {
                     el.textContent = arg.toString();
                 }
             }
             return el;
+        },
+        append_children: function(el, children) {
+            Iter.each(children, function(child) { el.appendChild(child); });
+        },
+        set_attrs: function(el, attrs) {
+            Iter.keys(attrs, function(k,v) { el.setAttribute(k, v); });
+        },
+        css: function(el, vals) {
+            var style = el.style;
+            Iter.keys(vals, function(k, v) { style[k] = v; });
+        },
+        evt: function(el, kind, handler, t) {
+            el.addEventListener(kind, handler, t)
+        },
+        remove: function(el) {
+            el.parentNode.removeChild(el);
         }
     };
     
     //--------------------------------------------------------------------------
     var date_tags = function(dtw) {
         return [
-            DOM.create('nobr', dtw.date_string),
-            DOM.create('nobr', dtw.time_string)
+            DOM.create('nobr', dtw.format(DATE_STRING)),
+            DOM.create('nobr', dtw.format(TIME_STRING))
         ];
     };
     
@@ -140,7 +169,7 @@
         var extras = [];
         var attrs = {
             'data-id' : e.id,
-            'class': e.type__abbr + ' co-' + e.country__code ? e.country__code : (e.type__abbr == 'co' ? e.code : '')
+            'class': e.type__abbr + ' co-' + (e.country__code ? e.country__code : (e.type__abbr == 'co' ? e.code : ''))
         };
 
         name_td.appendChild(DOM.create('a', e.name, {'href': e.entity_url}));
@@ -177,6 +206,15 @@
     };
     
     //--------------------------------------------------------------------------
+    var sorted_dict = function(dct) {
+        var keys = Iter.keys(dct);
+        keys.sort();
+        return Iter.each(keys, function(key) {
+            return [key, dct[key]];
+        });
+    };
+    
+    //--------------------------------------------------------------------------
     var profile_history = {
         media_prefix: '/media/',
         initialize: function(history, conf) {
@@ -186,10 +224,10 @@
             var countries = {};
 
             this.filters = {'type': null, 'country__code': null};
-            this.all_entities = _.map(history, function(e) {
+            this.all_entities = Iter.each(history, function(e) {
                 e.entity_url = entity_url(e);
-                e.recent_visit = date_wrapper(e.recent_visit);
-                e.first_visit = date_wrapper(e.first_visit);
+                e.recent_visit = moment(e.recent_visit.value);
+                e.first_visit = moment(e.first_visit.value);
                 e.flag__thumb = media_prefix + e.flag__thumb;
                 if(e.country__flag__thumb) {
                     e.country__flag__thumb = media_prefix + e.country__flag__thumb;
@@ -199,20 +237,22 @@
                 }
                 increment(summary, e.type__abbr);
                 return e;
-            }, this);
+            });
             summary[''] = history.length;
             console.log(summary);
             
-            _.each(_.pairs(countries).sort(country_cmp), function(item) {
+            Iter.each(sorted_dict(countries), function(item) {
                 var opt = document.createElement('option');
                 opt.value = item[0];
                 opt.textContent = item[1];
                 co_opts.appendChild(opt);
             });
             
-            this.$el = $('#history');
-            this.$el.find('thead th').click(sort_handler);
-            _.each(document.querySelectorAll('#id_filter option'), function(e) {
+            Iter.each(document.querySelectorAll('#history thead th'), function(e) {
+                DOM.evt(e, 'click', sort_handler);
+            });
+
+            Iter.each(document.querySelectorAll('#id_filter option'), function(e) {
                 if(summary[e.value]) {
                     e.text += ' ' + ' (' + summary[e.value] + ')';
                 }
@@ -229,7 +269,7 @@
             console.log('filter bits', bits);
             this.filters = {'type': type, 'co': co};
             if(type || co || dt) {
-                entities = _.filter(entities, function(e) {
+                entities = Iter.filter(entities, function(e) {
                     var good = true;
                     if(type) {
                         good &= (e.type__abbr === type);
@@ -241,10 +281,10 @@
                     
                     if(tf && dt) {
                         if(tf == '+') {
-                            good &= (e.recent_visit.date >= dt);
+                            good &= (e.recent_visit >= dt);
                         }
                         else if(tf == '-') {
-                            good &= (e.recent_visit.date <= dt);
+                            good &= (e.recent_visit <= dt);
                         }
                     }
 
@@ -258,15 +298,15 @@
         show_entities: function(entities) {
             var i, start;
             var count = entities.length;
-            var el = document.querySelector('#history tbody');
-            var parent = el.parentElement;
+            var parent = $$('history');
+            var el = parent.querySelector('tbody');
             this.current_entities = entities;
             $$('id_count').textContent = (count + ' entr' + (count > 1 ? 'ies' : 'y'));
 
             start = new Date();
-            parent.removeChild(el);
+            DOM.remove(el);
             el = DOM.create('tbody');
-            for(i = 0; i < entities.length; i++) {
+            for(i = 0; i < count; i++) {
                 el.appendChild(create_entity_row(entities[i]));
             }
             parent.appendChild(el);
@@ -311,9 +351,7 @@
     
     //--------------------------------------------------------------------------
     var update_hash = function(bits) {
-        var hash = make_hash(bits);
-        console.log('hash', hash);
-        window.history.pushState({}, '', hash);
+        window.history.pushState({}, '', make_hash(bits));
     };
     
     //--------------------------------------------------------------------------
@@ -359,7 +397,7 @@
         var dt = $$('id_date');
 
         console.log('bits', bits);
-        _.each(document.querySelectorAll('.filter_ctrl'), function(e) {
+        Iter.each(document.querySelectorAll('.filter_ctrl'), function(e) {
             e.value = '';
         });
         
@@ -383,12 +421,6 @@
 
     //--------------------------------------------------------------------------
     var init_profile_filter = function() {
-        $(window).on('hashchange', on_hash_change);
-        $('.filter_ctrl').on('change', on_filter_change);
-        $('#id_timeframe').on('change', function() {
-            $$('id_date').style.display = this.value ? 'inline-block' : 'none';
-        })
-        on_hash_change();
         var picker = new Pikaday({
             field: document.getElementById('id_date'),
             format: 'YYYY-MM-DD',
@@ -399,15 +431,23 @@
                 console.log(this);
             }
         });
-        // .datepicker({
-        //     changeMonth: true,
-        //     changeYear: true,
-        //     showButtonPanel: true,
-        //     yearRange: 'c-50:nnnn'
-        // });
         
-        $('#id_date').on('change input propertychange', on_filter_change);
+        var date_el = $$('id_date');
+        DOM.evt(window, 'hashchange', on_hash_change);
+        Iter.each(document.querySelectorAll('.filter_ctrl'), function(e) {
+            DOM.evt(e, 'change', on_filter_change);
+        });
         
+        DOM.evt($$('id_timeframe'), 'change', function() {
+            date_el.style.display = this.value ? 'inline-block' : 'none';
+        });
+        
+        on_hash_change();
+        // .datepicker({changeMonth: true, changeYear: true, showButtonPanel: true, yearRange: 'c-50:nnnn' });
+        
+        DOM.evt(date_el, 'change', on_filter_change);
+        DOM.evt(date_el, 'input', on_filter_change);
+        DOM.evt(date_el, 'propertychange', on_filter_change);
     };
     
     //--------------------------------------------------------------------------
@@ -439,4 +479,4 @@
             init_profile_filter();
         }
     };
-}(jQuery));
+}());

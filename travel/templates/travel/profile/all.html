@@ -1,4 +1,5 @@
 {% extends "travel/base.html" %}
+{% load travel_tags %}
 {% block travel_heading %}Travelogue Profiles{% endblock %}
 {% block travel_content %}
     <table class="table">
@@ -14,18 +15,15 @@
             {% for p in profiles  %}{% with p.user as u %}
             <tr class="{% cycle 'odd' 'even'  %}">
                 <td><a href="{{ p.public_url }}">{{ p }}</a></td>
-                <td>{% with u.get_full_name as full_name %}
-                    {% if full_name %}{{ full_name }}{% endif %}
-                {% endwith %}</td>
-                {% with u.travellog_set.all as logs %}
-                {% if logs %}{% with logs.count as N %}
+                <td>{% having u.get_full_name as full_name %}{{ full_name }}{% else %}{% endhaving %}</td>
+                {% having u.travellog_set.all as logs %}
                 <td>{{ logs.count }}</td>
                 <td>{{ logs.latest.arrival|date:"D, j M y P" }}</td>
-                {% endwith %}
-                {% else %}<td>0</td>
-                <td></td>{% endif %}{% endwith %}
-            {% endwith %}</tr>
-            {% endfor %}            
+                {% else %}
+                <td>0</td>
+                <td></td>{% endhaving %}
+            </tr>
+            {% endwith %}{% endfor %}
         </tbody>
     </table>
 {% endblock travel_content %}
