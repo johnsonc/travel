@@ -28,6 +28,11 @@
     <dd>{{ info.denom }} <i>(sing.)</i>; {{ info.denoms }} <i>(pl.)</i></dd>{% endif %}
     <dt>Language(s)</dt>
     <dd>{{ info.get_languages }}</dd>
+    {% having info.neighbors.all as neighbors %}
+    <dt>Neighbors</dt>
+    <dd>{% for neighbor in neighbors %}
+        <a href="{{ neighbor.get_absolute_url }}">{{ neighbor }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}</dd>
+    {% endhaving %}
     {% if info.electrical %}
     <dt>Electrical</dt>
     <dd>{% static 'img/plugs/' as plug_pth %}{% with info.electrical_info as el %}

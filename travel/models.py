@@ -545,12 +545,14 @@ class TravelEntityInfo(models.Model):
     phone = models.CharField(blank=True, max_length=20)
     electrical = models.CharField(blank=True, max_length=40)
     postal_code = models.CharField(blank=True, max_length=60)
-    neighbors = models.CharField(blank=True, max_length=50)
+    neighbor_list = models.CharField(blank=True, max_length=50)
     tld = models.CharField(blank=True, max_length=8)
     population = models.CharField(blank=True, max_length=12)
     area = models.CharField(blank=True, max_length=10)
     languages = models.ManyToManyField(TravelLanguage, blank=True)
+    neighbors = models.ManyToManyField(TravelEntity, blank=True)
     
+    #===========================================================================
     class Meta:
         db_table = 'travel_entityinfo'
     
