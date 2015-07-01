@@ -94,7 +94,7 @@ class TravelEntityLoader(object):
             defaults=attrs
         )
 
-        print 'Got %s %s: %s' % ('new' if new else 'old', subnat.type_detail, subnat)
+        print 'Got %s %s: %s' % ('new' if new else 'old', subnat.category_detail, subnat)
         if capital:
             subnat.capital = self.create_city(co, subnat, capital)
             subnat.save()
@@ -107,7 +107,6 @@ class TravelEntityLoader(object):
     #-------------------------------------------------------------------------------
     def process_entity_file(filename, delimiter='|'):
         #co|NL|st|South Holland||ZH|P|The Hague|http://upload.wikimedia.org/wikipedia/commons/thumb/6/63/Flag_Zuid-Holland.svg/27px-Flag_Zuid-Holland.svg.png
-        Subnational = travel.TravelEntity.Subnational
         lines = read_entities(filename, delimiter)
         print 'File:', filename, 'Lines:', len(lines)
     

@@ -28,6 +28,8 @@ class HavingNode(template.Node):
 
         if self.nodelist_else:
             return self.nodelist_else.render(context)
+            
+        return ''
 
 
 #-------------------------------------------------------------------------------

@@ -1,11 +1,9 @@
 import re
 import os
-import operator
 from collections import Counter
 
 from django.conf import settings
 from django.db import models
-from django.db.models import Count, Min, Max, Q
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django.utils import timezone
@@ -19,13 +17,23 @@ from .managers import *
 
 GOOGLE_MAPS             = 'http://maps.google.com/maps?q={}'
 GOOGLE_MAPS_LATLON      = 'http://maps.google.com/maps?q={},+{}&iwloc=A&z=10'
-GOOGLE_SEARCH_URL       = 'http://www.google.com/search?as_q={}'
 WIKIPEDIA_URL           = 'http://en.wikipedia.org/wiki/Special:Search?search={}&go=Go'
 WORLD_HERITAGE_URL      = 'http://whc.unesco.org/en/list/{}'
 BASE_FLAG_DIR           = 'img/flags'
 STAR                    = mark_safe('&#9733;')
 WORLD_HERITAGE_CATEGORY = { 'C': 'Cultural', 'N': 'Natural', 'M': 'Mixed' }
-
+SUBNATIONAL_CATEGORY    = {
+    'A': 'Autonomous Community',
+    'W': 'Commonwealth',
+    'U': 'Commune',
+    'C': 'County',
+    'E': 'Department',
+    'D': 'District',
+    'P': 'Province',
+    'R': 'Region',
+    'S': 'State',
+    'T': 'Territory',
+}
 
 #-------------------------------------------------------------------------------
 def flag_upload(size):
@@ -50,6 +58,7 @@ class TravelFlag(models.Model):
     svg = models.FileField(upload_to=svg_upload, blank=True)
     is_locked = models.BooleanField(default=False)
     
+    #===========================================================================
     class Meta:
         db_table = 'travel_flag'
     
@@ -68,7 +77,7 @@ class TravelFlag(models.Model):
         media_root  = settings.MEDIA_ROOT
         parent_dir  = join(BASE_FLAG_DIR, base, ref)
         abs_dir     = join(media_root, parent_dir)
-        path_fmt    = join(parent_dir, '%s-%%s.png' % (ref,))
+        path_fmt    = join(parent_dir, '{}-{{}}.png'.format(ref))
 
         if not os.path.exists(abs_dir):
             os.makedirs(abs_dir)
@@ -80,7 +89,7 @@ class TravelFlag(models.Model):
         
         for attr, data, size in (('thumb', thumb, 32), ('large', large, 128)):
             if data:
-                flag_path = path_fmt % size
+                flag_path = path_fmt.format(size)
                 setattr(self, attr, flag_path)
                 with open(join(media_root, flag_path), 'wb') as fp:
                     fp.write(data)
@@ -152,6 +161,7 @@ class TravelProfile(models.Model):
     
     objects = TravelProfileManager()
     
+    #===========================================================================
     class Meta:
         db_table = 'travel_profile'
     
@@ -187,6 +197,7 @@ class TravelEntityType(models.Model):
     abbr  = models.CharField(max_length=4, db_index=True)
     title = models.CharField(max_length=25)
     
+    #===========================================================================
     class Meta:
         db_table = 'travel_entitytype'
 
@@ -195,36 +206,45 @@ class TravelEntityType(models.Model):
         return self.title
 
 
-#-------------------------------------------------------------------------------
-def wikipedia_url(entity):
-    return WIKIPEDIA_URL.format(travel_utils.nice_url(entity.full_name))
+#===============================================================================
+class Extern(object):
 
+    #---------------------------------------------------------------------------
+    def __init__(self, name, handler, entity):
+        self.name = name
+        self.handler = handler
+        self.entity = entity
+    
+    #---------------------------------------------------------------------------
+    @cached_property
+    def url(self):
+        return self.handler(self.entity)
+    
+    #---------------------------------------------------------------------------
+    @staticmethod
+    def wikipedia_url(entity):
+        return WIKIPEDIA_URL.format(travel_utils.nice_url(entity.full_name))
 
-#-------------------------------------------------------------------------------
-def world_heritage_url(entity):
-    return WORLD_HERITAGE_URL.format(entity.code)
+    #---------------------------------------------------------------------------
+    @staticmethod
+    def world_heritage_url(entity):
+        return WORLD_HERITAGE_URL.format(entity.code)
 
-
-_default_external_handler = ('Wikipedia', wikipedia_url)
-_external_url_handlers = {
-    'wh': ('UNESCO', world_heritage_url)
-}
+    #---------------------------------------------------------------------------
+    @classmethod
+    def get(cls, entity):
+        default = ('Wikipedia', cls.wikipedia_url)
+        handlers = {
+            'wh': ('UNESCO', cls.world_heritage_url)
+        }
+        
+        name, hdlr = handlers.get(entity.type.abbr, default)
+        return cls(name, hdlr, entity)
+        
 
 
 #===============================================================================
 class TravelEntity(models.Model):
-    
-    #===========================================================================
-    class Subnational(ChoiceEnumeration):
-        STATE                = ChoiceEnumeration.Option('S', 'State', default=True)
-        PROVINCE             = ChoiceEnumeration.Option('P', 'Province')
-        DISTRICT             = ChoiceEnumeration.Option('D', 'District')
-        TERRITORY            = ChoiceEnumeration.Option('T', 'Territory')
-        COMMONWEALTH         = ChoiceEnumeration.Option('W', 'Commonwealth')
-        COUNTY               = ChoiceEnumeration.Option('C', 'County')
-        REGION               = ChoiceEnumeration.Option('R', 'Region')
-        AUTONOMOUS_COMMUNITY = ChoiceEnumeration.Option('A', 'Autonomous Community')
-
     geonameid = models.IntegerField(default=0)
     type      = models.ForeignKey(TravelEntityType, related_name='entity_set')
     code      = models.CharField(max_length=6, db_index=True)
@@ -277,13 +297,9 @@ class TravelEntity(models.Model):
     
     #---------------------------------------------------------------------------
     def descriptive_name(self):
-        abbr = self.type.abbr
-        if abbr in ('co', 'cn'):
-            pass
-        elif abbr == 'ct':
+        if self.type.abbr == 'ct':
             what = self.state or self.country
-            what = ', {}'.format(what) if what else ''
-            return '{}{}'.format(self, what)
+            return '{}{}'.format(self, ', {}'.format(what) if what else '')
         return unicode(self)
     
     #---------------------------------------------------------------------------
@@ -295,44 +311,38 @@ class TravelEntity(models.Model):
         return code
         
     #---------------------------------------------------------------------------
+    @cached_property
     def _permalink_args(self):
-        code = self.code or self.id
-        if self.type.abbr in ('st', 'wh'):
-            code = '{}-{}'.format(self.country.code, code) if self.country else code
-        
         return [self.type.abbr, self.code_url_bit]
         
     #---------------------------------------------------------------------------
     def get_absolute_url(self):
-        return reverse('travel-entity', args=self._permalink_args())
+        return reverse('travel-entity', args=self._permalink_args)
 
     #---------------------------------------------------------------------------
     def get_edit_url(self):
-        return reverse('travel-entity-edit', args=self._permalink_args())
+        return reverse('travel-entity-edit', args=self._permalink_args)
     
     #---------------------------------------------------------------------------
     def wikipedia_search_url(self):
-        return WIKIPEDIA_URL % travel_utils.nice_url(entity.full_name)
+        return Extern.wikipedia_url(self)
         
     #---------------------------------------------------------------------------
-    def _external_handler(self):
-        return _external_url_handlers.get(self.type.abbr, _default_external_handler)
-        
-    #---------------------------------------------------------------------------
-    def external_url(self):
-        handler = self._external_handler()[1]
-        return handler(self)
+    @property
+    def extern(self):
+        return Extern.get(self)
 
     #---------------------------------------------------------------------------
-    def external_url_name(self):
-        return self._external_handler()[0]
-
-    #---------------------------------------------------------------------------
+    @cached_property
     def category_detail(self):
-        if self.type.abbr == 'wh':
+        kind = self.type
+        if kind.abbr == 'wh':
             return WORLD_HERITAGE_CATEGORY.get(self.category, 'Unknown')
-            
-        return self.category
+
+        elif kind.abbr == 'st':
+            return SUBNATIONAL_CATEGORY.get(self.category, kind.title)
+        
+        return kind.title
     
     #---------------------------------------------------------------------------
     @cached_property
@@ -358,34 +368,32 @@ class TravelEntity(models.Model):
 
     #---------------------------------------------------------------------------
     @property
-    def type_detail(self):
-        if self.type.abbr == 'st':
-            return TravelEntity.Subnational.CHOICES_DICT.get(self.category, self.type.title)
-            
-        return self.type.title
-    
-    #---------------------------------------------------------------------------
-    @property
     def relationships(self):
         abbr = self.type.abbr
         qs = None
         if abbr == 'cn':
             qs = TravelEntityType.objects.distinct().filter(
-                Q(entity_set__continent=self) | Q(entity_set__country__continent=self)
+                models.Q(entity_set__continent=self) |
+                models.Q(entity_set__country__continent=self)
             )
         else:
             key = self.Related.ENTITY_TYPES.get(abbr)
             qs = TravelEntityType.objects.distinct().filter(**{key: self})
+        
+        if qs:
+            return qs.annotate(cnt=models.Count('abbr')).values_list('abbr', 'cnt')
 
-        return qs.annotate(cnt=Count('abbr')).values_list('abbr', 'cnt') if qs else ()
+        return ()
 
     #---------------------------------------------------------------------------
     @property
     def related_entities(self):
-        return [
-            {'abbr': abbr, 'text': self.Related.DETAILS[abbr], 'count': cnt}
-            for abbr, cnt in self.relationships
-        ]
+        return [{
+            'abbr': abbr,
+            'text': self.Related.DETAILS[abbr],
+            'count': cnt,
+            'url': reverse('travel-entity-relationships', args=[self.type.abbr, self.code_url_bit, abbr]),
+        } for abbr, cnt in self.relationships]
         
     #---------------------------------------------------------------------------
     @property
@@ -480,10 +488,10 @@ class TravelLog(models.Model):
     @classmethod
     def user_history(cls, user):
         return TravelEntity.objects.filter(travellog__user=user).distinct().annotate(
-            num_visits=Count('travellog__user'),
-            first_visit=Min('travellog__arrival'),
-            recent_visit=Max('travellog__arrival'),
-            rating=Min('travellog__rating')
+            num_visits=models.Count('travellog__user'),
+            first_visit=models.Min('travellog__arrival'),
+            recent_visit=models.Max('travellog__arrival'),
+            rating=models.Min('travellog__rating')
         ).order_by('-recent_visit').values(
             'id', 'code', 'name', 'locality', 'country__name', 'country__code',
             'country__flag__thumb', 'rating', 'recent_visit', 'first_visit',
@@ -502,6 +510,7 @@ class TravelLanguage(models.Model):
     iso639_3 = models.CharField(blank=True, max_length=3)
     name     = models.CharField(max_length=60)
 
+    #---------------------------------------------------------------------------
     def __unicode__(self):
         return self.name
 
@@ -515,6 +524,7 @@ class TravelCurrency(models.Model):
     sign = models.CharField(blank=True, max_length=4)
     alt_sign = models.CharField(blank=True, max_length=4)
 
+    #===========================================================================
     class Meta:
         db_table = 'travel_currency'
     

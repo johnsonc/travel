@@ -35,9 +35,8 @@
                 <a href="{{ obj.get_absolute_url }}">{{ obj.descriptive_name }}</a>
             </td>
             <td>{{ logged }}</td>
-            <td class="text-center" style="font-size: 1.125em">{% if logged %}
-                <i class="glyphicon glyphicon-ok-circle"></i>
-                {% endif %}
+            <td class="text-center" style="font-size: 1.125em">
+                {% include "travel/_visited.html" with id=obj.id %}
             </td>
         </tr>
         {% endfor %}

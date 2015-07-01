@@ -26,8 +26,9 @@
         <dl class="dl-horizontal entity-details">
             <dt>Official name</dt>
             <dd>
-                {{ place.full_name }} |
-                <a class="external" href="{{ place.external_url }}">{{ place.external_url_name }} <small class="glyphicon glyphicon-new-window"></small></a>
+                {{ place.full_name }} | {% with place.extern as extern %}
+                <a class="external" href="{{ extern.url }}">{{ extern.name }} <small class="glyphicon glyphicon-new-window"></small></a>
+                {% endwith %}
             </dd>
             
             {% if place.capital %}
@@ -89,8 +90,7 @@
             <dd id="related">{% block related %}
                 <ul class="related-content">{% for rel in place.related_entities %}
                     <li>
-                        <a href="{% url 'travel-entity-relationships' place.type.abbr place.code_url_bit rel.abbr %}">
-                            <span>{{ rel.count }}</span> {{ rel.text }}</a>
+                        <a href="{{ rel.url }}"><span>{{ rel.count }}</span> {{ rel.text }}</a>
                     </li>
                     {% endfor %}
                 </ul>{% endblock related %}

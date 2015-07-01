@@ -1,4 +1,4 @@
-{% extends "travel/entities/listing-base.html" %}
+{% extends "travel/entities/listing/base.html" %}
 {% block list_header %}
     <th>Flag</th>
     <th>Name</th>
@@ -17,7 +17,7 @@
             <a href="{{ place.get_absolute_url }}">
                 {% firstof place.name place.full_name %}</a>
         </td>
-        <td>{{ place.type_detail }}</td>
+        <td>{{ place.category_detail }}</td>
         <td>
             <a href="{{ place.capital.get_absolute_url }}">
                 {{ place.capital.name }}</a>
@@ -27,9 +27,7 @@
                 <img class="flag" src="{{ place.country.flag.thumb.url }}" />
                 {{ place.country.name }}</a>
         </td>
-        <td>{% if place.id in checklist %}
-            <i class="glyphicon glyphicon-ok visited-icon"></i>{% endif %}
-        </td>
+        <td>{% include "travel/_visited.html" with id=place.id %}</td>
     </tr>
     {% endfor %}
 {% endblock listing %}
