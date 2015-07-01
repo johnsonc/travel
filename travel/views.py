@@ -111,7 +111,7 @@ def search_advanced(request):
 def by_locale(request, ref):
     etype = get_object_or_404(travel.TravelEntityType, abbr=ref)
     places = list(etype.entity_set.select_related(
-        'entity', 'flag', 'capital', 'state', 'country', 'continent'
+        'flag', 'capital', 'state', 'country', 'continent'
     ))
     template = 'travel/entities/listing/{}.html'.format(ref)
     return render(request, template, {'type': etype, 'places': places})
