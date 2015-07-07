@@ -101,7 +101,8 @@ class TravelLogForm(forms.ModelForm):
             self.fields['note'].initial = instance.notes.text
     #---------------------------------------------------------------------------
     def clean_arrival(self):
-        return self.entity.tzinfo.localize(self.cleaned_data['arrival'])
+        when = self.cleaned_data['arrival']
+        return self.entity.tzinfo.localize(when) if when else datetime.utcnow()
     
     #---------------------------------------------------------------------------
     def save(self, user=None):
@@ -173,10 +174,11 @@ class BaseTravelEntityForm(forms.ModelForm):
     #---------------------------------------------------------------------------
     def save(self, *args, **kws):
         lat_lon = self.cleaned_data.get('lat_lon')
+        instance = super(BaseTravelEntityForm, self).save(*args, **kws)
         if lat_lon:
             instance.lat, instance.lon = lat_lon
-
-        instance = super(BaseTravelEntityForm, self).save(*args, **kws)
+            instance.save()
+            
         if kws.get('commit', False) and 'flag_url' in self.cleaned_data:
             self.save_flag(instance)
         
