@@ -1,4 +1,4 @@
-{% extends "travel/entities/listing-base.html" %}
+{% extends "travel/entities/listing/base.html" %}
 {% block extra_head %}
     <style type="text/css" media="screen">
         .table tbody > tr > td:first-of-type {
@@ -37,9 +37,7 @@
         <td>
             {{ place.continent }}
         </td>
-        <td>{% if place.id in checklist %}
-            <i class="glyphicon glyphicon-ok visited-icon"></i>{% endif %}
-        </td>
+        <td>{% include "travel/_visited.html" with id=place.id %}</td>
     </tr>
     {% endfor %}
 {% endblock listing %}

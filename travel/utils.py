@@ -5,15 +5,14 @@ import json
 import datetime
 from urllib import quote_plus
 from decimal import Decimal, localcontext
-from django.db import connection
 import requests
 from PIL import Image
-from dateutil import parser
+from dateutil import parser as dt_parser
 
 
 DEFAULT_FLAG_SIZES = (32, 128)
 
-# 
+# from django.db import connection
 # #-------------------------------------------------------------------------------
 # def custom_sql_as_dict(sql, args):
 #     cursor = connection.cursor()
@@ -29,18 +28,18 @@ DEFAULT_FLAG_SIZES = (32, 128)
 
 
 #===============================================================================
-class _ParserInfo(parser.parserinfo):
-    parser.parserinfo.MONTHS[8] += ('Sept',)
-    parser.parserinfo.WEEKDAYS[1] += ('Tues',)
-    parser.parserinfo.WEEKDAYS[2] += ('Weds', 'Wedn')
-    parser.parserinfo.WEEKDAYS[3] += ('Thurs', 'Thur')
+class DateParserInfo(dt_parser.parserinfo):
+    dt_parser.parserinfo.MONTHS[8] += ('Sept',)
+    dt_parser.parserinfo.WEEKDAYS[1] += ('Tues',)
+    dt_parser.parserinfo.WEEKDAYS[2] += ('Weds', 'Wedn')
+    dt_parser.parserinfo.WEEKDAYS[3] += ('Thurs', 'Thur')
 
+_date_parser_info = DateParserInfo()
 
-_parser_info = _ParserInfo()
 
 #-------------------------------------------------------------------------------
 def dt_parse(dtstr, **kws):
-    return parser.parse(dtstr, _parser_info, **kws)
+    return dt_parser.parse(dtstr, _date_parser_info, **kws)
 
 
 #-------------------------------------------------------------------------------
@@ -51,10 +50,7 @@ def nice_url(text):
 #-------------------------------------------------------------------------------
 def get_url_content(url):
     r = requests.get(url)
-    if r.status_code != 200:
-        return None
-    
-    return r.content
+    return r.content if r.ok else None
 
 
 #-------------------------------------------------------------------------------
@@ -84,7 +80,6 @@ def get_wiki_flags_from_svg(url):
         data.append(get_url_content(size_url))
 
     return data
-
 
 
 #-------------------------------------------------------------------------------
@@ -168,26 +163,38 @@ def parse_latlon(s):
     raise ValueError('Invalid Lat/Lon value: %s' % (s,))
 
 
-DATE_FORMAT     = "%Y-%m-%d"
-TIME_FORMAT     = "%H:%M:%S"
-DATETIME_FORMAT = '{}T{}Z'.format(DATE_FORMAT, TIME_FORMAT)
-#DATETIME_FORMAT = '%a, %d %b %Y %H:%M:%S GMT'
+#===============================================================================
+class TravelJsonEncoder(json.JSONEncoder):
+    """
+    JSONEncoder subclass that knows how to encode date/time and decimal types.
+    """
+    
+    DATE_FORMAT     = "%Y-%m-%d"
+    TIME_FORMAT     = "%H:%M:%S"
+    DATETIME_FORMAT = '{}T{}Z'.format(DATE_FORMAT, TIME_FORMAT)
+    
+    #---------------------------------------------------------------------------
+    def _special(self, ctype, value):
+        return {'content_type': ctype, 'value': value}
+        
+    #---------------------------------------------------------------------------
+    def default(self, o):
+        if isinstance(o, datetime.datetime):
+            return self._special('datetime', o.strftime(self.DATETIME_FORMAT))
+        elif isinstance(o, datetime.date):
+            return self._special('date', o.strftime(self.DATE_FORMAT))
+        elif isinstance(o, datetime.time):
+            return self._special('time', o.strftime(self.TIME_FORMAT))
+        elif isinstance(o, Decimal):
+            return self._special('decimal', str(o))
+        
+        return super(TravelJsonEncoder, self).default(o)
 
-parse_date = lambda o: datetime.date(*[int(i) for i in o.split('/')])
-parse_time = lambda o: datetime.time(*[int(i) for i in o.split(':')])
 
-#-------------------------------------------------------------------------------
-def parse_datetime(o):
-    print o
-    return datetime.datetime.strptime(o, DATETIME_FORMAT)
-    dt, tm = o.split()
-    return datetime.datetime.combine(parse_date(dt), parse_time(tm))
-
-
-PARSERS = dict(
-    datetime = parse_datetime,
-    date     = parse_date,
-    time     = parse_time,
+DATETIME_PARSERS = dict(
+    datetime = lambda o: datetime.datetime.strptime(o, TravelJsonEncoder.DATETIME_FORMAT),
+    date     = lambda o: datetime.date(*[int(i) for i in o.split('/')]),
+    time     = lambda o: datetime.time(*[int(i) for i in o.split(':')]),
     decimal  = Decimal
 )
 
@@ -195,38 +202,14 @@ PARSERS = dict(
 #-------------------------------------------------------------------------------
 def object_hook(dct):
     content_type = dct.get('content_type')
-    if content_type in PARSERS:
-        return PARSERS[content_type](dct['value'])
+    if content_type in DATETIME_PARSERS:
+        return DATETIME_PARSERS[content_type](dct['value'])
 
     return dct
 
 
-#===============================================================================
-class JargonEncoder(json.JSONEncoder):
-    """
-    JSONEncoder subclass that knows how to encode date/time and decimal types.
-    """
-
-    #---------------------------------------------------------------------------
-    def _special(self, ctype, value):
-        return dict(content_type=ctype, value=value)
-        
-    #---------------------------------------------------------------------------
-    def default(self, o):
-        if isinstance(o, datetime.datetime):
-            return self._special('datetime', value=o.strftime(DATETIME_FORMAT))
-        elif isinstance(o, datetime.date):
-            return self._special('date', value=o.strftime(DATE_FORMAT))
-        elif isinstance(o, datetime.time):
-            return self._special('time', value=o.strftime(TIME_FORMAT))
-        elif isinstance(o, Decimal):
-            return self._special('decimal', value=str(o))
-        return super(JargonEncoder, self).default(o)
-
-
-
 #-------------------------------------------------------------------------------
-def json_dumps(obj, cls=JargonEncoder, **kws):
+def json_dumps(obj, cls=TravelJsonEncoder, **kws):
     return json.dumps(obj, kws.pop('indent', 4), cls=cls, **kws)
 
 
@@ -285,6 +268,7 @@ def lat_lon_test():
             print '***** {}'.format(why.message)
         print
     print '{} of {} good'.format(good, total)
+
 
 ################################################################################
 if __name__ == '__main__':

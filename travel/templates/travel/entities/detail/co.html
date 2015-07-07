@@ -1,4 +1,4 @@
-{% extends "travel/entities/detail-base.html" %}
+{% extends "travel/entities/detail/base.html" %}
 {% load staticfiles humanize travel_tags %}
 {% block extra_head %}{{ block.super }}
     <style media="screen">
@@ -28,6 +28,8 @@
     <dd>{{ info.denom }} <i>(sing.)</i>; {{ info.denoms }} <i>(pl.)</i></dd>{% endif %}
     <dt>Language(s)</dt>
     <dd>{{ info.get_languages }}</dd>
+    <dt>Phone, TLD</dt>
+    <dd>{{ info.phone }}, {{ info.tld }}</dd>
     {% having info.neighbors.all as neighbors %}
     <dt>Neighbors</dt>
     <dd>{% for neighbor in neighbors %}

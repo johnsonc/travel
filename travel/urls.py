@@ -36,7 +36,7 @@ quiz_patterns = [
     url(r'^flags/$', flag_game.flag_game, name='travel-flag-quiz'),
 ]
 
-urlpatterns = patterns('',
+urlpatterns = [
     url(r'^search/',          include(search_patterns)),
     url(r'^i/(?P<ref>\w+)/',  include(item_patterns)),
     url(r'^add/',             include(add_patterns)),
@@ -45,7 +45,4 @@ urlpatterns = patterns('',
     url(r'^quiz/',            include(quiz_patterns)),
     url(r'^edit/i/(\w+)/(\w+)(?:-(\w+))?/$', views.entity_edit, name='travel-entity-edit'),
     url(r'^plugs/$', TemplateView.as_view(template_name='travel/plugs.html'), name='travel-plugs'),
-
-    url(r'^flags/$',          RedirectView.as_view(pattern_name='travel-flag-quiz')),
-)
-
+]

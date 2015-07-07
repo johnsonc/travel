@@ -1,4 +1,4 @@
-{% extends "travel/entities/listing-base.html" %}
+{% extends "travel/entities/listing/base.html" %}
 {% block list_header %}
     <th></th>
     <th>Name</th>
@@ -13,9 +13,7 @@
         <td><a href="{{ place.get_absolute_url }}">{{ place.name }}</a></td>
         <td>{{ place.state.name }}</td>
         <td>{{ place.country }}</td>
-        <td>{% if place.id in checklist %}
-            <i class="glyphicon glyphicon-ok visited-icon"></i>{% endif %}
-        </td>
+        <td>{% include "travel/_visited.html" with id=place.id %}</td>
     </tr>
     {% endfor %}
 {% endblock listing %}

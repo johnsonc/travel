@@ -91,6 +91,14 @@ class TravelEntityManager(Manager):
         return dict([(e.code, e) for e in self.countries()])
 
 
+    #-------------------------------------------------------------------------------
+    def find(self, abbr, code, aux):
+        if aux:
+            return self.filter(type__abbr=abbr, country__code=code, code=aux)
+        else:
+            return self.filter(type__abbr=abbr, code=code)
+
+
 #===============================================================================
 class TravelLogManager(Manager):
 

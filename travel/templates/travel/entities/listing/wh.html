@@ -1,4 +1,4 @@
-{% extends "travel/entities/listing-base.html" %}
+{% extends "travel/entities/listing/base.html" %}
 {% block list_header %}
     <th style="width:65%">Name</th>
     <th>Category</th>
@@ -18,9 +18,7 @@
                 <img class="flag" src="{{ place.country.flag.thumb.url }}" />
                 {{ place.country.name }}</a>
         </td>
-        <td>{% if place.id in checklist %}
-            <i class="glyphicon glyphicon-ok visited-icon"></i>{% endif %}
-        </td>
+        <td>{% include "travel/_visited.html" with id=place.id %}</td>
     </tr>
     {% endfor %}
 {% endblock listing %}

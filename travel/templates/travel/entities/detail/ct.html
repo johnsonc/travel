@@ -1,0 +1,8 @@
+{% extends "travel/entities/detail/base.html" %}
+{% load travel_tags %}
+{% block extra_details %}
+    {% with place.capital_set.all as caps %}
+    <dt>Capital Of</dt>
+    <dd>{% for cap in caps %}{{ cap }}{% if not forloop.last %}, {% endif %}{% endfor %}</dd>
+    {% endwith %}
+{% endblock extra_details %}

@@ -3,8 +3,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django.shortcuts import get_object_or_404, render
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.decorators import user_passes_test
+from django.contrib.auth.decorators import login_required, user_passes_test
 
 from travel import models as travel
 from travel import forms
@@ -42,16 +41,13 @@ def bucket_lists(request):
 def bucket_list_comparison(request, pk, usernames):
     bucket_list = get_object_or_404(travel.TravelBucketList, pk=pk)
     entities = bucket_list.entities.select_related()
-    ids = [e.id for e in entities]
-    results = []
-    for username in usernames.split('/'):
-        results.append({
-            'username': username,
-            'entities': set(travel.TravelLog.objects.filter(
-                user__username=username,
-                entity__id__in=ids
-            ).values_list('entity__id', flat=True))
-        })
+    results = [{
+        'username': username,
+        'entities': set(travel.TravelLog.objects.filter(
+            user__username=username,
+            entity__in=entities
+        ).values_list('entity__id', flat=True))
+    } for username in usernames.split('/')]
     
     return render(request, 'travel/buckets/compare.html', {
         'bucket_list': bucket_list,
@@ -114,16 +110,15 @@ def search_advanced(request):
 #-------------------------------------------------------------------------------
 def by_locale(request, ref):
     etype = get_object_or_404(travel.TravelEntityType, abbr=ref)
-    return render(request, 'travel/entities/%s-listing.html' % ref, {
-        'type': etype,
-        'places': list(etype.entity_set.select_related(
-            'entity', 'flag', 'capital', 'state', 'country', 'continent'
-        ))
-    })
+    places = list(etype.entity_set.select_related(
+        'flag', 'capital', 'state', 'country', 'continent'
+    ))
+    template = 'travel/entities/listing/{}.html'.format(ref)
+    return render(request, template, {'type': etype, 'places': places})
 
 
 #-------------------------------------------------------------------------------
-def _entity_base(request, entity):
+def _default_entity_handler(request, entity):
     form, history = None, []
     if request.user.is_authenticated():
         history = request.user.travellog_set.filter(entity=entity)
@@ -135,25 +130,21 @@ def _entity_base(request, entity):
         else:
             form = forms.TravelLogForm(entity)
 
-    template = 'travel/entities/%s-detail.html' % entity.type.abbr
-    return render(
-        request,
-        [template, 'travel/entities/detail-base.html'],
-        {'place': entity, 'form': form, 'history': history}
-    )
-
-
-#-------------------------------------------------------------------------------
-def _get_entities(ref, code, aux):
-    if aux:
-        return travel.TravelEntity.objects.filter(type__abbr=ref, country__code=code, code=aux)
-
-    return travel.TravelEntity.objects.filter(type__abbr=ref, code=code)
+    templates = [
+        'travel/entities/detail/{}.html'.format(entity.type.abbr),
+        'travel/entities/detail/base.html'
+    ]
+    
+    return render(request, templates, {
+        'place': entity,
+        'form': form,
+        'history': history
+    })
 
 
 #-------------------------------------------------------------------------------
 def _handle_entity(request, ref, code, aux, handler):
-    entity = _get_entities(ref, code, aux)
+    entity = travel.TravelEntity.objects.find(ref, code, aux)
     n = len(entity)
     if n == 0:
         raise http.Http404
@@ -165,12 +156,12 @@ def _handle_entity(request, ref, code, aux, handler):
 
 #-------------------------------------------------------------------------------
 def entity(request, ref, code, aux=None):
-    return _handle_entity(request, ref, code, aux, _entity_base)
+    return _handle_entity(request, ref, code, aux, _default_entity_handler)
 
 
 #-------------------------------------------------------------------------------
 def entity_relationships(request, ref, code, rel, aux=None):
-    places = _get_entities(ref, code, aux)
+    places = travel.TravelEntity.objects.find(ref, code, aux)
     count  = places.count()
     
     if count == 0:
@@ -180,7 +171,7 @@ def entity_relationships(request, ref, code, rel, aux=None):
 
     place = places[0]
     etype  = get_object_or_404(travel.TravelEntityType, abbr=rel)
-    return render(request, 'travel/entities/%s-listing.html' % rel, {
+    return render(request, 'travel/entities/listing/{}.html'.format(rel), {
         'type': etype,
         'places': place.related_by_type(etype),
         'parent': place
@@ -203,6 +194,7 @@ def log_entry(request, username, pk):
     
     return render(request, 'travel/log-entry.html', {'entry': entry, 'form':  form})
 
+
 ################################################################################
 #
 # Admin utils below
@@ -211,7 +203,7 @@ def log_entry(request, username, pk):
 
 
 #-------------------------------------------------------------------------------
-def _entity_edit(request, entity):
+def _entity_edit(request, entity, template='travel/entities/edit.html'):
     if request.method == 'POST':
         form = forms.EditTravelEntityForm(request.POST, instance=entity)
         if form.is_valid():
@@ -220,11 +212,7 @@ def _entity_edit(request, entity):
     else:
         form = forms.EditTravelEntityForm(instance=entity)
 
-    return render(
-        request,
-        'travel/entities/edit.html',
-        {'place': entity, 'form': form}
-    )
+    return render(request, template, {'place': entity, 'form': form})
 
 
 #-------------------------------------------------------------------------------
@@ -235,7 +223,7 @@ def entity_edit(request, ref, code, aux=None):
 
 #-------------------------------------------------------------------------------
 @superuser_required
-def start_add_entity(request):
+def start_add_entity(request, template='travel/entities/add/start.html'):
     abbr = request.GET.get('type')
     if abbr:
         if abbr == 'co':
@@ -247,17 +235,15 @@ def start_add_entity(request):
                 reverse('travel-entity-add-by-co', args=(co, abbr))
             )
     
-    entity_types = travel.TravelEntityType.objects.exclude(abbr__in=['cn', 'co'])
-    return render(
-        request,
-        'travel/entities/add/start.html',
-        {'types': entity_types, 'countries': travel.TravelEntity.objects.countries()}
-    )
+    return render(request, template, {
+        'types': travel.TravelEntityType.objects.exclude(abbr__in=['cn', 'co']),
+        'countries': travel.TravelEntity.objects.countries()
+    })
 
 
 #-------------------------------------------------------------------------------
 @superuser_required
-def add_entity_co(request):
+def add_entity_co(request, template='travel/entities/add/add.html'):
     entity_type = get_object_or_404(travel.TravelEntityType, abbr='co')
     if request.method == 'POST':
         form = forms.NewCountryForm(request.POST)
@@ -267,16 +253,12 @@ def add_entity_co(request):
     else:
         form = forms.NewCountryForm()
         
-    return render(
-        request,
-        'travel/entities/add/add.html',
-        {'form': form, 'entity_type': entity_type}
-    )
+    return render(request, template, {'form': form, 'entity_type': entity_type})
 
 
 #-------------------------------------------------------------------------------
 @superuser_required
-def add_entity_by_co(request, code, abbr):
+def add_entity_by_co(request, code, abbr, template='travel/entities/add/add.html'):
     entity_type = get_object_or_404(travel.TravelEntityType, abbr=abbr)
     country = travel.TravelEntity.objects.get(code=code, type__abbr='co')
 
@@ -288,7 +270,6 @@ def add_entity_by_co(request, code, abbr):
     else:
         form = forms.NewTravelEntityForm()
     
-    return render(request, 'travel/entities/add/add.html', {
-        'entity_type': entity_type,
-        'form': form
-    })
+    return render(request, template, {'entity_type': entity_type, 'form': form})
+
+

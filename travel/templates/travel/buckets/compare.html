@@ -30,8 +30,8 @@
                 <a href="{{ obj.get_absolute_url }}">{{ obj.descriptive_name }}</a>
             </td>
             {% for result in results  %}
-            <td class="text-center" style="font-size: 1.125em">{% if obj.id in result.entities %}
-                <i class="glyphicon glyphicon-ok-circle"></i>{% endif %}
+            <td class="text-center" style="font-size: 1.125em">
+            {% include "travel/entities/listing/_visited.html" with id=obj.id checklist=result.entities %}
             </td>
             {% endfor %}
         </tr>
