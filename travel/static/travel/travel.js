@@ -215,6 +215,22 @@
     };
     
     //--------------------------------------------------------------------------
+    var sort_handler = function() {
+        var column = this.dataset['column'];
+        var order = this.dataset['order'];
+        var current = this.parentElement.querySelector('.current');
+        if(this === current) {
+            order = (order === 'desc') ? 'asc' : 'desc';
+            this.dataset['order'] = order;
+        }
+        else {
+            current.className = '';
+            this.className = 'current'
+        }
+        profile_history.sort(column, order);
+    };
+    
+    //--------------------------------------------------------------------------
     var profile_history = {
         media_prefix: '/media/',
         initialize: function(history, conf) {
@@ -224,7 +240,7 @@
             var countries = {};
 
             this.filters = {'type': null, 'country__code': null};
-            this.all_entities = Iter.each(history, function(e) {
+            this.current_entities = this.all_entities = Iter.each(history, function(e) {
                 e.entity_url = entity_url(e);
                 e.recent_visit = moment(e.recent_visit.value);
                 e.first_visit = moment(e.first_visit.value);
@@ -248,9 +264,9 @@
                 co_opts.appendChild(opt);
             });
             
-            Iter.each(document.querySelectorAll('#history thead th'), function(e) {
+            Iter.each(document.querySelectorAll('#history thead th[data-column]'), function(e) {
                 DOM.evt(e, 'click', sort_handler);
-            });
+            }, this);
 
             Iter.each(document.querySelectorAll('#id_filter option'), function(e) {
                 if(summary[e.value]) {
@@ -269,7 +285,7 @@
             console.log('filter bits', bits);
             this.filters = {'type': type, 'co': co};
             if(type || co || dt) {
-                entities = Iter.filter(entities, function(e) {
+                entities = this.current_entities = Iter.filter(entities, function(e) {
                     var good = true;
                     if(type) {
                         good &= (e.type__abbr === type);
@@ -313,7 +329,21 @@
             console.log('delta', new Date() - start);
         },
 
-        sort: function(col, order) {
+        sort: function(column, order) {
+            console.log({'column': column, 'order': order});
+            this.current_entities.sort(function(a, b) {
+                var result = 0;
+                if(a[column] > b[column]) {
+                    result = 1;
+                }
+                else {
+                    if(a[column] < b[column]) {
+                        result = -1;
+                    }
+                }
+                return (result && order === 'desc') ? -result : result;
+            });
+            this.show_entities(this.current_entities);
         }
         
     };
@@ -450,27 +480,6 @@
         DOM.evt(date_el, 'propertychange', on_filter_change);
     };
     
-    //--------------------------------------------------------------------------
-    var sort_handler = function() {
-        var bits;
-        var col = 'recent';
-        var order = 'desc';
-        var class_names = this.className.split(' ');
-        
-        for(var i = 0, j = class_names.length; i < j; i++) {
-            bits = class_names[i].split('_');
-            if(bits[0] === 'col') {
-                col = bits[1];
-            }
-            else if(bits[0] === 'sort') {
-                order = bits[1];
-                class_names[i] = 'sort_' + (order === 'asc' ? 'desc' : 'asc');
-            }
-        }
-        
-        this.className = class_names.join(' ');
-        profile_history.sort(col, order);
-    };
     
     return {
         profile_history: profile_history,
