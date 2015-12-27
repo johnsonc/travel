@@ -2,20 +2,21 @@
 // Sample entity object
 //------------------------------------------------------------------------------
 // entity = {
+//    "flag__thumb": "img/flags/co/fr/fr-32.png",
+//    "first_visit": {"value": "2013-08-04T10:00:00Z", "content_type": "datetime"},
+//    "code": "FR",
 //    "rating": 3,
-//    "id": 1463,
-//    "code": "BUD",
-//    "type__title": "Airport",
-//    "num_visits": 1,
-//    "flag__thumb": "img/ap-32.png",
-//    "type__abbr": "ap",
-//    "id": 276
-//    "country__code": "HU",
-//    "country__name": "Hungary",
-//    "recent_visit": "2013-12-29 08:00:00",
-//    "first_visit": "2013-12-29 08:00:00",
-//    "name": "Budapest Ferenc Liszt International Airport"
-// }
+//    "name": "France",
+//    "locality": "",
+//    "country__flag__thumb": null,
+//    "country__code": null,
+//    "country__name": null,
+//    "num_visits": 15,
+//    "type__title": "Country",
+//    "type__abbr": "co",
+//    "recent_visit": {"value": "2015-12-23T11:00:00Z", "content_type": "datetime"},
+//    "id": 86
+//}
 //------------------------------------------------------------------------------
 
 ;var Travelogue = (function() {
@@ -151,6 +152,11 @@
         },
         remove: function(el) {
             el.parentNode.removeChild(el);
+        },
+        remove_children: function(el) {
+            while(el.lastChild) {
+              el.removeChild(el.lastChild);
+            }
         }
     };
     
@@ -215,19 +221,48 @@
     };
     
     //--------------------------------------------------------------------------
-    var sort_handler = function() {
-        var column = this.dataset['column'];
-        var order = this.dataset['order'];
-        var current = this.parentElement.querySelector('.current');
-        if(this === current) {
+    var initialize_log_entry = function(e, media_prefix) {
+        e.entity_url = entity_url(e);
+        e.recent_visit = moment(e.recent_visit.value);
+        e.first_visit = moment(e.first_visit.value);
+        e.flag__thumb = media_prefix + e.flag__thumb;
+        if(e.country__flag__thumb) {
+            e.country__flag__thumb = media_prefix + e.country__flag__thumb;
+        }
+        return e;
+    };
+    
+    //--------------------------------------------------------------------------
+    var get_ordering = function(el) {
+        var column = el.dataset['column'];
+        var order = el.dataset['order'];
+        var current = el.parentElement.querySelector('.current');
+        if(el === current) {
             order = (order === 'desc') ? 'asc' : 'desc';
-            this.dataset['order'] = order;
+            el.dataset['order'] = order;
         }
         else {
             current.className = '';
-            this.className = 'current'
+            el.className = 'current'
         }
-        profile_history.sort(column, order);
+        return {'column': column, 'order': order};
+    };
+    
+    //--------------------------------------------------------------------------
+    var update_type_selector = function(summary, filtered) {
+        Iter.each(document.querySelectorAll('#id_filter option'), function(e) {
+            var format = e.dataset.format;
+            var total = summary[e.value] || '';
+            var sub = '';
+            var text = total;
+            if(total) {
+                if(filtered) {
+                    text = (filtered[e.value] || 0) +  ' of ' + total;
+                }
+                text = '(' + text + ')';
+            }
+            e.text = format.replace('$', text);
+        });
     };
     
     //--------------------------------------------------------------------------
@@ -236,26 +271,18 @@
         initialize: function(history, conf) {
             var media_prefix = conf.media_prefix || this.media_prefix;
             var co_opts = $$('id_co');
-            var summary = {};
             var countries = {};
-
+            this.summary = {'': history.length};
             this.filters = {'type': null, 'country__code': null};
             this.current_entities = this.all_entities = Iter.each(history, function(e) {
-                e.entity_url = entity_url(e);
-                e.recent_visit = moment(e.recent_visit.value);
-                e.first_visit = moment(e.first_visit.value);
-                e.flag__thumb = media_prefix + e.flag__thumb;
-                if(e.country__flag__thumb) {
-                    e.country__flag__thumb = media_prefix + e.country__flag__thumb;
-                }
+                e = initialize_log_entry(e, media_prefix);
                 if(e.country__code) {
                     countries[e.country__code] = e.country__name;
                 }
-                increment(summary, e.type__abbr);
+                increment(this.summary, e.type__abbr);
                 return e;
-            });
-            summary[''] = history.length;
-            console.log(summary);
+            }, this);
+            console.log(this.summary);
             
             Iter.each(sorted_dict(countries), function(item) {
                 var opt = document.createElement('option');
@@ -265,27 +292,34 @@
             });
             
             Iter.each(document.querySelectorAll('#history thead th[data-column]'), function(e) {
-                DOM.evt(e, 'click', sort_handler);
+                var ph = this;
+                DOM.evt(e, 'click', function(evt) {
+                    var ordering = get_ordering(this);
+                    if(ordering.order === 'asc') {
+                        update_hash(get_filter_bits());
+                    }
+                    ph.sort_current(ordering.column, ordering.order);
+                    ph.show_entities(this.current_entities);
+                    
+                });
             }, this);
 
-            Iter.each(document.querySelectorAll('#id_filter option'), function(e) {
-                if(summary[e.value]) {
-                    e.text += ' ' + ' (' + summary[e.value] + ')';
-                }
-            });
+            update_type_selector(this.summary);
         },
-
+        
         filter: function(bits) {
             var type     = bits.type;
             var co       = bits.co;
             var dt       = bits.date ? new Date(bits.date) : null;
             var tf       = bits.timeframe;
             var entities = this.all_entities;
+            var summary  = null;
             
             console.log('filter bits', bits);
             this.filters = {'type': type, 'co': co};
             if(type || co || dt) {
-                entities = this.current_entities = Iter.filter(entities, function(e) {
+                summary = {};
+                entities = Iter.filter(entities, function(e) {
                     var good = true;
                     if(type) {
                         good &= (e.type__abbr === type);
@@ -303,15 +337,19 @@
                             good &= (e.recent_visit <= dt);
                         }
                     }
-
-                    return !!good;
+                    if(good) {
+                        increment(summary, e.type__abbr);
+                        return true;
+                    }
+                    return false;
                 });
+                summary[''] = entities.length
             }
             
-            this.show_entities(entities);
+            this.show_entities(entities, summary);
         },
         
-        show_entities: function(entities) {
+        show_entities: function(entities, summary) {
             var i, start;
             var count = entities.length;
             var parent = $$('history');
@@ -327,10 +365,11 @@
             }
             parent.appendChild(el);
             console.log('delta', new Date() - start);
+            update_type_selector(this.summary, summary);
         },
 
-        sort: function(column, order) {
-            console.log({'column': column, 'order': order});
+        sort_current: function(column, order) {
+            console.log('ordering', column, order);
             this.current_entities.sort(function(a, b) {
                 var result = 0;
                 if(a[column] > b[column]) {
@@ -343,7 +382,6 @@
                 }
                 return (result && order === 'desc') ? -result : result;
             });
-            this.show_entities(this.current_entities);
         }
         
     };
@@ -351,9 +389,10 @@
 
     //--------------------------------------------------------------------------
     var make_hash = function(bits) {
-        var a = []
+        var a = [];
         bits.type && a.push('type', bits.type);
         bits.co   && a.push('co', bits.co);
+        bits.asc  && a.push('asc', bits.asc);
         if(bits.date && bits.timeframe) {
             a.push('date', bits.timeframe + bits.date);
         }
@@ -387,7 +426,7 @@
     //--------------------------------------------------------------------------
     var pad = function(n) {
         return n < 10 ? '0' + n : n;
-    }
+    };
 
     //--------------------------------------------------------------------------
     var get_datepicker_iso = function() {
@@ -403,12 +442,17 @@
     
     //--------------------------------------------------------------------------
     var get_filter_bits = function() {
-        return {
+        var bits = {
             type:      $$('id_filter').value,
             co:        $$('id_co').value,
             timeframe: $$('id_timeframe').value,
             date:      get_datepicker_iso()
         };
+        var el = document.querySelector('#history thead .current');
+        if(el && el.dataset['order'] == 'asc') {
+            bits['asc'] = el.dataset['column'];
+        }
+        return bits;
     };
     
     //--------------------------------------------------------------------------

@@ -30,15 +30,15 @@
         <div class="form-group">
             <label for="id_filter">Filter by</label>
             <select id="id_filter" class="filter_ctrl form-control input-sm">
-                <option value="">-- All entries --</option>
-                <option value="cn">Continents</option>
-                <option value="co">Countries</option>
-                <option value="st">States</option>
-                <option value="ap">Airports</option>
-                <option value="ct">Cities</option>
-                <option value="np">National Parks</option>
-                <option value="lm">Landmarks</option>
-                <option value="wh">World Heritage</option>
+                <option data-format="-- All entries $--" value="">-- All entries --</option>
+                <option data-format="Continents $"      value="cn">Continents</option>
+                <option data-format="Countries $"       value="co">Countries</option>
+                <option data-format="States $"          value="st">States</option>
+                <option data-format="Airports $"        value="ap">Airports</option>
+                <option data-format="Cities $"          value="ct">Cities</option>
+                <option data-format="National Parks $"  value="np">National Parks</option>
+                <option data-format="Landmarks $"       value="lm">Landmarks</option>
+                <option data-format="World Heritage $"  value="wh">World Heritage</option>
             </select>
         </div>
         <div class="form-group" id="show_countries">
@@ -57,6 +57,9 @@
             <input type="text" id="id_date" class="form-control input-sm">
         </div>
         <div class="form-group" id="id_count"></div>
+    </div>
+    <div>
+        <strong class="">Countries: <span class="badge">42</span></strong>
     </div>
     <table id="history" class="table table-hover table-condensed table-striped">
         <thead>
