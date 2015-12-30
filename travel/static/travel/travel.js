@@ -54,7 +54,7 @@
             }
             return (a.name < b.name) ? -1 : 0;
         },
-        'recent': function(a, b) { return b.recent_visit.date - a.recent_visit.date; },
+        'recent': function(a, b) { return b.arrival.date - a.arrival.date; },
         'first':  function(a, b) { return b.first_visit.date - a.first_visit.date; },
         'logs':   function(a, b) { return b.num_visits - a.num_visits; },
         'rating': function(a, b) { return a.rating - b.rating; }
@@ -86,9 +86,16 @@
     //--------------------------------------------------------------------------
     var Iter = {
         each: function(items, callback, ctx) {
-            var results = [];
+            var i = 0, length = items.length;
             ctx = ctx || items;
-            for(var i = 0, length = items.length; i < length; i++) {
+            for(; i < length; i++) {
+                callback.call(ctx, items[i], i);
+            }
+        },
+        map: function(items, callback, ctx) {
+            var results = [], i = 0, length = items.length;
+            ctx = ctx || items;
+            for(; i < length; i++) {
                 results.push(callback.call(ctx, items[i], i));
             }
             return results;
@@ -116,7 +123,7 @@
             }
             return items;
         }
-    }
+    };
     
     //--------------------------------------------------------------------------
     var DOM = root.DOM = {
@@ -163,13 +170,14 @@
     //--------------------------------------------------------------------------
     var date_tags = function(dtw) {
         return [
-            DOM.create('nobr', dtw.format(DATE_STRING)),
-            DOM.create('nobr', dtw.format(TIME_STRING))
+            DOM.create('div', dtw.format(DATE_STRING)),
+            DOM.create('div', dtw.format(TIME_STRING))
         ];
     };
     
     //--------------------------------------------------------------------------
-    var create_entity_row = function(e) {
+    var create_log_row = function(log) {
+        var e = log.entity;
         var name_td = DOM.create('td');
         var flag_td = DOM.create('td');
         var extras = [];
@@ -204,10 +212,10 @@
             flag_td,
             DOM.create('td', e.type__title),
             name_td,
-            DOM.create('td', date_tags(e.recent_visit)),
-            DOM.create('td', date_tags(e.first_visit)),
-            DOM.create('td', e.num_visits),
-            DOM.create('td', stars(e.rating))
+            DOM.create('td', {'class': 'when'}, date_tags(log.arrival)),
+            DOM.create('td', {'class': 'when'}, date_tags(e.logs[e.logs.length-1].arrival)),
+            DOM.create('td', e.logs.length),
+            DOM.create('td', stars(log.rating))
         ]);
     };
     
@@ -215,16 +223,15 @@
     var sorted_dict = function(dct) {
         var keys = Iter.keys(dct);
         keys.sort();
-        return Iter.each(keys, function(key) {
+        return Iter.map(keys, function(key) {
             return [key, dct[key]];
         });
     };
     
     //--------------------------------------------------------------------------
     var initialize_log_entry = function(e, media_prefix) {
+        e.logs = [];
         e.entity_url = entity_url(e);
-        e.recent_visit = moment(e.recent_visit.value);
-        e.first_visit = moment(e.first_visit.value);
         e.flag__thumb = media_prefix + e.flag__thumb;
         if(e.country__flag__thumb) {
             e.country__flag__thumb = media_prefix + e.country__flag__thumb;
@@ -249,128 +256,168 @@
     };
     
     //--------------------------------------------------------------------------
-    var update_type_selector = function(summary, filtered) {
-        Iter.each(document.querySelectorAll('#id_filter option'), function(e) {
-            var format = e.dataset.format;
-            var total = summary[e.value] || '';
-            var sub = '';
-            var text = total;
-            if(total) {
-                if(filtered) {
-                    text = (filtered[e.value] || 0) +  ' of ' + total;
-                }
-                text = '(' + text + ')';
+    var show_summary = function(summary, filtered) {
+        var el = $$('summary');
+        var which = filtered || summary;
+        DOM.remove_children(el);
+        el.appendChild(DOM.create('strong', 'Summary: '))
+        which.iter(function(key) {
+            var items = Iter.keys(this[key]).length;
+            if(items) {
+                el.appendChild(DOM.create(
+                    'span',
+                    {'class': 'label label-info'},
+                    type_mapping[key] + ': ' + items
+                ));
             }
-            e.text = format.replace('$', text);
         });
     };
     
     //--------------------------------------------------------------------------
+    var create_country_options = function(countries) {
+        var cos = $$('id_co');
+        Iter.each(sorted_dict(countries), function(item) {
+            cos.appendChild(DOM.create('option', item[1], {'value': item[0]}));
+        });
+        
+    };
+    
+    //--------------------------------------------------------------------------
+    var init_ordering_by_columns = function(history) {
+        var columns = document.querySelectorAll('#history thead th[data-column]');
+        Iter.each(columns, function(e) {
+            DOM.evt(e, 'click', function(evt) {
+                var ordering = get_ordering(this);
+                if(ordering.order === 'asc') {
+                    update_hash(get_filter_bits());
+                }
+                history.sort_current(ordering.column, ordering.order);
+                history.show_logs(history.current_logs);
+                
+            });
+        });
+    };
+    
+    //==========================================================================
+    var Summary = function() {
+        Iter.each(Summary.keys, function(key) {
+            this[key] = {};
+        }, this);
+    }
+
+    //--------------------------------------------------------------------------
+    Summary.prototype.add = function(e) {
+        increment(this[e.type__abbr], e.id);
+    };
+    
+    //--------------------------------------------------------------------------
+    Summary.prototype.iter = function(callback) {
+        Iter.each(Summary.keys, callback, this);
+    };
+    
+    Summary.keys = ['cn', 'co', 'st', 'ap', 'ct', 'np', 'lm', 'wh'];
+    
+    //--------------------------------------------------------------------------
     var profile_history = {
         media_prefix: '/media/',
-        initialize: function(history, conf) {
+        initialize: function(entities, logs, conf) {
             var media_prefix = conf.media_prefix || this.media_prefix;
-            var co_opts = $$('id_co');
             var countries = {};
-            this.summary = {'': history.length};
+            this.summary = new Summary;
             this.filters = {'type': null, 'country__code': null};
-            this.current_entities = this.all_entities = Iter.each(history, function(e) {
+            this.entities = {};
+            Iter.each(entities, function(e) {
                 e = initialize_log_entry(e, media_prefix);
                 if(e.country__code) {
                     countries[e.country__code] = e.country__name;
                 }
-                increment(this.summary, e.type__abbr);
-                return e;
+                this.entities[e.id] = e;
             }, this);
+            
+            this.current_logs = this.all_logs = Iter.map(logs, function(log) {
+                log.entity = this.entities[log.entity__id];
+                log.entity.logs.push(log);
+                log.arrival = moment(log.arrival.value);
+                this.summary.add(log.entity);
+                return log;
+            }, this);
+            
             console.log(this.summary);
-            
-            Iter.each(sorted_dict(countries), function(item) {
-                var opt = document.createElement('option');
-                opt.value = item[0];
-                opt.textContent = item[1];
-                co_opts.appendChild(opt);
-            });
-            
-            Iter.each(document.querySelectorAll('#history thead th[data-column]'), function(e) {
-                var ph = this;
-                DOM.evt(e, 'click', function(evt) {
-                    var ordering = get_ordering(this);
-                    if(ordering.order === 'asc') {
-                        update_hash(get_filter_bits());
-                    }
-                    ph.sort_current(ordering.column, ordering.order);
-                    ph.show_entities(this.current_entities);
-                    
-                });
-            }, this);
-
-            update_type_selector(this.summary);
+            create_country_options(countries);
+            init_ordering_by_columns(this);
+            show_summary(this.summary);
         },
         
-        filter: function(bits) {
-            var type     = bits.type;
-            var co       = bits.co;
-            var dt       = bits.date ? new Date(bits.date) : null;
-            var tf       = bits.timeframe;
-            var entities = this.all_entities;
-            var summary  = null;
+        filter_logs: function(bits) {
+            var type    = bits.type;
+            var co      = bits.co;
+            var dt      = bits.date;
+            var tf      = bits.timeframe;
+            var logs    = this.all_logs;
+            var summary = this.summary;
             
             console.log('filter bits', bits);
             this.filters = {'type': type, 'co': co};
-            if(type || co || dt) {
-                summary = {};
-                entities = Iter.filter(entities, function(e) {
+            if(type || co || tf) {
+                summary = new Summary;
+                logs = Iter.filter(logs, function(e) {
                     var good = true;
                     if(type) {
-                        good &= (e.type__abbr === type);
+                        good &= (e.entity.type__abbr === type);
                     }
 
                     if(co) {
-                        good &= (e.country__code === co || (e.type__abbr === 'co' && e.code === co));
+                        good &= (e.entity.country__code === co || (e.entity.type__abbr === 'co' && e.entity.code === co));
                     }
                     
-                    if(tf && dt) {
-                        if(tf == '+') {
-                            good &= (e.recent_visit >= dt);
-                        }
-                        else if(tf == '-') {
-                            good &= (e.recent_visit <= dt);
+                    if(good && tf && dt) {
+                        switch(tf) {
+                            case '+':
+                                good &= e.arrival.isAfter(dt);
+                                break
+                            case '-':
+                                good &= e.arrival.isBefore(dt);
+                                break;
+                            case '=':
+                                good &= (e.arrival.year() === dt.getFullYear());
+                                break;
+                            default:
+                                good = false;
                         }
                     }
                     if(good) {
-                        increment(summary, e.type__abbr);
+                        summary.add(e.entity);
                         return true;
                     }
                     return false;
                 });
-                summary[''] = entities.length
             }
             
-            this.show_entities(entities, summary);
+            this.show_logs(logs, summary);
         },
         
-        show_entities: function(entities, summary) {
+        show_logs: function(logs, summary) {
             var i, start;
-            var count = entities.length;
+            var count = logs.length;
             var parent = $$('history');
             var el = parent.querySelector('tbody');
-            this.current_entities = entities;
+            this.current_logs = logs;
             $$('id_count').textContent = (count + ' entr' + (count > 1 ? 'ies' : 'y'));
 
             start = new Date();
             DOM.remove(el);
             el = DOM.create('tbody');
-            for(i = 0; i < count; i++) {
-                el.appendChild(create_entity_row(entities[i]));
-            }
+            Iter.each(logs, function(log) {
+                el.appendChild(create_log_row(log));
+            });
             parent.appendChild(el);
             console.log('delta', new Date() - start);
-            update_type_selector(this.summary, summary);
+            show_summary(summary);
         },
 
         sort_current: function(column, order) {
             console.log('ordering', column, order);
-            this.current_entities.sort(function(a, b) {
+            this.current_logs.sort(function(a, b) {
                 var result = 0;
                 if(a[column] > b[column]) {
                     result = 1;
@@ -403,11 +450,17 @@
     //--------------------------------------------------------------------------
     var obj_from_hash = function(hash) {
         var obj = {};
+        var arr;
+        hash = hash || window.location.hash;
+        if(hash && hash[0] == '#') {
+            hash = hash.substr(1);
+        }
+        
         if(hash) {
-            var a = hash.split('/');
-            for(var i = 0, j = a.length; i < j; i += 2) {
-                if(a[i]) {
-                    obj[a[i]] = a[i + 1];
+            arr = hash.split('/');
+            for(var i = 0, j = arr.length; i < j; i += 2) {
+                if(arr[i]) {
+                    obj[arr[i]] = arr[i + 1];
                 }
             }
             if(obj.date) {
@@ -429,15 +482,9 @@
     };
 
     //--------------------------------------------------------------------------
-    var get_datepicker_iso = function() {
+    var get_datepicker = function() {
         var dt = document.getElementById('id_date').value;
-        if(dt) {
-            dt = new Date(dt);
-            return dt.getFullYear()
-                 + '-' + pad(dt.getMonth() + 1)
-                 + '-' + pad(dt.getDate());
-        }
-        return '';
+        return dt ? moment(dt) : null;
     }
     
     //--------------------------------------------------------------------------
@@ -446,7 +493,7 @@
             type:      $$('id_filter').value,
             co:        $$('id_co').value,
             timeframe: $$('id_timeframe').value,
-            date:      get_datepicker_iso()
+            date:      get_datepicker()
         };
         var el = document.querySelector('#history thead .current');
         if(el && el.dataset['order'] == 'asc') {
@@ -461,75 +508,60 @@
         console.log(bits);
         
         update_hash(bits);
-        profile_history.filter(bits);
+        profile_history.filter_logs(bits);
+    };
+    
+    //--------------------------------------------------------------------------
+    var set_filter_fields = function(bits) {
+        $$('id_filter').value = bits.type || '';
+        $$('id_timeframe').value = bits.timeframe || '';
+        $$('id_co').value = bits.co || '';
+        if(bits.date) {
+            $$('id_date').value = bits.date;
+        }
+        else {
+            $$('id_date').style.display = 'none';
+        }
     };
     
     //--------------------------------------------------------------------------
     var on_hash_change = function() {
-        var hash = window.location.hash;
-        var bits = obj_from_hash(hash.length > 1 ? hash.substr(1) : '');
-        var dt = $$('id_date');
-
-        console.log('bits', bits);
-        Iter.each(document.querySelectorAll('.filter_ctrl'), function(e) {
-            e.value = '';
-        });
-        
-        if(bits.type) {
-            $$('id_filter').value = bits.type;
-        }
-        if(bits.co) {
-            $$('id_co').value = bits.co;
-        }
-        if(bits.timeframe) {
-            $$('id_timeframe').value = bits.timeframe;
-        }
-        if(bits.date) {
-            dt.value = bits.date;
-        }
-        else {
-            dt.style.display = 'none';
-        }
-        profile_history.filter(bits);
+        var bits = obj_from_hash(window.location.hash);
+        set_filter_fields(bits);
+        profile_history.filter_logs(bits);
     };
 
     //--------------------------------------------------------------------------
-    var init_profile_filter = function() {
+    var init_profile_filter = function(conf) {
+        var date_el = $$('id_date');
         var picker = new Pikaday({
-            field: document.getElementById('id_date'),
+            field: date_el,
             format: 'YYYY-MM-DD',
             minDate: new Date(1920,1,1),
             yearRange: [1920, (new Date()).getFullYear()],
-            onSelect: function(dt) {
-                console.log(dt);
-                console.log(this);
-            }
+            onSelect: function(dt) { console.log(dt, this); }
         });
         
-        var date_el = $$('id_date');
         DOM.evt(window, 'hashchange', on_hash_change);
-        Iter.each(document.querySelectorAll('.filter_ctrl'), function(e) {
-            DOM.evt(e, 'change', on_filter_change);
-        });
-        
         DOM.evt($$('id_timeframe'), 'change', function() {
             date_el.style.display = this.value ? 'inline-block' : 'none';
         });
         
-        on_hash_change();
-        // .datepicker({changeMonth: true, changeYear: true, showButtonPanel: true, yearRange: 'c-50:nnnn' });
-        
         DOM.evt(date_el, 'change', on_filter_change);
         DOM.evt(date_el, 'input', on_filter_change);
         DOM.evt(date_el, 'propertychange', on_filter_change);
+        Iter.each(document.querySelectorAll('.filter_ctrl'), function(e) {
+            DOM.evt(e, 'change', on_filter_change);
+        });
+
+        on_hash_change();
     };
     
-    
+    root.profile_history = profile_history;
     return {
-        profile_history: profile_history,
-        initialize: function(history, conf) {
-            profile_history.initialize(history, conf);
-            init_profile_filter();
+        profile_history: function(entities, logs, conf) {
+            profile_history.initialize(entities, logs, conf);
+            init_profile_filter(conf);
         }
     };
 }());

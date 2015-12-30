@@ -487,21 +487,24 @@ class TravelLog(models.Model):
     #---------------------------------------------------------------------------
     @classmethod
     def user_history(cls, user):
-        return TravelEntity.objects.filter(travellog__user=user).distinct().annotate(
-            num_visits=models.Count('travellog__user'),
-            first_visit=models.Min('travellog__arrival'),
-            recent_visit=models.Max('travellog__arrival'),
-            rating=models.Min('travellog__rating')
-        ).order_by('-recent_visit').values(
-            'id', 'code', 'name', 'locality', 'country__name', 'country__code',
-            'country__flag__thumb', 'rating', 'recent_visit', 'first_visit',
-            'num_visits', 'type__abbr', 'type__title', 'flag__thumb',
+        return (
+            TravelEntity.objects.filter(travellog__user=user).distinct().values(
+                'id', 'code', 'name', 'locality', 'country__name', 'country__code',
+                'country__flag__thumb', 'type__abbr', 'type__title', 'flag__thumb'
+            ),
+            TravelLog.objects.filter(user=user).order_by('-arrival').values(
+                'arrival', 'entity__id', 'rating'
+            )
         )
 
     #---------------------------------------------------------------------------
     @classmethod
     def history_json(cls, user):
-        return travel_utils.json_dumps(list(cls.user_history(user)))
+        entities, logs = cls.user_history(user)
+        return travel_utils.json_dumps({
+            'entities': list(entities),
+            'logs': list(logs)
+        })
 
 
 #===============================================================================

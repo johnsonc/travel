@@ -3,17 +3,12 @@
 {% block extra_head %}
     {{ block.super }}
     <link rel="stylesheet" href="{% static 'css/pikaday.css' %}" type="text/css" media="screen, print">
-{% endblock extra_head %}
-{% block travel_heading %}Travelogue for {{ profile.user.username }}{% endblock %}
-{% block travel_content %}
-    {% if profile.is_public or profile.user == request.user %}
-    <div id="id_summary"></div>
     <style media="screen">
         .profile-filter { padding: 8px 8px 0 8px ; border: 1px solid #dfd7ca; }
         .profile-filter > .form-group { display: inline-block; margin-bottom: 8px; }
         .profile-filter .form-control { display: inline-block; width: auto; }
         #show_countries { display: inline-block; }
-        #id_count { white-space: nowrap; }
+        #history .when, #id_count { white-space: nowrap; }
         #history thead th { min-width: 4em; }
         #history thead th.current .order {
             width: 0;
@@ -22,23 +17,27 @@
             border-left: 5px solid transparent;
             border-right: 5px solid transparent;
         }
-        
         #history thead th[data-order="desc"].current .order { border-top: 5px solid #777; border-bottom: none; }
         #history thead th[data-order="asc"].current .order { border-bottom: 5px solid #777; border-top: none; }
+        #summary span { margin-right: 4px; }
     </style>
+{% endblock extra_head %}
+{% block travel_heading %}Travelogue for {{ profile.user.username }}{% endblock %}
+{% block travel_content %}
+    {% if profile.is_public or profile.user == request.user %}
     <div class="profile-filter form-inline well well-sm">
         <div class="form-group">
             <label for="id_filter">Filter by</label>
             <select id="id_filter" class="filter_ctrl form-control input-sm">
-                <option data-format="-- All entries $--" value="">-- All entries --</option>
-                <option data-format="Continents $"      value="cn">Continents</option>
-                <option data-format="Countries $"       value="co">Countries</option>
-                <option data-format="States $"          value="st">States</option>
-                <option data-format="Airports $"        value="ap">Airports</option>
-                <option data-format="Cities $"          value="ct">Cities</option>
-                <option data-format="National Parks $"  value="np">National Parks</option>
-                <option data-format="Landmarks $"       value="lm">Landmarks</option>
-                <option data-format="World Heritage $"  value="wh">World Heritage</option>
+                <option value="">-- All entries --</option>
+                <option value="cn">Continents</option>
+                <option value="co">Countries</option>
+                <option value="st">States</option>
+                <option value="ap">Airports</option>
+                <option value="ct">Cities</option>
+                <option value="np">National Parks</option>
+                <option value="lm">Landmarks</option>
+                <option value="wh">World Heritage</option>
             </select>
         </div>
         <div class="form-group" id="show_countries">
@@ -53,21 +52,20 @@
                 <option value="">-- All Dates --</option>
                 <option value="-">Before</option>
                 <option value="+">After</option>
+                <option value="=">For Year</option>
             </select>
             <input type="text" id="id_date" class="form-control input-sm">
         </div>
         <div class="form-group" id="id_count"></div>
     </div>
-    <div>
-        <strong class="">Countries: <span class="badge">42</span></strong>
-    </div>
+    <div id="summary" class="well well-sm"></div>
     <table id="history" class="table table-hover table-condensed table-striped">
         <thead>
             <tr>
                 <th></th>
                 <th data-column="type__title" data-order="desc">Type <span class="order"></span></th>
                 <th data-column="name" data-order="desc">Name <span class="order"></span></th>
-                <th class="current" data-column="recent_visit" data-order="desc">Recent Visit <span class="order"></span></th>
+                <th class="current" data-column="recent_visit" data-order="desc">This Visit <span class="order"></span></th>
                 <th data-column="first_visit" data-order="desc">First Visit <span class="order"></span></th>
                 <th data-column="num_visits" data-order="desc">Logs <span class="order"></span></th>
                 <th data-column="rating" data-order="desc">Rating <span class="order"></span></th>
@@ -86,9 +84,10 @@
     <script type="text/javascript" src="/static/js/pikaday.js"></script>
     <script type="text/javascript" charset="utf-8">
         (function() {
-            var profile_history = {{ profile.history_json|safe }};
-            Travelogue.initialize(
-                profile_history,
+            var history = {{ profile.history_json|safe }};
+            Travelogue.profile_history(
+                history.entities,
+                history.logs,
                 {'media_prefix': '{{ MEDIA_URL }}'}
             );
         })();
