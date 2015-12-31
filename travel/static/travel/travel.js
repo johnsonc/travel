@@ -60,14 +60,15 @@
         'rating': function(a, b) { return a.rating - b.rating; }
     };
     
-    var DATE_STRING = 'MMM Do YYYY';
-    var TIME_STRING = 'ddd h:ssa';
+    var DATE_STRING  = 'MMM Do YYYY';
+    var TIME_STRING  = 'ddd h:ssa';
+    var MEDIA_PREFIX = '/media/';
+    var DATE_FORMAT  = 'YYYY-MM-DD';
+    var STARS        = '★★★★★';
+    
     
     //--------------------------------------------------------------------------
-    var stars = (function() {
-        var STARS = '★★★★★';
-        return function(rating) { return STARS.substr(rating - 1); };
-    }());
+    var stars = function(rating) { return STARS.substr(rating - 1); };
     
     //--------------------------------------------------------------------------
     var increment = function(obj, field) {
@@ -183,29 +184,29 @@
         var extras = [];
         var attrs = {
             'data-id' : e.id,
-            'class': e.type__abbr + ' co-' + (e.country__code ? e.country__code : (e.type__abbr == 'co' ? e.code : ''))
+            'class': e.type__abbr + ' co-' + (
+                e.country__code ?
+                e.country__code :
+                (e.type__abbr == 'co' ? e.code : '')
+            )
         };
 
         name_td.appendChild(DOM.create('a', e.name, {'href': e.entity_url}));
-
         if(e.flag__thumb) {
             flag_td.appendChild(DOM.create('img', {'src': e.flag__thumb, 'class': 'flag'}));
         }
         
-        if(e.locality) {
-            extras.push(e.locality);
-        }
-
-        if(e.country__name) {
-            extras.push(e.country__name);
-        }
-
+        e.locality && extras.push(e.locality);
+        e.country__name && extras.push(e.country__name);
         if(extras.length) {
             name_td.appendChild(DOM.create('span', extras.join(', ')))
         }
         
         if(e.country__flag__thumb) {
-            name_td.appendChild(DOM.create('img', {'src': e.country__flag__thumb, 'class': 'flag flag-sm'}));
+            name_td.appendChild(DOM.create('img', {
+                'src': e.country__flag__thumb,
+                'class': 'flag flag-sm'
+            }));
         }
 
         return DOM.create('tr', attrs, [
@@ -241,27 +242,25 @@
     
     //--------------------------------------------------------------------------
     var get_ordering = function(el) {
-        var column = el.dataset['column'];
-        var order = el.dataset['order'];
+        var ordering = {'column': el.dataset['column'], 'order': el.dataset['order']}
         var current = el.parentElement.querySelector('.current');
         if(el === current) {
-            order = (order === 'desc') ? 'asc' : 'desc';
-            el.dataset['order'] = order;
+            ordering.order = (ordering.order === 'desc') ? 'asc' : 'desc';
+            el.dataset['order'] = ordering.order;
         }
         else {
             current.className = '';
             el.className = 'current'
         }
-        return {'column': column, 'order': order};
+        return ordering;
     };
     
     //--------------------------------------------------------------------------
-    var show_summary = function(summary, filtered) {
+    var show_summary = function(summary) {
         var el = $$('summary');
-        var which = filtered || summary;
         DOM.remove_children(el);
         el.appendChild(DOM.create('strong', 'Summary: '))
-        which.iter(function(key) {
+        summary.iter(function(key) {
             var items = Iter.keys(this[key]).length;
             if(items) {
                 el.appendChild(DOM.create(
@@ -292,8 +291,6 @@
                     update_hash(get_filter_bits());
                 }
                 history.sort_current(ordering.column, ordering.order);
-                history.show_logs(history.current_logs);
-                
             });
         });
     };
@@ -303,8 +300,8 @@
         Iter.each(Summary.keys, function(key) {
             this[key] = {};
         }, this);
-    }
-
+    };
+    
     //--------------------------------------------------------------------------
     Summary.prototype.add = function(e) {
         increment(this[e.type__abbr], e.id);
@@ -318,120 +315,143 @@
     Summary.keys = ['cn', 'co', 'st', 'ap', 'ct', 'np', 'lm', 'wh'];
     
     //--------------------------------------------------------------------------
-    var profile_history = {
-        media_prefix: '/media/',
-        initialize: function(entities, logs, conf) {
-            var media_prefix = conf.media_prefix || this.media_prefix;
-            var countries = {};
-            this.summary = new Summary;
-            this.filters = {'type': null, 'country__code': null};
-            this.entities = {};
-            Iter.each(entities, function(e) {
-                e = initialize_log_entry(e, media_prefix);
-                if(e.country__code) {
-                    countries[e.country__code] = e.country__name;
-                }
-                this.entities[e.id] = e;
-            }, this);
-            
-            this.current_logs = this.all_logs = Iter.map(logs, function(log) {
-                log.entity = this.entities[log.entity__id];
-                log.entity.logs.push(log);
-                log.arrival = moment(log.arrival.value);
-                this.summary.add(log.entity);
-                return log;
-            }, this);
-            
-            console.log(this.summary);
-            create_country_options(countries);
-            init_ordering_by_columns(this);
-            show_summary(this.summary);
-        },
+    var show_logs = function(travel_logs) {
+        var count = travel_logs.logs.length;
+        var parent = $$('history');
+        var el = parent.querySelector('tbody');
+        var start = new Date();
         
-        filter_logs: function(bits) {
-            var type    = bits.type;
-            var co      = bits.co;
-            var dt      = bits.date;
-            var tf      = bits.timeframe;
-            var logs    = this.all_logs;
-            var summary = this.summary;
-            
-            console.log('filter bits', bits);
-            this.filters = {'type': type, 'co': co};
-            if(type || co || tf) {
-                summary = new Summary;
-                logs = Iter.filter(logs, function(e) {
-                    var good = true;
-                    if(type) {
-                        good &= (e.entity.type__abbr === type);
-                    }
-
-                    if(co) {
-                        good &= (e.entity.country__code === co || (e.entity.type__abbr === 'co' && e.entity.code === co));
-                    }
-                    
-                    if(good && tf && dt) {
-                        switch(tf) {
-                            case '+':
-                                good &= e.arrival.isAfter(dt);
-                                break
-                            case '-':
-                                good &= e.arrival.isBefore(dt);
-                                break;
-                            case '=':
-                                good &= (e.arrival.year() === dt.getFullYear());
-                                break;
-                            default:
-                                good = false;
-                        }
-                    }
-                    if(good) {
-                        summary.add(e.entity);
-                        return true;
-                    }
-                    return false;
-                });
-            }
-            
-            this.show_logs(logs, summary);
-        },
-        
-        show_logs: function(logs, summary) {
-            var i, start;
-            var count = logs.length;
-            var parent = $$('history');
-            var el = parent.querySelector('tbody');
-            this.current_logs = logs;
-            $$('id_count').textContent = (count + ' entr' + (count > 1 ? 'ies' : 'y'));
-
-            start = new Date();
-            DOM.remove(el);
-            el = DOM.create('tbody');
-            Iter.each(logs, function(log) {
-                el.appendChild(create_log_row(log));
-            });
-            parent.appendChild(el);
-            console.log('delta', new Date() - start);
-            show_summary(summary);
-        },
-
-        sort_current: function(column, order) {
-            console.log('ordering', column, order);
-            this.current_logs.sort(function(a, b) {
-                var result = 0;
-                if(a[column] > b[column]) {
-                    result = 1;
-                }
-                else {
-                    if(a[column] < b[column]) {
-                        result = -1;
-                    }
-                }
-                return (result && order === 'desc') ? -result : result;
-            });
-        }
-        
+        $$('id_count').textContent = (count + ' entr' + (count > 1 ? 'ies' : 'y'));
+        DOM.remove(el);
+        el = DOM.create('tbody');
+        Iter.each(travel_logs.logs, function(log) {
+            el.appendChild(create_log_row(log));
+        });
+        parent.appendChild(el);
+        show_summary(travel_logs.summary);
+        console.log('delta', new Date() - start);
     };
+    
+    //==========================================================================
+    var TravelLogs = function(logs, summary) {
+        this.logs = logs;
+        this.summary = summary;
+    };
+    
+    //--------------------------------------------------------------------------
+    TravelLogs.prototype.sort = function(column, order) {
+        console.log('ordering', column, order);
+        this.logs.sort(function(a, b) {
+            var result = 0;
+            if(a[column] > b[column]) {
+                result = 1;
+            }
+            else {
+                if(a[column] < b[column]) {
+                    result = -1;
+                }
+            }
+            return (result && order === 'desc') ? -result : result;
+        });
+    };
+    
+    //--------------------------------------------------------------------------
+    TravelLogs.prototype.filter = function(bits) {
+        var logs    = this.logs;
+        var summary = this.summary;
+        
+        console.log('filter bits', bits);
+        if(bits.type || bits.co || bits.timeframe) {
+            summary = new Summary;
+            logs = Iter.filter(logs, function(log) {
+                var e = log.entity;
+                var good = true;
+                if(bits.type) {
+                    good &= (e.type__abbr === bits.type);
+                }
+
+                if(bits.co) {
+                    good &= (
+                        e.country__code === bits.co ||
+                        (e.type__abbr === 'co' && e.code === bits.co)
+                    );
+                }
+                
+                if(good && bits.timeframe && bits.date) {
+                    switch(bits.timeframe) {
+                        case '+':
+                            good &= log.arrival.isAfter(bits.date);
+                            break
+                        case '-':
+                            good &= log.arrival.isBefore(bits.date);
+                            break;
+                        case '=':
+                            good &= (log.arrival.year() === bits.date.year());
+                            break;
+                        default:
+                            good = false;
+                    }
+                }
+                
+                if(good) {
+                    summary.add(e);
+                    return true;
+                }
+                
+                return false;
+            });
+            return new TravelLogs(logs, summary);
+        }
+        return this;
+    };
+    
+    //--------------------------------------------------------------------------
+    var controller = (function() {
+        var entity_dict = {};
+        var current_logs, all_logs;
+        
+        return {
+            initialize: function(entities, logs, conf) {
+                var media_prefix = conf.media_prefix || MEDIA_PREFIX;
+                var countries = {};
+                var summary = new Summary;
+                Iter.each(entities, function(e) {
+                    e = initialize_log_entry(e, media_prefix);
+                    if(e.country__code) {
+                        countries[e.country__code] = e.country__name;
+                    }
+                    entity_dict[e.id] = e;
+                });
+            
+                logs = Iter.map(logs, function(log) {
+                    log.entity = entity_dict[log.entity__id];
+                    if(!log.entity) {
+                        console.log(log);
+                    }
+                    log.entity.logs.push(log);
+                    log.arrival = moment(log.arrival.value);
+                    summary.add(log.entity);
+                    return log;
+                }, this);
+            
+                current_logs = all_logs = new TravelLogs(logs, summary);
+                console.log(summary);
+                create_country_options(countries);
+                init_ordering_by_columns(this);
+            },
+        
+            filter_logs: function(bits) {
+                current_logs = all_logs.filter(bits)
+                show_logs(current_logs);
+            },
+        
+            sort_current: function(column, order) {
+                console.log('ordering', column, order);
+                current_logs.sort();
+                show_logs(current_logs);
+            }
+        };
+    }());
     
 
     //--------------------------------------------------------------------------
@@ -441,7 +461,7 @@
         bits.co   && a.push('co', bits.co);
         bits.asc  && a.push('asc', bits.asc);
         if(bits.date && bits.timeframe) {
-            a.push('date', bits.timeframe + bits.date);
+            a.push('date', bits.timeframe + bits.date.format(DATE_FORMAT));
         }
 
         return a.length ? '#' + a.join('/') : './';
@@ -449,9 +469,7 @@
     
     //--------------------------------------------------------------------------
     var obj_from_hash = function(hash) {
-        var obj = {};
-        var arr;
-        hash = hash || window.location.hash;
+        var arr, obj = {};
         if(hash && hash[0] == '#') {
             hash = hash.substr(1);
         }
@@ -465,7 +483,7 @@
             }
             if(obj.date) {
                 obj.timeframe = obj.date[0];
-                obj.date = obj.date.substr(1);
+                obj.date = moment(obj.date.substr(1));
             }
         }
         return obj;
@@ -501,23 +519,14 @@
         }
         return bits;
     };
-    
-    //--------------------------------------------------------------------------
-    var on_filter_change = function() {
-        var bits = get_filter_bits();
-        console.log(bits);
-        
-        update_hash(bits);
-        profile_history.filter_logs(bits);
-    };
-    
+
     //--------------------------------------------------------------------------
     var set_filter_fields = function(bits) {
         $$('id_filter').value = bits.type || '';
         $$('id_timeframe').value = bits.timeframe || '';
         $$('id_co').value = bits.co || '';
         if(bits.date) {
-            $$('id_date').value = bits.date;
+            $$('id_date').value = bits.date.format(DATE_FORMAT);
         }
         else {
             $$('id_date').style.display = 'none';
@@ -525,10 +534,19 @@
     };
     
     //--------------------------------------------------------------------------
+    var on_filter_change = function() {
+        var bits = get_filter_bits();
+        console.log(bits);
+        
+        update_hash(bits);
+        controller.filter_logs(bits);
+    };
+    
+    //--------------------------------------------------------------------------
     var on_hash_change = function() {
         var bits = obj_from_hash(window.location.hash);
         set_filter_fields(bits);
-        profile_history.filter_logs(bits);
+        controller.filter_logs(bits);
     };
 
     //--------------------------------------------------------------------------
@@ -536,7 +554,7 @@
         var date_el = $$('id_date');
         var picker = new Pikaday({
             field: date_el,
-            format: 'YYYY-MM-DD',
+            format: DATE_FORMAT,
             minDate: new Date(1920,1,1),
             yearRange: [1920, (new Date()).getFullYear()],
             onSelect: function(dt) { console.log(dt, this); }
@@ -557,10 +575,10 @@
         on_hash_change();
     };
     
-    root.profile_history = profile_history;
+    root.profile_history = controller;
     return {
         profile_history: function(entities, logs, conf) {
-            profile_history.initialize(entities, logs, conf);
+            controller.initialize(entities, logs, conf);
             init_profile_filter(conf);
         }
     };

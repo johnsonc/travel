@@ -81,7 +81,7 @@
 {% endblock travel_content %}
 {% block end_body %}
     {% if profile.is_public %}
-    <script type="text/javascript" src="/static/js/pikaday.js"></script>
+    <script src="/static/js/pikaday.js"></script>
     <script type="text/javascript" charset="utf-8">
         (function() {
             var history = {{ profile.history_json|safe }};
