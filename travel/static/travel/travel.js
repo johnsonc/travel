@@ -21,7 +21,7 @@
 
 ;var Travelogue = (function() {
     var root = this;
-    var $$ = _.bind(document.getElementById, document);
+    var $$ = document.getElementById.bind(document);
     var type_mapping = {
         'cn': 'Continents',
         'co': 'Countries',
@@ -85,44 +85,55 @@
     };
     
     //--------------------------------------------------------------------------
-    var Iter = {
-        each: function(items, callback, ctx) {
-            var i = 0, length = items.length;
-            ctx = ctx || items;
-            for(; i < length; i++) {
-                callback.call(ctx, items[i], i);
-            }
-        },
-        map: function(items, callback, ctx) {
-            var results = [], i = 0, length = items.length;
-            ctx = ctx || items;
-            for(; i < length; i++) {
-                results.push(callback.call(ctx, items[i], i));
-            }
-            return results;
-        },
-        filter: function(items, callback, ctx) {
-            var results = [];
-            ctx = ctx || items;
-            for(var i = 0, length = items.length; i < length; i++) {
-                if(callback.call(ctx, items[i], i) === true) {
-                    results.push(items[i]);
+    var iter_keys = function(obj, callback, ctx) {
+        var items = [];
+        ctx = ctx || obj;
+        for(var k in obj) {
+            if(obj.hasOwnProperty(k)) {
+                items.push(k);
+                if(callback) {
+                    callback.call(ctx, k, obj[k]);
                 }
             }
-            return results;
+        }
+        return items;
+    };
+    
+    //==========================================================================
+    var Set = function(iter) {
+        this.items = {};
+        this.size = 0;
+        if(iter) {
+            iter.forEach(function(i) { this.add(i); }, this);
+        }
+    };
+    
+    Set.prototype = {
+        add: function(value) {
+            if(!this.has(value)) {
+                this.items[value] = true;
+                this.size++;
+            }
         },
-        keys: function(obj, callback, ctx) {
-            var items = [];
-            ctx = ctx || obj;
-            for(var k in obj) {
-                if(obj.hasOwnProperty(k)) {
-                    items.push(k);
-                    if(callback) {
-                        callback.call(ctx, k, obj[k]);
-                    }
+        has: function(value) {
+            return this.items.hasOwnProperty(value);
+        },
+        values: function() {
+            var a = [];
+            for(var prop in this.items) {
+                if(this.items.hasOwnProperty(prop)) {
+                    a.push(prop)
                 }
             }
-            return items;
+            return a;
+        },
+        forEach: function(callback, ctx) {
+            ctx = ctx || this;
+            for(var prop in this.items) {
+                if(this.items.hasOwnProperty(prop)) {
+                    callback.call(ctx, prop)
+                }
+            }
         }
     };
     
@@ -146,14 +157,14 @@
             return el;
         },
         append_children: function(el, children) {
-            Iter.each(children, function(child) { el.appendChild(child); });
+            Array.from(children).forEach(function(child) { el.appendChild(child); });
         },
         set_attrs: function(el, attrs) {
-            Iter.keys(attrs, function(k,v) { el.setAttribute(k, v); });
+            iter_keys(attrs, function(k,v) { el.setAttribute(k, v); });
         },
         css: function(el, vals) {
             var style = el.style;
-            Iter.keys(vals, function(k, v) { style[k] = v; });
+            iter_keys(vals, function(k, v) { style[k] = v; });
         },
         evt: function(el, kind, handler, t) {
             el.addEventListener(kind, handler, t)
@@ -166,6 +177,22 @@
               el.removeChild(el.lastChild);
             }
         }
+    };
+    
+    //--------------------------------------------------------------------------
+    var create_years_option = function(years) {
+        var keys = years.values();
+        var sel = DOM.create('select', {
+            'class': 'filter_ctrl form-control input-sm',
+            'id': 'id_years'
+        });
+        
+        DOM.css(sel, {'display': 'none'})
+        keys.sort(function(a, b) { return b - a; });
+        keys.forEach(function(yr) {
+            sel.appendChild(DOM.create('option', yr, {'value': yr}));
+        });
+        $$('id_date').parentElement.appendChild(sel);
     };
     
     //--------------------------------------------------------------------------
@@ -222,9 +249,9 @@
     
     //--------------------------------------------------------------------------
     var sorted_dict = function(dct) {
-        var keys = Iter.keys(dct);
+        var keys = iter_keys(dct);
         keys.sort();
-        return Iter.map(keys, function(key) {
+        return keys.map(function(key) {
             return [key, dct[key]];
         });
     };
@@ -261,7 +288,7 @@
         DOM.remove_children(el);
         el.appendChild(DOM.create('strong', 'Summary: '))
         summary.iter(function(key) {
-            var items = Iter.keys(this[key]).length;
+            var items = iter_keys(this[key]).length;
             if(items) {
                 el.appendChild(DOM.create(
                     'span',
@@ -275,7 +302,7 @@
     //--------------------------------------------------------------------------
     var create_country_options = function(countries) {
         var cos = $$('id_co');
-        Iter.each(sorted_dict(countries), function(item) {
+        sorted_dict(countries).forEach(function(item) {
             cos.appendChild(DOM.create('option', item[1], {'value': item[0]}));
         });
         
@@ -284,11 +311,11 @@
     //--------------------------------------------------------------------------
     var init_ordering_by_columns = function(history) {
         var columns = document.querySelectorAll('#history thead th[data-column]');
-        Iter.each(columns, function(e) {
+        Array.from(columns).forEach(function(e) {
             DOM.evt(e, 'click', function(evt) {
                 var ordering = get_ordering(this);
                 if(ordering.order === 'asc') {
-                    update_hash(get_filter_bits());
+                    HashBits.from_filters().update();
                 }
                 history.sort_current(ordering.column, ordering.order);
             });
@@ -297,7 +324,7 @@
     
     //==========================================================================
     var Summary = function() {
-        Iter.each(Summary.keys, function(key) {
+        Summary.keys.forEach(function(key) {
             this[key] = {};
         }, this);
     };
@@ -309,7 +336,7 @@
     
     //--------------------------------------------------------------------------
     Summary.prototype.iter = function(callback) {
-        Iter.each(Summary.keys, callback, this);
+        Summary.keys.forEach(callback, this);
     };
     
     Summary.keys = ['cn', 'co', 'st', 'ap', 'ct', 'np', 'lm', 'wh'];
@@ -324,7 +351,7 @@
         $$('id_count').textContent = (count + ' entr' + (count > 1 ? 'ies' : 'y'));
         DOM.remove(el);
         el = DOM.create('tbody');
-        Iter.each(travel_logs.logs, function(log) {
+        travel_logs.logs.forEach(function(log) {
             el.appendChild(create_log_row(log));
         });
         parent.appendChild(el);
@@ -363,7 +390,7 @@
         console.log('filter bits', bits);
         if(bits.type || bits.co || bits.timeframe) {
             summary = new Summary;
-            logs = Iter.filter(logs, function(log) {
+            logs = logs.filter(function(log) {
                 var e = log.entity;
                 var good = true;
                 if(bits.type) {
@@ -386,7 +413,7 @@
                             good &= log.arrival.isBefore(bits.date);
                             break;
                         case '=':
-                            good &= (log.arrival.year() === bits.date.year());
+                            good &= (log.arrival.year() === bits.date);
                             break;
                         default:
                             good = false;
@@ -414,8 +441,9 @@
             initialize: function(entities, logs, conf) {
                 var media_prefix = conf.media_prefix || MEDIA_PREFIX;
                 var countries = {};
+                var years = new Set;
                 var summary = new Summary;
-                Iter.each(entities, function(e) {
+                entities.forEach(function(e) {
                     e = initialize_log_entry(e, media_prefix);
                     if(e.country__code) {
                         countries[e.country__code] = e.country__name;
@@ -423,13 +451,14 @@
                     entity_dict[e.id] = e;
                 });
             
-                logs = Iter.map(logs, function(log) {
+                logs = logs.map(function(log) {
                     log.entity = entity_dict[log.entity__id];
                     if(!log.entity) {
                         console.log(log);
                     }
                     log.entity.logs.push(log);
                     log.arrival = moment(log.arrival.value);
+                    years.add(log.arrival.year());
                     summary.add(log.entity);
                     return log;
                 }, this);
@@ -438,6 +467,7 @@
                 console.log(summary);
                 create_country_options(countries);
                 init_ordering_by_columns(this);
+                create_years_option(years);
             },
         
             filter_logs: function(bits) {
@@ -453,23 +483,14 @@
         };
     }());
     
-
-    //--------------------------------------------------------------------------
-    var make_hash = function(bits) {
-        var a = [];
-        bits.type && a.push('type', bits.type);
-        bits.co   && a.push('co', bits.co);
-        bits.asc  && a.push('asc', bits.asc);
-        if(bits.date && bits.timeframe) {
-            a.push('date', bits.timeframe + bits.date.format(DATE_FORMAT));
-        }
-
-        return a.length ? '#' + a.join('/') : './';
-    };
+    //==========================================================================
+    var HashBits = function() {};
     
     //--------------------------------------------------------------------------
-    var obj_from_hash = function(hash) {
-        var arr, obj = {};
+    HashBits.from_hash = function(hash) {
+        var arr;
+        var bits = new HashBits;
+        hash = hash || window.location.hash;
         if(hash && hash[0] == '#') {
             hash = hash.substr(1);
         }
@@ -478,27 +499,72 @@
             arr = hash.split('/');
             for(var i = 0, j = arr.length; i < j; i += 2) {
                 if(arr[i]) {
-                    obj[arr[i]] = arr[i + 1];
+                    bits[arr[i]] = arr[i + 1];
                 }
             }
-            if(obj.date) {
-                obj.timeframe = obj.date[0];
-                obj.date = moment(obj.date.substr(1));
+            if(bits.date) {
+                bits.timeframe = bits.date[0];
+                if(bits.timeframe === '=') {
+                    bits.date = parseInt(bits.date.substr(1));
+                }
+                else {
+                    bits.date = moment(bits.date.substr(1));
+                }
             }
         }
-        return obj;
+        return bits;
     };
     
     //--------------------------------------------------------------------------
-    var update_hash = function(bits) {
-        window.history.pushState({}, '', make_hash(bits));
+    HashBits.from_filters = function() {
+        var el         = document.querySelector('#history thead .current');
+        var bits       = new HashBits();
+        bits.type      = $$('id_filter').value;
+        bits.co        = $$('id_co').value;
+        bits.timeframe = $$('id_timeframe').value;
+        
+        if(bits.timeframe === '=') {
+            bits.date = parseInt($$('id_years').value);
+        }
+        else if(bits.timeframe) {
+            bits.date = get_datepicker();
+        }
+        if(el && el.dataset['order'] == 'asc') {
+            bits.asc = el.dataset['column'];
+        }
+        return bits;
+    };
+
+    //--------------------------------------------------------------------------
+    HashBits.prototype.toString = function() {
+        var a = [];
+        this.type && a.push('type', this.type);
+        this.co   && a.push('co', this.co);
+        this.asc  && a.push('asc', this.asc);
+        if(this.timeframe === '-' || this.timeframe === '+') {
+            if(this.date) {
+                a.push('date', this.timeframe + this.date.format(DATE_FORMAT));
+            }
+        }
+        else if(this.timeframe === '=') {
+            if(this.date) {
+                a.push('date', this.timeframe + this.date);
+            }
+        }
+        return a.length ? '#' + a.join('/') : './';
+        
+    };
+    
+    //--------------------------------------------------------------------------
+    HashBits.prototype.update = function() {
+        window.history.pushState({}, '', this.toString());
     };
     
     //--------------------------------------------------------------------------
     var pad = function(n) {
         return n < 10 ? '0' + n : n;
     };
-
+    
     //--------------------------------------------------------------------------
     var get_datepicker = function() {
         var dt = document.getElementById('id_date').value;
@@ -506,45 +572,39 @@
     }
     
     //--------------------------------------------------------------------------
-    var get_filter_bits = function() {
-        var bits = {
-            type:      $$('id_filter').value,
-            co:        $$('id_co').value,
-            timeframe: $$('id_timeframe').value,
-            date:      get_datepicker()
-        };
-        var el = document.querySelector('#history thead .current');
-        if(el && el.dataset['order'] == 'asc') {
-            bits['asc'] = el.dataset['column'];
-        }
-        return bits;
-    };
-
-    //--------------------------------------------------------------------------
     var set_filter_fields = function(bits) {
+        var years_el = $$('id_years');
+        var date_el = $$('id_date');
         $$('id_filter').value = bits.type || '';
         $$('id_timeframe').value = bits.timeframe || '';
         $$('id_co').value = bits.co || '';
-        if(bits.date) {
-            $$('id_date').value = bits.date.format(DATE_FORMAT);
+
+        years_el.style.display = 'none';
+        date_el.style.display = 'none';
+        if((bits.timeframe === '=') && bits.date) {
+            years_el.value = bits.date;
+            years_el.style.display = 'inline-block';
         }
         else {
-            $$('id_date').style.display = 'none';
+            if(bits.timeframe && bits.date) {
+                date_el.value = bits.date.format(DATE_FORMAT);
+                date_el.style.display = 'inline-block';
+            }
         }
     };
     
     //--------------------------------------------------------------------------
     var on_filter_change = function() {
-        var bits = get_filter_bits();
+        var bits = HashBits.from_filters();
         console.log(bits);
         
-        update_hash(bits);
+        bits.update();
         controller.filter_logs(bits);
     };
     
     //--------------------------------------------------------------------------
     var on_hash_change = function() {
-        var bits = obj_from_hash(window.location.hash);
+        var bits = HashBits.from_hash();
         set_filter_fields(bits);
         controller.filter_logs(bits);
     };
@@ -562,13 +622,19 @@
         
         DOM.evt(window, 'hashchange', on_hash_change);
         DOM.evt($$('id_timeframe'), 'change', function() {
-            date_el.style.display = this.value ? 'inline-block' : 'none';
+            if(this.value === '=') {
+                $$('id_years').style.display = 'inline-block';
+                date_el.style.display = 'none';
+            }
+            else {
+                date_el.style.display = 'inline-block';
+                $$('id_years').style.display = 'none';
+            }
         });
         
-        DOM.evt(date_el, 'change', on_filter_change);
         DOM.evt(date_el, 'input', on_filter_change);
         DOM.evt(date_el, 'propertychange', on_filter_change);
-        Iter.each(document.querySelectorAll('.filter_ctrl'), function(e) {
+        Array.from(document.querySelectorAll('.filter_ctrl')).forEach(function(e) {
             DOM.evt(e, 'change', on_filter_change);
         });
 
@@ -576,6 +642,18 @@
     };
     
     root.profile_history = controller;
+    root.timeit = function(fn) {
+        var args = Array.from(arguments);
+        var start = new Date;
+        var result = fn.call(undefined, args);
+        var end = new Date;
+        console.log(start + ' | ' + end + ' = ' + (end - start));
+        return result;
+        
+    };
+
+    
+    
     return {
         profile_history: function(entities, logs, conf) {
             controller.initialize(entities, logs, conf);
