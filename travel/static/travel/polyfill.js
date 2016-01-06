@@ -10,10 +10,10 @@ if(!Function.prototype.bind) {
             fToBind = this,
             fNOP = function() {},
             fBound = function() {
-                return fToBind.apply(this instanceof fNOP
-                    ? this
-                    : oThis,
-                    aArgs.concat(Array.prototype.slice.call(arguments)));
+                return fToBind.apply(
+                    this instanceof fNOP ? this : oThis,
+                    aArgs.concat(Array.prototype.slice.call(arguments))
+                );
             };
 
         if(this.prototype) {
@@ -54,7 +54,7 @@ if(!Array.from) {
             var items = Object(arrayLike);
 
             // 3. ReturnIfAbrupt(items).
-            if (arrayLike == null) {
+            if(arrayLike == null) {
                 throw new TypeError("Array.from requires an array-like object - not null or undefined");
             }
 

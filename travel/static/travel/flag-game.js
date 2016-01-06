@@ -15,7 +15,7 @@
     var flag_view = make_template('flag_view_template');
     
     //==========================================================================
-    function Groups(group_ids) {
+    var Groups = function(group_ids) {
         this.group_ids = group_ids;
         this.reset();
     };
@@ -39,7 +39,7 @@
     };
     
     //==========================================================================
-    function Score() {
+    var Score = function() {
         this.score = [0, 0];
     };
     
@@ -51,7 +51,7 @@
     };
     
     //==========================================================================
-    function Views(co_map) {
+    var Views = function(co_map) {
         this.co_map = co_map;
     };
     
