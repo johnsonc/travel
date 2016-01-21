@@ -127,11 +127,11 @@ latlon_sym_re = re.compile(
 
 
 latlon_dec_re = re.compile(
-    ur'''
+    ur'''^
         ([+-]?\d+\.\d+)
         \s*[,/]?\s*
         ([+-]?\d+\.\d+)
-    ''',
+    $''',
     re.VERBOSE
 )
 
@@ -146,6 +146,10 @@ def make_decimal_value(degs='0', mins=None, secs=None, negative=False):
 
 #-------------------------------------------------------------------------------
 def parse_latlon(s):
+    m = latlon_dec_re.search(s)
+    if m:
+        return [Decimal(d) for d in m.groups()]
+
     m = latlon_sym_re.search(s.strip())
     if m:
         lat_d, lat_m, lat_s, lat_dir, lon_d, lon_m, lon_s, lon_dir = m.groups()
@@ -156,10 +160,6 @@ def parse_latlon(s):
         
         return [lat, lon]
     
-    m = latlon_dec_re.search(s)
-    if m:
-        return [Decimal(d) for d in m.groups()]
-        
     raise ValueError('Invalid Lat/Lon value: %s' % (s,))
 
 
