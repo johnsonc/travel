@@ -12,13 +12,15 @@
             box-shadow: 1px 1px 4px rgba(0, 0, 0, 0.5);
             margin-bottom: 1em;
         }
+        .travel-body > h1 > small { display: block; }
         .travel-body > h1, .travel-body > .entity-details { margin-right: 128px; }
         .flag-md { width: 128px; height: auto;}
     </style>
 {% endblock extra_head %}
 
 {% block travel_heading %}
-    {{ place.name }}&nbsp;{% if user.is_superuser %}<a href="{{ place.get_edit_url }}"><small class="glyphicon glyphicon-edit"></small></a>{% endif %}
+    {{ place.name }}{% if user.is_superuser %} <a href="{{ place.get_edit_url }}"><small class="glyphicon glyphicon-edit"></small></a>{% endif %}
+    <small>{{ place.type.title }}</small>
 {% endblock %}
 {% block travel_content %}
 <div class="row">
@@ -64,11 +66,7 @@
             <dt>Location</dt>
             <dd>
                 {% if place.locality %}{{ place.locality }}<br>{% endif %}
-                {% if place.lat and place.lon %}
-                <a class="latlon mapit" href="{{ place.google_maps_url }}">
-                    {{ place.lat }}&deg; Lat, {{ place.lon }}&deg; Lon</a>
-                <span class="latlon"></span>
-                {% endif %}
+                {% include "travel/entities/detail/snippets/map.html" %}
             </dd>
             {% endif %}
         

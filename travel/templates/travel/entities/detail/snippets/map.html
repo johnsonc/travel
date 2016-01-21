@@ -1,0 +1,4 @@
+{% if place.lat and place.lon %}
+<a class="latlon mapit" href="{{ place.google_maps_url }}">
+    {{ place.lat }}&deg; Lat, {{ place.lon }}&deg; Lon</a>
+{% endif %}

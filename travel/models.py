@@ -361,11 +361,8 @@ class TravelEntity(models.Model):
     
     #---------------------------------------------------------------------------
     def get_continent(self):
-        if self.continent:
-            return self.continent
-        elif self.country:
-            return self.country.continent
-
+        return self.continent if self.continent else self.country.continent
+    
     #---------------------------------------------------------------------------
     @property
     def relationships(self):
