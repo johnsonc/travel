@@ -361,7 +361,9 @@ class TravelEntity(models.Model):
     
     #---------------------------------------------------------------------------
     def get_continent(self):
-        return self.continent if self.continent else self.country.continent
+        if self.continent:
+            return self.continent
+        return self.country.continent if self.country else None
     
     #---------------------------------------------------------------------------
     @property
@@ -601,3 +603,5 @@ class TravelEntityInfo(models.Model):
     @cached_property
     def map(self):
         return EntityImage(self.entity, 'map')
+
+
