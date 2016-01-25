@@ -19,7 +19,7 @@ GOOGLE_MAPS             = 'http://maps.google.com/maps?q={}'
 GOOGLE_MAPS_LATLON      = 'http://maps.google.com/maps?q={},+{}&iwloc=A&z=10'
 WIKIPEDIA_URL           = 'http://en.wikipedia.org/wiki/Special:Search?search={}&go=Go'
 WORLD_HERITAGE_URL      = 'http://whc.unesco.org/en/list/{}'
-BASE_FLAG_DIR           = 'img/flags'
+BASE_FLAG_DIR           = 'travel/img/flags'
 STAR                    = mark_safe('&#9733;')
 WORLD_HERITAGE_CATEGORY = { 'C': 'Cultural', 'N': 'Natural', 'M': 'Mixed' }
 SUBNATIONAL_CATEGORY    = {
