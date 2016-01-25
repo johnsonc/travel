@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+ xmlns:dc="http://purl.org/dc/elements/1.1/"
+ xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+ xmlns:svg="http://www.w3.org/2000/svg" xmlns="http://www.w3.org/2000/svg"
+ xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+ xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+  width="900"
+ height="600" viewBox="-60 -40 120 80" id="svg2"
+ version="1.1"
+ inkscape:version="0.47 r22583" sodipodi:docname="Flag_of_Morocco_unbordered.svg">
+  <metadata
+  id="metadata24">
+ <rdf:RDF>
+ <cc:Work
+ rdf:about=""> <dc:format>image/svg+xml</dc:format>
+ <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+ </cc:Work> </rdf:RDF>
+  </metadata>
+ <defs
+ id="defs22" />
+ <sodipodi:namedview
+ pagecolor="#ffffff" bordercolor="#666666" borderopacity="1"
+ objecttolerance="10" gridtolerance="10" guidetolerance="10" inkscape:pageopacity="0"
+ inkscape:pageshadow="2" inkscape:window-width="1280"
+ inkscape:window-height="738"
+ id="namedview20"
+ showgrid="false"
+ inkscape:zoom="0.39333333"
+ inkscape:cx="450"
+ inkscape:cy="300"
+ inkscape:window-x="-8"
+ inkscape:window-y="-8"
+ inkscape:window-maximized="1" inkscape:current-layer="svg2" />
+  <desc  id="desc4">Flag of Morocco</desc>
+ <rect
+   y="-40"
+  x="-60"
+  height="80"
+ width="120"
+ style="fill: rgb(193, 39, 45);"
+  id="rect6" /> <g
+ style="fill:#006233;stroke:none;fill-opacity:1"
+ transform="matrix(0.44369779,0,0,0.46649321,-85.188261,-57.580291)"
+ id="g8">
+ <path d="m 181.25,113.1875 -34.78125,0.0312 39.59375,28.75 5.9375,-4.3125 -24,-17.4375 10.96875,-0.0312 2.28125,-7 z"
+ id="path10"
+ style="stroke:none;fill:#006233;fill-opacity:1" />
+ <path
+  d="m 202.76559,113.19883 -10.77772,-33.069279 -15.10773,46.540129 5.93622,4.31427 9.16764,-28.21384 3.41925,10.42224 7.36234,0.006 z" id="path12" style="stroke:none;fill:#006233;fill-opacity:1" /> <path
+ d="m 209.40356,133.66496 28.12026,-20.46919 -48.93084,0.0134 -2.26872,6.97886 29.66591,3.9e-4 -8.85553,6.47255 2.26892,7.004 z"
+ id="path14"
+ style="stroke:none;fill:#006233;fill-opacity:1" />
+ <path
+ d="m 191.99045,146.30222 28.15699,20.41863 -15.13319,-46.53186 -7.33837,-0.001 9.1669,28.21408 -8.89227,-6.42199 -5.96006,4.32223 z"
+ id="path16"
+  style="stroke:none;fill:#006233;fill-opacity:1" />
+  <path
+  d="m 174.59078,133.64658 -10.71828,33.08859 39.57802,-28.77166 -2.26665,-6.97954 -24.00046,17.43687 3.35982,-10.44155 -5.95245,-4.33271 z"
+ id="path18"
+ style="stroke:none;fill:#006233;fill-opacity:1" /> </g>
+</svg>
