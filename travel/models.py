@@ -541,7 +541,7 @@ class EntityImage(object):
     #---------------------------------------------------------------------------
     def __init__(self, entity, location):
         fn = entity.code.lower() + '.gif'
-        self.fqdn = os.path.join(settings.MEDIA_ROOT, 'img', location, fn)
+        self.fqdn = os.path.join(settings.MEDIA_ROOT, 'trave/img', location, fn)
         self.exists = os.path.exists(self.fqdn)
         self.url = settings.MEDIA_URL + '/'.join(['img', location, fn])
 
