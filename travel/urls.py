@@ -1,6 +1,7 @@
 from django.conf.urls import *
 from django.views.generic import TemplateView, RedirectView
-from travel import views, flag_game
+from travel import views
+from travel.extras import flag_game
 
 search_patterns = [
     url(r'^$',          views.search, name='travel-search'),
