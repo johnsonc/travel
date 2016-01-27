@@ -110,7 +110,6 @@ class TravelBucketList(models.Model):
     title = models.CharField(max_length=100)
     is_public = models.BooleanField(default=True)
     description = models.TextField(blank=True)
-    subscribers = models.ManyToManyField(User, related_name='todo_subscriber_set')
     entities = models.ManyToManyField('TravelEntity', related_name='todo_list_set')
     last_update = models.DateTimeField(auto_now=True)
     
