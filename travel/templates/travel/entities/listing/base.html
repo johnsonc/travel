@@ -6,9 +6,7 @@
     {% endif %}
 {% endblock %}
 {% block travel_content %}
-    <p>
-        Total: {{ places|length }} {{ plural_label }} 
-    </p>
+    <p>Total: <span class="badge">{{ places|length }}</span></p>
     {% load pagination_tags %}
     {% autopaginate places 100 %}
     {% paginate %}
