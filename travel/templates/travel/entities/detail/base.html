@@ -77,11 +77,16 @@
         
             {% if place.tzinfo %}
             {% load tz %}
+            {% timezone place.tzinfo %}
             <dt>Time Zone</dt>
-            <dd>{% timezone place.tzinfo %}
-                {{ place.tzinfo.zone }}, {% now "e O" %} |
-                <span class="tz-clock" data-timezone="{{ place.tzinfo.zone }}">{% now "r" %}</span>{% endtimezone %}
+            <dd>
+                {{ place.tzinfo.zone }}, {% now "e O" %}
             </dd>
+            <dt>Current Time</dt>
+            <dd>
+                <span class="tz-clock" data-timezone="{{ place.tzinfo.zone }}"></span>
+            </dd>
+            {% endtimezone %}
             {% endif %}
             {% having place.related_entities as related %}
             <dt>Related</dt>
@@ -149,10 +154,31 @@
 {% block end_body %}{{ block.super }}
 <script type="text/javascript">
     (function() {
+        var tz_delta = function(loc, there) {
+            var delta = there.utcOffset() - loc.utcOffset();
+            var neg = delta < 0;
+            var delta_str = '';
+            var minutes = 0;
+            delta = Math.abs(delta);
+            if(delta) {
+                minutes = delta % 60;
+                if(delta >= 60) {
+                    delta_str = Math.floor(delta / 60) + ' hours';
+                }
+                if(minutes) {
+                    delta_str += (delta_str.length ? ' ' : '') + minutes + ' minutes';
+                }
+                delta_str = ' (' + (neg ? '-' : '+') + delta_str + '/local)';
+            }
+            return delta_str;
+        };
+        
         function update_time() {
             _.each(document.querySelectorAll('.tz-clock'), function(el) {
                 var tz = el.getAttribute('data-timezone');
-                el.textContent = moment().tz(tz).format('MMMM Do YYYY, h:mm:ss a');
+                var loc = moment();
+                var there = loc.clone().tz(tz);
+                el.textContent = there.format('MMMM Do YYYY, h:mm:ss a') + tz_delta(loc, there);
             });
             setTimeout(update_time, 1000)
         };
