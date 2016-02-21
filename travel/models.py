@@ -106,7 +106,7 @@ class TravelFlag(models.Model):
 
 #===============================================================================
 class TravelBucketList(models.Model):
-    owner = models.ForeignKey(User)
+    owner = models.ForeignKey(User, blank=True, null=True, default=None)
     title = models.CharField(max_length=100)
     is_public = models.BooleanField(default=True)
     description = models.TextField(blank=True)
