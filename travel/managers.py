@@ -29,7 +29,7 @@ class TravelBucketListManager(Manager):
         q = Q(is_public=True)
         if user.is_authenticated():
             q |= Q(owner=user)
-        return self.filter(q)
+        return self.filter(q).order_by('title')
         
     #---------------------------------------------------------------------------
     def new_list(self, owner, title, entries, is_public=True, description=''):
