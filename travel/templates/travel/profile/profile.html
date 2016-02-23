@@ -3,40 +3,42 @@
 {% block travel_heading %}Travelogue for {{ profile.user.username }}{% endblock %}
 {% block travel_content %}
     {% if profile.is_public or profile.user == request.user %}
-    <div class="profile-filter form-inline well well-sm">
-        <div class="form-group">
-            <label for="id_filter">Filter by</label>
-            <select id="id_filter" class="filter_ctrl form-control input-sm">
-                <option value="">-- All entries --</option>
-                <option value="cn">Continents</option>
-                <option value="co">Countries</option>
-                <option value="st">States</option>
-                <option value="ap">Airports</option>
-                <option value="ct">Cities</option>
-                <option value="np">National Parks</option>
-                <option value="lm">Landmarks</option>
-                <option value="wh">World Heritage</option>
-            </select>
+    <div class="profile-filter well well-sm">
+        <div class="form-inline">
+            <div class="form-group">
+                <label for="id_filter">Filter by:</label>
+                <select id="id_filter" class="filter_ctrl form-control input-sm">
+                    <option value="">-- All entries --</option>
+                    <option value="cn">Continents</option>
+                    <option value="co">Countries</option>
+                    <option value="st">States</option>
+                    <option value="ap">Airports</option>
+                    <option value="ct">Cities</option>
+                    <option value="np">National Parks</option>
+                    <option value="lm">Landmarks</option>
+                    <option value="wh">World Heritage</option>
+                </select>
+            </div>
+            <div class="form-group" id="show_countries">
+                <label for="id_co">in</label>
+                <select id="id_co" class="filter_ctrl form-control input-sm">
+                    <option value="">-- All countries --</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="id_timeframe">and</label>
+                <select id="id_timeframe" class="filter_ctrl form-control input-sm">
+                    <option value="">-- All Dates --</option>
+                    <option value="-">Before</option>
+                    <option value="+">After</option>
+                    <option value="=">For Year</option>
+                </select>
+                <input type="text" id="id_date" class="form-control filter_ctrl input-sm">
+            </div>
+            <div class="form-group" id="id_count"></div>
         </div>
-        <div class="form-group" id="show_countries">
-            <label for="id_co">in</label>
-            <select id="id_co" class="filter_ctrl form-control input-sm">
-                <option value="">-- All countries --</option>
-            </select>
-        </div>
-        <div class="form-group">
-            <label for="id_timeframe">and</label>
-            <select id="id_timeframe" class="filter_ctrl form-control input-sm">
-                <option value="">-- All Dates --</option>
-                <option value="-">Before</option>
-                <option value="+">After</option>
-                <option value="=">For Year</option>
-            </select>
-            <input type="text" id="id_date" class="form-control filter_ctrl input-sm">
-        </div>
-        <div class="form-group" id="id_count"></div>
+        <div id="summary"></div>
     </div>
-    <div id="summary" class="well well-sm"></div>
     <table id="history" class="table table-hover table-condensed table-striped">
         <thead>
             <tr>
