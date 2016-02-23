@@ -1,8 +1,5 @@
 {% extends "travel/base.html" %}
 {% load staticfiles %}
-{% block extra_head %}{{ block.super }}
-    <link rel="stylesheet" href="{% static 'css/pikaday.css' %}" type="text/css" media="screen, print">
-{% endblock extra_head %}
 {% block travel_heading %}Travelogue for {{ profile.user.username }}{% endblock %}
 {% block travel_content %}
     {% if profile.is_public or profile.user == request.user %}
