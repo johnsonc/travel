@@ -15,24 +15,33 @@ superuser_required = user_passes_test(
     lambda u: u.is_authenticated() and u.is_active and u.is_superuser
 )
 
+#-------------------------------------------------------------------------------
+def render_travel(request, base_templates, data):
+    if isinstance(base_templates, basestring):
+        base_templates = [base_templates]
+    
+    custom = ['travel/custom' + base for base in base_templates]
+    templates = custom + ['travel/' + base for base in base_templates]
+    return render(request, templates, data)
+
 
 #-------------------------------------------------------------------------------
 def all_profiles(request):
-    return render(request, 'travel/profile/all.html', {
+    return render_travel(request, 'profile/all.html', {
         'profiles': travel.TravelProfile.objects.public()
     })
 
 
 #-------------------------------------------------------------------------------
 def profile(request, username):
-    return render(request, 'travel/profile/profile.html', {
+    return render_travel(request, 'profile/profile.html', {
         'profile': get_object_or_404(travel.TravelProfile, user__username=username)
     })
 
 
 #-------------------------------------------------------------------------------
 def bucket_lists(request):
-    return render(request, 'travel/buckets/listing.html', {
+    return render_travel(request, 'buckets/listing.html', {
         'bucket_lists': travel.TravelBucketList.objects.for_user(request.user)
     })
 
@@ -49,7 +58,7 @@ def bucket_list_comparison(request, pk, usernames):
         ).values_list('entity__id', flat=True))
     } for username in usernames.split('/')]
     
-    return render(request, 'travel/buckets/compare.html', {
+    return render_travel(request, 'buckets/compare.html', {
         'bucket_list': bucket_list,
         'entities': entities,
         'results': results
@@ -59,7 +68,7 @@ def bucket_list_comparison(request, pk, usernames):
 #-------------------------------------------------------------------------------
 def _bucket_list_for_user(request, bucket_list, user):
     done, entities = bucket_list.user_results(user)
-    return render(request, 'travel/buckets/detail.html', {
+    return render_travel(request, 'buckets/detail.html', {
         'bucket_list': bucket_list,
         'entities': entities,
         'stats': {'total': len(entities), 'done': done}
@@ -88,7 +97,7 @@ def search(request):
         by_type = search_form.cleaned_data['type']
         data.update(search=q, results=travel.TravelEntity.objects.search(q, by_type))
 
-    return render(request, 'travel/search/search.html', data)
+    return render_travel(request, 'search/search.html', data)
 
 
 #-------------------------------------------------------------------------------
@@ -104,7 +113,7 @@ def search_advanced(request):
             results=travel.TravelEntity.objects.advanced_search(lines)
         )
         
-    return render(request, 'travel/search/advanced.html', data)
+    return render_travel(request, 'search/advanced.html', data)
 
 
 #-------------------------------------------------------------------------------
@@ -113,8 +122,8 @@ def by_locale(request, ref):
     places = list(etype.entity_set.select_related(
         'flag', 'capital', 'state', 'country', 'continent'
     ))
-    template = 'travel/entities/listing/{}.html'.format(ref)
-    return render(request, template, {'type': etype, 'places': places})
+    template = 'entities/listing/{}.html'.format(ref)
+    return render_travel(request, template, {'type': etype, 'places': places})
 
 
 #-------------------------------------------------------------------------------
@@ -131,11 +140,11 @@ def _default_entity_handler(request, entity):
             form = forms.TravelLogForm(entity)
 
     templates = [
-        'travel/entities/detail/{}.html'.format(entity.type.abbr),
-        'travel/entities/detail/base.html'
+        'entities/detail/{}.html'.format(entity.type.abbr),
+        'entities/detail/base.html'
     ]
     
-    return render(request, templates, {
+    return render_travel(request, templates, {
         'place': entity,
         'form': form,
         'history': history
@@ -149,7 +158,7 @@ def _handle_entity(request, ref, code, aux, handler):
     if n == 0:
         raise http.Http404
     elif n > 1:
-        return render(request, 'travel/search/search.html', {'results': entity})
+        return render_travel(request, 'search/search.html', {'results': entity})
     else:
         return handler(request, entity[0])
 
@@ -167,11 +176,11 @@ def entity_relationships(request, ref, code, rel, aux=None):
     if count == 0:
         raise http.Http404('No entity matches the given query.')
     elif count > 1:
-        return render(request, 'travel/search/search.html', {'results': places})
+        return render_travel(request, 'search/search.html', {'results': places})
 
     place = places[0]
     etype  = get_object_or_404(travel.TravelEntityType, abbr=rel)
-    return render(request, 'travel/entities/listing/{}.html'.format(rel), {
+    return render_travel(request, 'entities/listing/{}.html'.format(rel), {
         'type': etype,
         'places': place.related_by_type(etype),
         'parent': place
@@ -192,7 +201,7 @@ def log_entry(request, username, pk):
     else:
         form = None
     
-    return render(request, 'travel/log-entry.html', {'entry': entry, 'form':  form})
+    return render_travel(request, 'log-entry.html', {'entry': entry, 'form':  form})
 
 
 ################################################################################
@@ -203,7 +212,7 @@ def log_entry(request, username, pk):
 
 
 #-------------------------------------------------------------------------------
-def _entity_edit(request, entity, template='travel/entities/edit.html'):
+def _entity_edit(request, entity, template='entities/edit.html'):
     if request.method == 'POST':
         form = forms.EditTravelEntityForm(request.POST, instance=entity)
         if form.is_valid():
@@ -212,7 +221,7 @@ def _entity_edit(request, entity, template='travel/entities/edit.html'):
     else:
         form = forms.EditTravelEntityForm(instance=entity)
 
-    return render(request, template, {'place': entity, 'form': form})
+    return render_travel(request, template, {'place': entity, 'form': form})
 
 
 #-------------------------------------------------------------------------------
@@ -223,7 +232,7 @@ def entity_edit(request, ref, code, aux=None):
 
 #-------------------------------------------------------------------------------
 @superuser_required
-def start_add_entity(request, template='travel/entities/add/start.html'):
+def start_add_entity(request, template='entities/add/start.html'):
     abbr = request.GET.get('type')
     if abbr:
         if abbr == 'co':
@@ -235,7 +244,7 @@ def start_add_entity(request, template='travel/entities/add/start.html'):
                 reverse('travel-entity-add-by-co', args=(co, abbr))
             )
     
-    return render(request, template, {
+    return render_travel(request, template, {
         'types': travel.TravelEntityType.objects.exclude(abbr__in=['cn', 'co']),
         'countries': travel.TravelEntity.objects.countries()
     })
@@ -243,7 +252,7 @@ def start_add_entity(request, template='travel/entities/add/start.html'):
 
 #-------------------------------------------------------------------------------
 @superuser_required
-def add_entity_co(request, template='travel/entities/add/add.html'):
+def add_entity_co(request, template='entities/add/add.html'):
     entity_type = get_object_or_404(travel.TravelEntityType, abbr='co')
     if request.method == 'POST':
         form = forms.NewCountryForm(request.POST)
@@ -253,12 +262,12 @@ def add_entity_co(request, template='travel/entities/add/add.html'):
     else:
         form = forms.NewCountryForm()
         
-    return render(request, template, {'form': form, 'entity_type': entity_type})
+    return render_travel(request, template, {'form': form, 'entity_type': entity_type})
 
 
 #-------------------------------------------------------------------------------
 @superuser_required
-def add_entity_by_co(request, code, abbr, template='travel/entities/add/add.html'):
+def add_entity_by_co(request, code, abbr, template='entities/add/add.html'):
     entity_type = get_object_or_404(travel.TravelEntityType, abbr=abbr)
     country = travel.TravelEntity.objects.get(code=code, type__abbr='co')
 
@@ -270,6 +279,6 @@ def add_entity_by_co(request, code, abbr, template='travel/entities/add/add.html
     else:
         form = forms.NewTravelEntityForm()
     
-    return render(request, template, {'entity_type': entity_type, 'form': form})
+    return render_travel(request, template, {'entity_type': entity_type, 'form': form})
 
 
