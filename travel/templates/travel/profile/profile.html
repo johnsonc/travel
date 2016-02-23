@@ -1,26 +1,7 @@
 {% extends "travel/base.html" %}
 {% load staticfiles %}
-{% block extra_head %}
-    {{ block.super }}
+{% block extra_head %}{{ block.super }}
     <link rel="stylesheet" href="{% static 'css/pikaday.css' %}" type="text/css" media="screen, print">
-    <style media="screen">
-        .profile-filter { padding: 8px 8px 0 8px ; border: 1px solid #dfd7ca; }
-        .profile-filter > .form-group { display: inline-block; margin-bottom: 8px; }
-        .profile-filter .form-control { display: inline-block; width: auto; }
-        #show_countries { display: inline-block; }
-        #history .when, #id_count { white-space: nowrap; }
-        #history thead th { min-width: 4em; }
-        #history thead th.current .order {
-            width: 0;
-            height: 0;
-            display: inline-block;
-            border-left: 5px solid transparent;
-            border-right: 5px solid transparent;
-        }
-        #history thead th[data-order="desc"].current .order { border-top: 5px solid #777; border-bottom: none; }
-        #history thead th[data-order="asc"].current .order { border-bottom: 5px solid #777; border-top: none; }
-        #summary span { margin-right: 4px; }
-    </style>
 {% endblock extra_head %}
 {% block travel_heading %}Travelogue for {{ profile.user.username }}{% endblock %}
 {% block travel_content %}

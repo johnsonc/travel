@@ -1,14 +1,6 @@
 {% extends "travel/base.html" %}
 {% load url from future %}
 {% block travel_heading %}{{ place.name }}{% endblock %}
-{% block extra_head %}
-    <style type="text/css" media="screen">
-        form table th { text-align: right; width: 20%; }
-        form table td { width: 80%;}
-        form table td input[type=text] { width: 100%; }
-        #id_lat, #id_lon { width: 5em;  text-align: right; }
-    </style>
-{% endblock extra_head %}
 {% block travel_content %}
     {% if user.is_superuser %}
     {% if state == 'start' %}
@@ -19,7 +11,7 @@
     {% else %}
     <h2>Add New {{ entity_type }}</h2>
     
-    <form class="form-horizontal" action="" method="post" accept-charset="utf-8">
+    <form class="form-horizontal entity-form" action="" method="post" accept-charset="utf-8">
         {% load bootstrap3 %}
         {% bootstrap_form form layout="horizontal" horizontal_label_class='col-md-2' horizontal_field_class='col-md-10' %}
         {% buttons layout="horizontal" %}

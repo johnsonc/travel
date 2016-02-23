@@ -1,10 +1,5 @@
 {% extends "travel/entities/detail/base.html" %}
 {% load staticfiles humanize travel_tags %}
-{% block extra_head %}{{ block.super }}
-    <style media="screen">
-        img.plug {  margin: 4px; width: 45%; max-width: 200px; }
-    </style>
-{% endblock extra_head %}
 {% block travel_images %}{{ block.super }}
     {% if place.entityinfo %}
     {% for img in place.entityinfo.images %}

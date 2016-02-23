@@ -1,16 +1,9 @@
 {% extends "travel/base.html" %}
 {% load staticfiles %}
 {% block title %}World voltage and plug specifications{% endblock %}
-{% block extra_head %}
-    <style>
-        .images { margin-bottom: 2em; }
-        .specs table td { width: 25%; }
-        .matrix img { display: inline;}
-    </style>
-{% endblock extra_head %}
 {% block travel_heading %}World voltage and plug specifications{% endblock %}
 {% block travel_content %}
-    <table class="matrix table table-bordered table-condensed table-responsive text-center">
+    <table class="plugs table table-bordered table-condensed table-responsive text-center">
         <tr>
             <td><img class="img-responsive" src="{% static 'img/plugs/a.jpg' %}"><br><strong>Category A</strong><br>125V~, 2 flat blades</td>
             <td><img class="img-responsive" src="{% static 'img/plugs/b.jpg' %}"><br><strong>Category B</strong><br>2 flat blades, grounded</td>
@@ -33,6 +26,4 @@
             <td></td>
         </tr>
     </table>
-    <div class="specs">
-    </div>
 {% endblock travel_content %}
