@@ -110,14 +110,14 @@ class TravelBucketList(models.Model):
     title = models.CharField(max_length=100)
     is_public = models.BooleanField(default=True)
     description = models.TextField(blank=True)
-    entities = models.ManyToManyField('TravelEntity', related_name='todo_list_set')
+    entities = models.ManyToManyField('TravelEntity')
     last_update = models.DateTimeField(auto_now=True)
     
     objects = TravelBucketListManager()
 
     #===========================================================================
     class Meta:
-        db_table = 'travel_todo_list'
+        db_table = 'travel_bucket_list'
 
     #---------------------------------------------------------------------------
     def get_absolute_url(self):
