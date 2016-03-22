@@ -36,11 +36,17 @@ SUBNATIONAL_CATEGORY    = {
 }
 
 #-------------------------------------------------------------------------------
-def flag_upload(size):
-    def upload_func(instance, filename):
-        name = '{}-{}{}'.format(instance.ref, size, os.path.splitext(filename)[1])
-        return  '{}/{}/{}'.format(BASE_FLAG_DIR, instance.base_dir, name)
-    return upload_func
+# A few migration/PY2 hoops to jump through here, must have module level funcs
+# for the ``upload_to`` param for FileFields and ImageFields
+#-------------------------------------------------------------------------------
+def _base_flag_upload(instance, filename, size):
+    return  '{}/{}/{}'.format(
+        BASE_FLAG_DIR,
+        instance.base_dir,
+        '{}-{}{}'.format(instance.ref, size, os.path.splitext(filename)[1])
+    )
+def flag_upload_32(instance, filename): return _base_flag_upload(instance, filename, 32)
+def flag_upload_128(instance, filename): return _base_flag_upload(instance, filename, 128)
 
 
 #-------------------------------------------------------------------------------
@@ -53,8 +59,8 @@ class TravelFlag(models.Model):
     source = models.CharField(max_length=255)
     base_dir = models.CharField(max_length=8)
     ref = models.CharField(max_length=6)
-    thumb  = models.ImageField(upload_to=flag_upload(32), blank=True)
-    large = models.ImageField(upload_to=flag_upload(128), blank=True)
+    thumb  = models.ImageField(upload_to=flag_upload_32, blank=True)
+    large = models.ImageField(upload_to=flag_upload_128, blank=True)
     svg = models.FileField(upload_to=svg_upload, blank=True)
     is_locked = models.BooleanField(default=False)
     
