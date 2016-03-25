@@ -220,7 +220,7 @@ def json_loads(s, object_hook=object_hook, **kws):
 
 #-------------------------------------------------------------------------------
 def json_encoding_test():
-    print '-' * 40
+    print('-' * 40)
     data = dict(
         a_date=datetime.date(2011, 4, 22),
         a_time=datetime.time(16, 59, 59),
@@ -228,10 +228,10 @@ def json_encoding_test():
         a_decimal=Decimal('19.65')
     )
     out = json_dumps(data)
-    print out
+    print(out)
     result = json_loads(out)
-    print result
-    print result == data
+    print(result)
+    print(result == data)
     
 
 #-------------------------------------------------------------------------------

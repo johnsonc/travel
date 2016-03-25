@@ -9,6 +9,7 @@ from django.core.urlresolvers import reverse
 from django.utils import timezone
 from django.utils.safestring import mark_safe
 from django.utils.functional import cached_property
+from django.utils.encoding import python_2_unicode_compatible
 
 import pytz
 from choice_enum import ChoiceEnumeration
@@ -111,6 +112,7 @@ class TravelFlag(models.Model):
 
 
 #===============================================================================
+@python_2_unicode_compatible
 class TravelBucketList(models.Model):
     owner = models.ForeignKey(User, blank=True, null=True, default=None)
     title = models.CharField(max_length=100)
@@ -130,7 +132,7 @@ class TravelBucketList(models.Model):
         return reverse('travel-bucket', args=[self.id])
 
     #---------------------------------------------------------------------------
-    def __unicode__(self):
+    def __str__(self):
         return self.title
 
     #---------------------------------------------------------------------------
@@ -153,6 +155,7 @@ class TravelBucketList(models.Model):
 
 
 #===============================================================================
+@python_2_unicode_compatible
 class TravelProfile(models.Model):
     
     #===========================================================================
@@ -175,8 +178,8 @@ class TravelProfile(models.Model):
         return reverse('travel-profile', args=[self.user.username])
 
     #---------------------------------------------------------------------------
-    def __unicode__(self):
-        return unicode(self.user)
+    def __str__(self):
+        return self.user
         
     #---------------------------------------------------------------------------
     def history_json(self):
@@ -198,6 +201,7 @@ models.signals.post_save.connect(profile_factory, sender=User)
 
 
 #===============================================================================
+@python_2_unicode_compatible
 class TravelEntityType(models.Model):
     abbr  = models.CharField(max_length=4, db_index=True)
     title = models.CharField(max_length=25)
@@ -207,7 +211,7 @@ class TravelEntityType(models.Model):
         db_table = 'travel_entitytype'
 
     #---------------------------------------------------------------------------
-    def __unicode__(self):
+    def __str__(self):
         return self.title
 
 
@@ -249,6 +253,7 @@ class Extern(object):
 
 
 #===============================================================================
+@python_2_unicode_compatible
 class TravelEntity(models.Model):
     geonameid = models.IntegerField(default=0)
     type      = models.ForeignKey(TravelEntityType, related_name='entity_set')
@@ -297,7 +302,7 @@ class TravelEntity(models.Model):
         }
     
     #---------------------------------------------------------------------------
-    def __unicode__(self):
+    def __str__(self):
         return self.name
     
     #---------------------------------------------------------------------------
@@ -305,7 +310,7 @@ class TravelEntity(models.Model):
         if self.type.abbr == 'ct':
             what = self.state or self.country
             return '{}{}'.format(self, ', {}'.format(what) if what else '')
-        return unicode(self)
+        return str(self)
     
     #---------------------------------------------------------------------------
     @cached_property
@@ -440,6 +445,7 @@ class TravelEntity(models.Model):
 
 
 #===============================================================================
+@python_2_unicode_compatible
 class TravelLog(models.Model):
     
     RATING_CHOICES = (
@@ -464,8 +470,8 @@ class TravelLog(models.Model):
         ordering = ('-arrival',)
 
     #---------------------------------------------------------------------------
-    def __unicode__(self):
-        return u'{} | {}'.format(self.entity, self.user)
+    def __str__(self):
+        return '{} | {}'.format(self.entity, self.user)
 
     #---------------------------------------------------------------------------
     @property
@@ -512,17 +518,20 @@ class TravelLog(models.Model):
 
 
 #===============================================================================
+@python_2_unicode_compatible
 class TravelLanguage(models.Model):
     iso639_1 = models.CharField(blank=True, max_length=2)
+    iso639_3 = models.CharField(blank=True, max_length=12)
     iso639_3 = models.CharField(blank=True, max_length=3)
     name     = models.CharField(max_length=60)
 
     #---------------------------------------------------------------------------
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
 
 #===============================================================================
+@python_2_unicode_compatible
 class TravelCurrency(models.Model):
     iso = models.CharField(max_length=4, primary_key=True)
     name = models.CharField(max_length=50)
@@ -536,7 +545,7 @@ class TravelCurrency(models.Model):
         db_table = 'travel_currency'
     
     #---------------------------------------------------------------------------
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
 
@@ -552,6 +561,7 @@ class EntityImage(object):
 
 
 #===============================================================================
+@python_2_unicode_compatible
 class TravelEntityInfo(models.Model):
     entity = models.OneToOneField(TravelEntity, related_name='entityinfo')
     iso3 = models.CharField(blank=True, max_length=3)
@@ -573,15 +583,15 @@ class TravelEntityInfo(models.Model):
         db_table = 'travel_entityinfo'
     
     #---------------------------------------------------------------------------
-    def __unicode__(self):
+    def __str__(self):
         return '<{}: {}>'.format('TravelEntityInfo', self.entity.name)
     
     #---------------------------------------------------------------------------
     @cached_property
     def get_languages(self):
-        lang = u', '.join([l.name for l in self.languages.all()])
+        lang = ', '.join([l.name for l in self.languages.all()])
         if self.language_codes:
-            lang = u'{} ({})'.format(lang, self.language_codes)
+            lang = '{} ({})'.format(lang, self.language_codes)
             
         return lang or 'Unknown'
         

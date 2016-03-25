@@ -116,6 +116,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('iso639_1', models.CharField(max_length=2, blank=True)),
+                ('iso639_2', models.CharField(max_length=12, blank=True)),
                 ('iso639_3', models.CharField(max_length=3, blank=True)),
                 ('name', models.CharField(max_length=60)),
             ],
