@@ -6,9 +6,9 @@
     <div class="profile-filter well well-sm">
         <div class="form-inline">
             <div class="form-group">
-                <label for="id_filter">Filter by:</label>
+                <label for="id_filter">Filter by</label>
                 <select id="id_filter" class="filter_ctrl form-control input-sm">
-                    <option value="">-- All entries --</option>
+                    <option value="">-- All types --</option>
                     <option value="cn">Continents</option>
                     <option value="co">Countries</option>
                     <option value="st">States</option>
@@ -23,6 +23,14 @@
                 <label for="id_co">in</label>
                 <select id="id_co" class="filter_ctrl form-control input-sm">
                     <option value="">-- All countries --</option>
+                </select>
+            </div>
+            <div class="form-group" id="limit_logs">
+                <label for="id_limit">limited to</label>
+                <select id="id_limit" class="filter_ctrl form-control input-sm">
+                    <option value="">-- All entries --</option>
+                    <option value="first">First visit</option>
+                    <option value="recent">Recent visit</option>
                 </select>
             </div>
             <div class="form-group">
@@ -65,10 +73,10 @@
     <script type="text/javascript" charset="utf-8">
         (function() {
             var history = {{ profile.history_json|safe }};
-            Travelogue.profile_history(
+            Travelogue.profileHistory(
                 history.entities,
                 history.logs,
-                {'media_prefix': '{{ MEDIA_URL }}'}
+                {'mediaPrefix': '{{ MEDIA_URL }}'}
             );
         })();
     </script>

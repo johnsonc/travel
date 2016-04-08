@@ -15,18 +15,15 @@
 //}
 //------------------------------------------------------------------------------
 
-;var Travelogue = (function() {
+;var Travelogue = (function(root) {
     function noop() {};    
-    function defclass(prototype) {
+    function defClass(prototype) {
         var constructor = prototype.hasOwnProperty('constructor') ? prototype.constructor : noop;
         constructor.prototype = prototype;
         return constructor;
     }
 
-    var root = this;
-    var $$ = document.getElementById.bind(document);
-
-    var type_mapping = {
+    var TYPE_MAPPING = {
         'cn': 'Continents',
         'co': 'Countries',
         'st': 'States',
@@ -71,7 +68,7 @@
     var stars = function(rating) { return STARS.substr(rating - 1); };
     
     //--------------------------------------------------------------------------
-    var iter_keys = function(obj, callback, ctx) {
+    var iterKeys = function(obj, callback, ctx) {
         var items = [];
         ctx = ctx || obj;
         for(var k in obj) {
@@ -86,7 +83,7 @@
     };
     
     //==========================================================================
-    var Set = defclass({
+    var Set = defClass({
         constructor: function(iter) {
             this.items = {};
             this.size = 0;
@@ -123,17 +120,18 @@
     });
     
     //--------------------------------------------------------------------------
-    var DOM = root.DOM = {
+    var DOM = {
+        $: document.getElementById.bind(document),
         create: function(tag) {
             var j, key, arg;
             var el = document.createElement(tag);
             for(var i = 1; i < arguments.length; i++) {
                 arg = arguments[i];
                 if(_.isPlainObject(arg)) {
-                    DOM.set_attrs(el, arg);
+                    DOM.setAttrs(el, arg);
                 }
                 else if(Array.isArray(arg)) {
-                    DOM.append_children(el, arg);
+                    DOM.appendChildren(el, arg);
                 }
                 else {
                     el.textContent = arg.toString();
@@ -141,15 +139,15 @@
             }
             return el;
         },
-        append_children: function(el, children) {
+        appendChildren: function(el, children) {
             Array.from(children).forEach(function(child) { el.appendChild(child); });
         },
-        set_attrs: function(el, attrs) {
-            iter_keys(attrs, function(k,v) { el.setAttribute(k, v); });
+        setAttrs: function(el, attrs) {
+            iterKeys(attrs, function(k,v) { el.setAttribute(k, v); });
         },
         css: function(el, vals) {
             var style = el.style;
-            iter_keys(vals, function(k, v) { style[k] = v; });
+            iterKeys(vals, function(k, v) { style[k] = v; });
         },
         evt: function(el, kind, handler, t) {
             el.addEventListener(kind, handler, t);
@@ -157,7 +155,7 @@
         remove: function(el) {
             el.parentNode.removeChild(el);
         },
-        remove_children: function(el) {
+        removeChildren: function(el) {
             while(el.lastChild) {
               el.removeChild(el.lastChild);
             }
@@ -165,7 +163,7 @@
     };
     
     //--------------------------------------------------------------------------
-    var date_tags = function(dtw) {
+    var dateTags = function(dtw) {
         return [
             DOM.create('div', dtw.format(DATE_STRING)),
             DOM.create('div', dtw.format(TIME_STRING))
@@ -173,10 +171,10 @@
     };
     
     //--------------------------------------------------------------------------
-    var create_log_row = function(log) {
+    var createLogRow = function(log) {
         var e = log.entity;
-        var name_td = DOM.create('td');
-        var flag_td = DOM.create('td');
+        var nameTd = DOM.create('td');
+        var flagTd = DOM.create('td');
         var extras = [];
         var attrs = {
             'data-id' : e.id,
@@ -187,38 +185,38 @@
             )
         };
 
-        name_td.appendChild(DOM.create('a', e.name, {'href': e.entity_url}));
+        nameTd.appendChild(DOM.create('a', e.name, {'href': e.entityUrl}));
         if(e.flag__thumb) {
-            flag_td.appendChild(DOM.create('img', {'src': e.flag__thumb, 'class': 'flag'}));
+            flagTd.appendChild(DOM.create('img', {'src': e.flag__thumb, 'class': 'flag'}));
         }
         
         e.locality && extras.push(e.locality);
         e.country__name && extras.push(e.country__name);
         if(extras.length) {
-            name_td.appendChild(DOM.create('span', extras.join(', ')));
+            nameTd.appendChild(DOM.create('span', extras.join(', ')));
         }
         
         if(e.country__flag__thumb) {
-            name_td.appendChild(DOM.create('img', {
+            nameTd.appendChild(DOM.create('img', {
                 'src': e.country__flag__thumb,
                 'class': 'flag flag-sm'
             }));
         }
 
         return DOM.create('tr', attrs, [
-            flag_td,
-            DOM.create('td', type_mapping[e.type__abbr]),
-            name_td,
-            DOM.create('td', {'class': 'when'}, date_tags(log.arrival)),
-            DOM.create('td', {'class': 'when'}, date_tags(e.logs[e.logs.length-1].arrival)),
+            flagTd,
+            DOM.create('td', TYPE_MAPPING[e.type__abbr]),
+            nameTd,
+            DOM.create('td', {'class': 'when'}, dateTags(log.arrival)),
+            DOM.create('td', {'class': 'when'}, dateTags(e.logs[e.logs.length-1].arrival)),
             DOM.create('td', e.logs.length),
             DOM.create('td', stars(log.rating))
         ]);
     };
     
     //--------------------------------------------------------------------------
-    var sorted_dict = function(dct) {
-        var keys = iter_keys(dct);
+    var sortedDict = function(dct) {
+        var keys = iterKeys(dct);
         keys.sort();
         return keys.map(function(key) {
             return [key, dct[key]];
@@ -226,7 +224,7 @@
     };
     
     //--------------------------------------------------------------------------
-    var entity_url = function(e) {
+    var entityUrl = function(e) {
         var bit = e.code;
         if(e.type__abbr == 'wh' || e.type__abbr == 'st') {
             bit = e.country__code + '-' + bit;
@@ -235,18 +233,18 @@
     };
 
     //--------------------------------------------------------------------------
-    var initialize_log_entry = function(e, media_prefix) {
+    var initializeLogEntry = function(e, mediaPrefix) {
         e.logs = [];
-        e.entity_url = entity_url(e);
-        e.flag__thumb = media_prefix + e.flag__thumb;
+        e.entityUrl = entityUrl(e);
+        e.flag__thumb = mediaPrefix + e.flag__thumb;
         if(e.country__flag__thumb) {
-            e.country__flag__thumb = media_prefix + e.country__flag__thumb;
+            e.country__flag__thumb = mediaPrefix + e.country__flag__thumb;
         }
         return e;
     };
     
     //--------------------------------------------------------------------------
-    var get_ordering = function(el) {
+    var getOrdering = function(el) {
         var ordering = {'column': el.dataset.column, 'order': el.dataset.order};
         var current = el.parentElement.querySelector('.current');
         if(el === current) {
@@ -261,25 +259,25 @@
     };
     
     //--------------------------------------------------------------------------
-    var show_summary = function(summary) {
-        var el = $$('summary');
-        DOM.remove_children(el);
+    var showSummary = function(summary) {
+        var el = DOM.$('summary');
+        DOM.removeChildren(el);
         el.appendChild(DOM.create('strong', 'Summary: '));
         summary.iter(function(key) {
-            var items = iter_keys(this[key]).length;
+            var items = iterKeys(this[key]).length;
             if(items) {
                 el.appendChild(DOM.create(
                     'span',
                     {'class': 'label label-info'},
-                    type_mapping[key] + ': ' + items
+                    TYPE_MAPPING[key] + ': ' + items
                 ));
             }
         });
     };
     
     //==========================================================================
-    var Summary = defclass({
-        constructor: function() {
+    var Summary = defClass({
+        constructor: function Summary() {
             Summary.keys.forEach(function(key) {
                 this[key] = {};
             }, this);
@@ -293,10 +291,10 @@
         }
     });
     
-    Summary.keys = iter_keys(type_mapping);
+    Summary.keys = iterKeys(TYPE_MAPPING);
     
     //==========================================================================
-    var TravelLogs = defclass({
+    var TravelLogs = defClass({
         constructor: function(logs, summary) {
             this.logs = logs;
             this.summary = summary;
@@ -321,32 +319,44 @@
             var summary = this.summary;
             
             console.log('filter bits', bits);
-            if(bits.type || bits.co || bits.timeframe) {
+            if(bits.type || bits.co || bits.timeframe || bits.limit) {
                 summary = new Summary();
                 logs = logs.filter(function(log) {
                     var e = log.entity;
                     var good = true;
                     if(bits.type) {
-                        good &= (e.type__abbr === bits.type);
+                        good = (e.type__abbr === bits.type);
                     }
 
-                    if(bits.co) {
-                        good &= (
+                    if(good && bits.co) {
+                        good = (
                             e.country__code === bits.co ||
                             (e.type__abbr === 'co' && e.code === bits.co)
                         );
                     }
                     
+                    if(good && bits.limit) {
+                        if(e.logs.length === 1) {
+                            good = true;
+                        }
+                        else if(bits.limit === 'recent') {
+                            good = e.logs[0].id === log.id;
+                        }
+                        else {
+                            good = e.logs[e.logs.length - 1].id == log.id;
+                        }
+                    }
+
                     if(good && bits.timeframe && bits.date) {
                         switch(bits.timeframe) {
                             case '+':
-                                good &= log.arrival.isAfter(bits.date);
+                                good = log.arrival.isAfter(bits.date);
                                 break;
                             case '-':
-                                good &= log.arrival.isBefore(bits.date);
+                                good = log.arrival.isBefore(bits.date);
                                 break;
                             case '=':
-                                good &= (log.arrival.year() === bits.date);
+                                good = (log.arrival.year() === bits.date);
                                 break;
                             default:
                                 good = false;
@@ -366,43 +376,43 @@
         }
     });
     //--------------------------------------------------------------------------
-    var show_logs = function(travel_logs) {
-        var count = travel_logs.logs.length;
-        var parent = $$('history');
+    var showLogs = function(travelLogs) {
+        var count = travelLogs.logs.length;
+        var parent = DOM.$('history');
         var el = parent.querySelector('tbody');
         var start = new Date();
         
-        $$('id_count').textContent = (count + ' entr' + (count > 1 ? 'ies' : 'y'));
+        DOM.$('id_count').textContent = (count + ' entr' + (count > 1 ? 'ies' : 'y'));
         DOM.remove(el);
         el = DOM.create('tbody');
-        travel_logs.logs.forEach(function(log) {
-            el.appendChild(create_log_row(log));
+        travelLogs.logs.forEach(function(log) {
+            el.appendChild(createLogRow(log));
         });
         parent.appendChild(el);
-        show_summary(travel_logs.summary);
+        showSummary(travelLogs.summary);
         console.log('delta', new Date() - start);
     };
     
     //--------------------------------------------------------------------------
     var controller = (function() {
-        var entity_dict = {};
-        var current_logs, all_logs;
+        var entityDict = {};
+        var currentLogs, allLogs;
         var ctrl = {
             initialize: function(entities, logs, conf) {
-                var media_prefix = conf.media_prefix || MEDIA_PREFIX;
+                var mediaPrefix = conf.mediaPrefix || MEDIA_PREFIX;
                 var countries = {};
                 var years = new Set();
                 var summary = new Summary();
                 entities.forEach(function(e) {
-                    e = initialize_log_entry(e, media_prefix);
+                    e = initializeLogEntry(e, mediaPrefix);
                     if(e.country__code) {
                         countries[e.country__code] = e.country__name;
                     }
-                    entity_dict[e.id] = e;
+                    entityDict[e.id] = e;
                 });
             
                 logs = logs.map(function(log) {
-                    log.entity = entity_dict[log.entity__id];
+                    log.entity = entityDict[log.entity__id];
                     if(!log.entity) {
                         console.log(log);
                     }
@@ -413,66 +423,66 @@
                     return log;
                 }, this);
             
-                current_logs = all_logs = new TravelLogs(logs, summary);
+                currentLogs = allLogs = new TravelLogs(logs, summary);
                 console.log(summary);
-                create_country_options(countries);
-                init_ordering_by_columns(this);
-                create_years_option(years);
-                init_profile_filter(conf);
+                createCountryOptions(countries);
+                initOrderingByColumns(this);
+                createYearsOption(years);
+                initProfileFilter(conf);
             },
         
-            filter_logs: function(bits) {
-                current_logs = all_logs.filter(bits);
-                show_logs(current_logs);
+            filterLogs: function(bits) {
+                currentLogs = allLogs.filter(bits);
+                showLogs(currentLogs);
             },
         
-            sort_current: function(column, order) {
+            sortCurrent: function(column, order) {
                 console.log('ordering', column, order);
-                current_logs.sort();
-                show_logs(current_logs);
+                currentLogs.sort();
+                showLogs(currentLogs);
             }
         };
         
         //----------------------------------------------------------------------
-        var on_filter_change = function() {
-            var bits = HashBits.from_filters();
+        var onFilterChange = function() {
+            var bits = HashBits.fromFilters();
             console.log(bits);
 
             bits.update();
-            ctrl.filter_logs(bits);
+            ctrl.filterLogs(bits);
         };
 
         //----------------------------------------------------------------------
-        var on_hash_change = function() {
-            var bits = HashBits.from_hash();
-            set_filter_fields(bits);
-            ctrl.filter_logs(bits);
+        var onHashChange = function() {
+            var bits = HashBits.fromHash();
+            setFilterFields(bits);
+            ctrl.filterLogs(bits);
         };
         
         //----------------------------------------------------------------------
-        var init_ordering_by_columns = function(history) {
+        var initOrderingByColumns = function(history) {
             var columns = '#history thead th[data-column]';
             Array.from(document.querySelectorAll(columns)).forEach(function(e) {
                 DOM.evt(e, 'click', function(evt) {
-                    var ordering = get_ordering(this);
+                    var ordering = getOrdering(this);
                     if(ordering.order === 'asc') {
-                        HashBits.from_filters().update();
+                        HashBits.fromFilters().update();
                     }
-                    history.sort_current(ordering.column, ordering.order);
+                    history.sortCurrent(ordering.column, ordering.order);
                 });
             });
         };
         
         //----------------------------------------------------------------------
-        var create_country_options = function(countries) {
-            var cos = $$('id_co');
-            sorted_dict(countries).forEach(function(item) {
+        var createCountryOptions = function(countries) {
+            var cos = DOM.$('id_co');
+            sortedDict(countries).forEach(function(item) {
                 cos.appendChild(DOM.create('option', item[1], {'value': item[0]}));
             });
         };
         
         //----------------------------------------------------------------------
-        var create_years_option = function(years) {
+        var createYearsOption = function(years) {
             var keys = years.values();
             var sel = DOM.create('select', {
                 'class': 'filter_ctrl form-control input-sm',
@@ -484,39 +494,39 @@
             keys.forEach(function(yr) {
                 sel.appendChild(DOM.create('option', yr, {'value': yr}));
             });
-            $$('id_date').parentElement.appendChild(sel);
+            DOM.$('id_date').parentElement.appendChild(sel);
         };
         
         //----------------------------------------------------------------------
-        var init_profile_filter = function(conf) {
-            var date_el = $$('id_date');
+        var initProfileFilter = function(conf) {
+            var dateEl = DOM.$('id_date');
             var picker = new Pikaday({
-                field: date_el,
+                field: dateEl,
                 format: DATE_FORMAT,
                 minDate: new Date(1920,1,1),
                 yearRange: [1920, (new Date()).getFullYear()],
                 onSelect: function(dt) { console.log(dt, this); }
             });
 
-            DOM.evt(window, 'hashchange', on_hash_change);
-            DOM.evt($$('id_timeframe'), 'change', function() {
+            DOM.evt(window, 'hashchange', onHashChange);
+            DOM.evt(DOM.$('id_timeframe'), 'change', function() {
                 if(this.value === '=') {
-                    $$('id_years').style.display = 'inline-block';
-                    date_el.style.display = 'none';
+                    DOM.$('id_years').style.display = 'inline-block';
+                    dateEl.style.display = 'none';
                 }
                 else {
-                    date_el.style.display = 'inline-block';
-                    $$('id_years').style.display = 'none';
+                    dateEl.style.display = 'inline-block';
+                    DOM.$('id_years').style.display = 'none';
                 }
             });
 
-            DOM.evt(date_el, 'input', on_filter_change);
-            DOM.evt(date_el, 'propertychange', on_filter_change);
+            DOM.evt(dateEl, 'input', onFilterChange);
+            DOM.evt(dateEl, 'propertychange', onFilterChange);
             Array.from(document.querySelectorAll('.filter_ctrl')).forEach(function(e) {
-                DOM.evt(e, 'change', on_filter_change);
+                DOM.evt(e, 'change', onFilterChange);
             });
 
-            on_hash_change();
+            onHashChange();
         };
         
         return ctrl;
@@ -526,7 +536,7 @@
     var HashBits = function() {};
     
     //--------------------------------------------------------------------------
-    HashBits.from_hash = function(hash) {
+    HashBits.fromHash = function(hash) {
         var arr;
         var kvp;
         var i = 0;
@@ -561,16 +571,17 @@
     };
     
     //--------------------------------------------------------------------------
-    HashBits.from_filters = function() {
-        var dt    = $$('id_date').value;
+    HashBits.fromFilters = function() {
+        var dt    = DOM.$('id_date').value;
         var el    = document.querySelector('#history thead .current');
         var bits  = new HashBits();
-        bits.type = $$('id_filter').value;
-        bits.co   = $$('id_co').value;
-        bits.timeframe = $$('id_timeframe').value;
-        
+        bits.type = DOM.$('id_filter').value;
+        bits.co   = DOM.$('id_co').value;
+        bits.timeframe = DOM.$('id_timeframe').value;
+        bits.limit = DOM.$('id_limit').value;
+
         if(bits.timeframe === '=') {
-            bits.date = parseInt($$('id_years').value);
+            bits.date = parseInt(DOM.$('id_years').value);
         }
         else if(bits.timeframe) {
             bits.date = dt ? moment(dt) : null;
@@ -584,9 +595,11 @@
     //--------------------------------------------------------------------------
     HashBits.prototype.toString = function() {
         var a = [];
-        this.type && a.push('type:' + this.type);
-        this.co   && a.push('co:' + this.co);
-        this.asc  && a.push('asc:' + this.asc);
+        this.type  && a.push('type:' + this.type);
+        this.co    && a.push('co:' + this.co);
+        this.asc   && a.push('asc:' + this.asc);
+        this.limit && a.push('limit:' + this.limit);
+
         if(this.timeframe === '-' || this.timeframe === '+') {
             if(this.date) {
                 a.push('date:' + this.timeframe + this.date.format(DATE_FORMAT));
@@ -607,42 +620,44 @@
     };
     
     //--------------------------------------------------------------------------
-    var set_filter_fields = function(bits) {
-        var years_el = $$('id_years');
-        var date_el = $$('id_date');
-        $$('id_filter').value = bits.type || '';
-        $$('id_timeframe').value = bits.timeframe || '';
-        $$('id_co').value = bits.co || '';
+    var setFilterFields = function(bits) {
+        var yearsEl = DOM.$('id_years');
+        var dateEl = DOM.$('id_date');
+        DOM.$('id_filter').value = bits.type || '';
+        DOM.$('id_timeframe').value = bits.timeframe || '';
+        DOM.$('id_co').value = bits.co || '';
+        DOM.$('id_limit').value = bits.limit || '';
 
-        years_el.style.display = 'none';
-        date_el.style.display = 'none';
+        yearsEl.style.display = 'none';
+        dateEl.style.display = 'none';
         if((bits.timeframe === '=') && bits.date) {
-            years_el.value = bits.date;
-            years_el.style.display = 'inline-block';
+            yearsEl.value = bits.date;
+            yearsEl.style.display = 'inline-block';
         }
         else {
             if(bits.timeframe && bits.date) {
-                date_el.value = bits.date.format(DATE_FORMAT);
-                date_el.style.display = 'inline-block';
+                dateEl.value = bits.date.format(DATE_FORMAT);
+                dateEl.style.display = 'inline-block';
             }
         }
     };
     
-    root.profile_history = controller;
-    root.timeit = function(fn) {
-        var args = Array.from(arguments);
-        var start = new Date();
-        var result = fn.call(undefined, args);
-        var end = new Date();
-        console.log(start + ' | ' + end + ' = ' + (end - start));
-        return result;
-        
-    };
-    
     return {
-        HashBits: HashBits,
-        profile_history: function(entities, logs, conf) {
+        parseHash: function(hsh) {
+            return HashBits.fromHash(hsh);
+        },
+        timeit: function(fn) {
+            var args = Array.from(arguments);
+            var start = new Date();
+            var result = fn.call(undefined, args);
+            var end = new Date();
+            console.log(start + ' | ' + end + ' = ' + (end - start));
+            return result;
+        },
+        DOM: DOM,
+        controller: controller,
+        profileHistory: function(entities, logs, conf) {
             controller.initialize(entities, logs, conf);
         }
     };
-}());
+}(window));
