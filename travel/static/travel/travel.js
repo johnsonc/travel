@@ -16,8 +16,16 @@
 //------------------------------------------------------------------------------
 
 ;var Travelogue = (function() {
+    function noop() {};    
+    function defclass(prototype) {
+        var constructor = prototype.hasOwnProperty('constructor') ? prototype.constructor : noop;
+        constructor.prototype = prototype;
+        return constructor;
+    }
+
     var root = this;
     var $$ = document.getElementById.bind(document);
+
     var type_mapping = {
         'cn': 'Continents',
         'co': 'Countries',
@@ -28,8 +36,6 @@
         'lm': 'Landmarks',
         'wh': 'World Heritage sites'
     };
-    
-    _.templateSettings.interpolate = /{{([\s\S]+?)}}/g;
     
     var sorters = {
         'type': function(a, b) {
@@ -80,15 +86,14 @@
     };
     
     //==========================================================================
-    var Set = function(iter) {
-        this.items = {};
-        this.size = 0;
-        if(iter) {
-            iter.forEach(function(i) { this.add(i); }, this);
-        }
-    };
-    
-    Set.prototype = {
+    var Set = defclass({
+        constructor: function(iter) {
+            this.items = {};
+            this.size = 0;
+            if(iter) {
+                iter.forEach(function(i) { this.add(i); }, this);
+            }
+        },
         add: function(value) {
             if(!this.has(value)) {
                 this.items[value] = true;
@@ -115,7 +120,7 @@
                 }
             }
         }
-    };
+    });
     
     //--------------------------------------------------------------------------
     var DOM = root.DOM = {
@@ -273,98 +278,93 @@
     };
     
     //==========================================================================
-    var Summary = function() {
-        Summary.keys.forEach(function(key) {
-            this[key] = {};
-        }, this);
-    };
-    
-    //--------------------------------------------------------------------------
-    Summary.prototype.add = function(e) {
-        var kind = this[e.type__abbr];
-        kind[e.id] = kind[e.id] ? kind[e.id] + 1 : 1;
-    };
-    
-    //--------------------------------------------------------------------------
-    Summary.prototype.iter = function(callback) {
-        Summary.keys.forEach(callback, this);
-    };
+    var Summary = defclass({
+        constructor: function() {
+            Summary.keys.forEach(function(key) {
+                this[key] = {};
+            }, this);
+        },
+        add: function(e) {
+            var kind = this[e.type__abbr];
+            kind[e.id] = kind[e.id] ? kind[e.id] + 1 : 1;
+        },
+        iter:  function(callback) {
+            Summary.keys.forEach(callback, this);
+        }
+    });
     
     Summary.keys = iter_keys(type_mapping);
     
     //==========================================================================
-    var TravelLogs = function(logs, summary) {
-        this.logs = logs;
-        this.summary = summary;
-    };
-    
-    //--------------------------------------------------------------------------
-    TravelLogs.prototype.sort = function(column, order) {
-        console.log('ordering', column, order);
-        this.logs.sort(function(a, b) {
-            var result = 0;
-            if(a[column] > b[column]) {
-                result = 1;
-            }
-            else {
-                if(a[column] < b[column]) {
-                    result = -1;
+    var TravelLogs = defclass({
+        constructor: function(logs, summary) {
+            this.logs = logs;
+            this.summary = summary;
+        },
+        sort: function(column, order) {
+            console.log('ordering', column, order);
+            this.logs.sort(function(a, b) {
+                var result = 0;
+                if(a[column] > b[column]) {
+                    result = 1;
                 }
-            }
-            return (result && order === 'desc') ? -result : result;
-        });
-    };
-    
-    //--------------------------------------------------------------------------
-    TravelLogs.prototype.filter = function(bits) {
-        var logs    = this.logs;
-        var summary = this.summary;
-        
-        console.log('filter bits', bits);
-        if(bits.type || bits.co || bits.timeframe) {
-            summary = new Summary();
-            logs = logs.filter(function(log) {
-                var e = log.entity;
-                var good = true;
-                if(bits.type) {
-                    good &= (e.type__abbr === bits.type);
-                }
-
-                if(bits.co) {
-                    good &= (
-                        e.country__code === bits.co ||
-                        (e.type__abbr === 'co' && e.code === bits.co)
-                    );
-                }
-                
-                if(good && bits.timeframe && bits.date) {
-                    switch(bits.timeframe) {
-                        case '+':
-                            good &= log.arrival.isAfter(bits.date);
-                            break;
-                        case '-':
-                            good &= log.arrival.isBefore(bits.date);
-                            break;
-                        case '=':
-                            good &= (log.arrival.year() === bits.date);
-                            break;
-                        default:
-                            good = false;
+                else {
+                    if(a[column] < b[column]) {
+                        result = -1;
                     }
                 }
-                
-                if(good) {
-                    summary.add(e);
-                    return true;
-                }
-                
-                return false;
+                return (result && order === 'desc') ? -result : result;
             });
-            return new TravelLogs(logs, summary);
+        },
+        filter: function(bits) {
+            var logs    = this.logs;
+            var summary = this.summary;
+            
+            console.log('filter bits', bits);
+            if(bits.type || bits.co || bits.timeframe) {
+                summary = new Summary();
+                logs = logs.filter(function(log) {
+                    var e = log.entity;
+                    var good = true;
+                    if(bits.type) {
+                        good &= (e.type__abbr === bits.type);
+                    }
+
+                    if(bits.co) {
+                        good &= (
+                            e.country__code === bits.co ||
+                            (e.type__abbr === 'co' && e.code === bits.co)
+                        );
+                    }
+                    
+                    if(good && bits.timeframe && bits.date) {
+                        switch(bits.timeframe) {
+                            case '+':
+                                good &= log.arrival.isAfter(bits.date);
+                                break;
+                            case '-':
+                                good &= log.arrival.isBefore(bits.date);
+                                break;
+                            case '=':
+                                good &= (log.arrival.year() === bits.date);
+                                break;
+                            default:
+                                good = false;
+                        }
+                    }
+                    
+                    if(good) {
+                        summary.add(e);
+                        return true;
+                    }
+                    
+                    return false;
+                });
+                return new TravelLogs(logs, summary);
+            }
+            return this;
         }
-        return this;
-    };
-    
+    });
     //--------------------------------------------------------------------------
     var show_logs = function(travel_logs) {
         var count = travel_logs.logs.length;
@@ -528,6 +528,8 @@
     //--------------------------------------------------------------------------
     HashBits.from_hash = function(hash) {
         var arr;
+        var kvp;
+        var i = 0;
         var bits = new HashBits();
         hash = hash || window.location.hash;
         if(hash && hash[0] == '#') {
@@ -536,9 +538,13 @@
         
         if(hash) {
             arr = hash.split('/');
-            for(var i = 0, j = arr.length; i < j; i += 2) {
-                if(arr[i]) {
-                    bits[arr[i]] = arr[i + 1];
+            for(i = 0; i < arr.length; i++) {
+                kvp = arr[i].split(':');
+                if(kvp.length === 2) {
+                    bits[kvp[0]] = kvp[1];
+                }
+                else {
+                    bits[kvp[0]] = true;
                 }
             }
             if(bits.date) {
@@ -578,17 +584,17 @@
     //--------------------------------------------------------------------------
     HashBits.prototype.toString = function() {
         var a = [];
-        this.type && a.push('type', this.type);
-        this.co   && a.push('co', this.co);
-        this.asc  && a.push('asc', this.asc);
+        this.type && a.push('type:' + this.type);
+        this.co   && a.push('co:' + this.co);
+        this.asc  && a.push('asc:' + this.asc);
         if(this.timeframe === '-' || this.timeframe === '+') {
             if(this.date) {
-                a.push('date', this.timeframe + this.date.format(DATE_FORMAT));
+                a.push('date:' + this.timeframe + this.date.format(DATE_FORMAT));
             }
         }
         else if(this.timeframe === '=') {
             if(this.date) {
-                a.push('date', this.timeframe + this.date);
+                a.push('date:' + this.timeframe + this.date);
             }
         }
         return a.length ? '#' + a.join('/') : './';
@@ -634,6 +640,7 @@
     };
     
     return {
+        HashBits: HashBits,
         profile_history: function(entities, logs, conf) {
             controller.initialize(entities, logs, conf);
         }
