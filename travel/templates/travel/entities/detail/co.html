@@ -22,7 +22,10 @@
     <dt>Demonym</dt>
     <dd>{{ info.denom }} <i>(sing.)</i>; {{ info.denoms }} <i>(pl.)</i></dd>{% endif %}
     <dt>Language(s)</dt>
-    <dd>{{ info.get_languages }}</dd>
+    <dd>{% for lang in info.languages.all %}
+        <a href="{{ lang.get_absolute_url }}">{{ lang }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}
+        {% if info.language_codes %}| {{ info.language_codes }}{% endif %}
+    </dd>
     <dt>Phone, TLD</dt>
     <dd>{{ info.phone }}, {{ info.tld }}</dd>
     {% having info.neighbors.all as neighbors %}

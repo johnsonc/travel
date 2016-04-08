@@ -504,7 +504,7 @@ class TravelLog(models.Model):
                 'country__flag__thumb', 'type__abbr', 'flag__thumb'
             ),
             TravelLog.objects.filter(user=user).order_by('-arrival').values(
-                'arrival', 'entity__id', 'rating'
+                'id', 'arrival', 'entity__id', 'rating'
             )
         )
 
@@ -522,13 +522,22 @@ class TravelLog(models.Model):
 @python_2_unicode_compatible
 class TravelLanguage(models.Model):
     iso639_1 = models.CharField(blank=True, max_length=2)
-    iso639_3 = models.CharField(blank=True, max_length=12)
+    iso639_2 = models.CharField(blank=True, max_length=12)
     iso639_3 = models.CharField(blank=True, max_length=3)
     name     = models.CharField(max_length=60)
 
     #---------------------------------------------------------------------------
     def __str__(self):
         return self.name
+
+    #---------------------------------------------------------------------------
+    @cached_property
+    def related_entities(self):
+        return TravelEntity.objects.filter(entityinfo__languages=self)
+
+    #---------------------------------------------------------------------------
+    def get_absolute_url(self):
+        return reverse('travel-language', args=[self.id])
 
 
 #===============================================================================
@@ -591,9 +600,6 @@ class TravelEntityInfo(models.Model):
     @cached_property
     def get_languages(self):
         lang = ', '.join([l.name for l in self.languages.all()])
-        if self.language_codes:
-            lang = '{} ({})'.format(lang, self.language_codes)
-            
         return lang or 'Unknown'
         
     #---------------------------------------------------------------------------

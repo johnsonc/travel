@@ -40,6 +40,20 @@ def profile(request, username):
 
 
 #-------------------------------------------------------------------------------
+def languages(request):
+    return render_travel(request, 'languages.html', {
+        'languages': travel.TravelLanguage.objects.all()
+    })
+
+
+#-------------------------------------------------------------------------------
+def language(request, pk):
+    return render_travel(request, 'languages.html', {
+        'language': get_object_or_404(travel.TravelLanguage, pk=pk)
+    })
+
+
+#-------------------------------------------------------------------------------
 def bucket_lists(request):
     return render_travel(request, 'buckets/listing.html', {
         'bucket_lists': travel.TravelBucketList.objects.for_user(request.user)

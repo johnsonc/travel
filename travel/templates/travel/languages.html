@@ -1,0 +1,51 @@
+{% extends "travel/base.html" %}
+{% load staticfiles %}
+{% block extra_head %}{{ block.super }}
+	<style>
+		.related-entities li { margin-bottom: 4px }
+	</style>	
+{% endblock extra_head %}
+{% block travel_heading %}Languages{% endblock %}
+{% block travel_content %}
+	{% if language %}
+	<h2>{{ language }}</h2>
+	<h3>ISO Specifications</h3>
+	<dl class="dl-horizontal entity-details">
+		<dt>ISO 639-1</dt><dd>{{ language.iso639_1 }}</dd>
+		<dt>ISO 639-2</dt><dd>{{ language.iso639_2 }}</dd>
+		<dt>ISO 639-3</dt><dd>{{ language.iso639_3 }}</dd>
+	</dl>
+
+	<ul class="list-unstyled related-entities">
+		{% for e in language.related_entities %}
+		<li>
+			<img src="{{ e.flag.thumb.url }}">
+			<a href="{{ e.get_absolute_url }}">{{ e }}</a>
+		</li>
+		{% endfor %}	
+	</ul>
+	{% endif %}
+	{% if languages %}
+	<h2>All Languages</h2>
+	<table class="table table-striped">
+		<thead>
+			<tr>
+				<th>Name</th>
+				<th>ISO 639-1</th>
+				<th>ISO 639-2</th>
+				<th>ISO 639-3</th>
+			</tr>
+		</thead>
+		<tbody>
+		{% for l in languages %}
+		<tr>
+			<td><a href="{{ l.get_absolute_url }}">{{ l }}</a></td>
+			<td>{{ l.iso639_1 }} </td>
+			<td>{{ l.iso639_2 }} </td>
+			<td>{{ l.iso639_3 }} </td>
+		</tr>	
+		{% endfor %}
+		</tbody>
+	</table>
+	{% endif %}
+{% endblock %}
