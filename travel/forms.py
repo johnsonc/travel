@@ -166,16 +166,14 @@ class BaseTravelEntityForm(forms.ModelForm):
 
     #---------------------------------------------------------------------------
     def save_flag(self, instance):
-        if 'flag_url' in self.cleaned_data:
-            flag_url = self.cleaned_data.get('flag_url')
-            if flag_url:
-                instance.update_flag(flag_url)
+        flag_url = self.cleaned_data.get('flag_url', None)
+        if flag_url:
+            instance.update_flag(flag_url)
         
     #---------------------------------------------------------------------------
     def save(self, *args, **kws):
-        import ipdb; ipdb.set_trace()
-        lat_lon = self.cleaned_data.get('lat_lon')
         instance = super(BaseTravelEntityForm, self).save(*args, **kws)
+        lat_lon = self.cleaned_data.get('lat_lon')
         if lat_lon:
             instance.lat, instance.lon = lat_lon
             instance.save()
