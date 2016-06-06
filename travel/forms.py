@@ -173,15 +173,14 @@ class BaseTravelEntityForm(forms.ModelForm):
         
     #---------------------------------------------------------------------------
     def save(self, *args, **kws):
+        import ipdb; ipdb.set_trace()
         lat_lon = self.cleaned_data.get('lat_lon')
         instance = super(BaseTravelEntityForm, self).save(*args, **kws)
         if lat_lon:
             instance.lat, instance.lon = lat_lon
             instance.save()
             
-        if kws.get('commit', False) and 'flag_url' in self.cleaned_data:
-            self.save_flag(instance)
-        
+        self.save_flag(instance)
         return instance
 
 
