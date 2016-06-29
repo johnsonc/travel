@@ -1,4 +1,5 @@
 {% extends "travel/entities/listing/base.html" %}
+{% load travel_tags %}{% load humanize %}
 {% block list_header %}
     <th>Flag</th>
     <th>
@@ -7,6 +8,8 @@
     <th>Code</th>
     <th>Capital</th>
     <th>Continent</th>
+    <th class="text-right">Population</th>
+    <th class="text-right">Size</th>
     <th></th>
 {% endblock list_header %}
 {% block listing %}
@@ -30,6 +33,13 @@
         <td>
             {{ place.continent }}
         </td>
+        {% having place.entityinfo as info %}
+        <td class="text-right">{% if info.population %}{{ info.population|intcomma }}{% endif %}</td>
+        <td class="text-right">{% if info.area %}{{ info.area|intcomma }} km<sup>2</sup>{% endif %}</td>
+        {% else %}
+        <td></td>
+        <td></td>
+        {% endhaving %}
         <td>{% include "travel/_visited.html" with id=place.id %}</td>
     </tr>
     {% endfor %}
