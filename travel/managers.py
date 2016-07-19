@@ -14,7 +14,7 @@ class TravelProfileManager(Manager):
     
     #---------------------------------------------------------------------------
     def public(self):
-        return self.filter(access=self.model.Access.PUBLIC).exclude(user__id=1)
+        return self.filter(access=self.model.Access.PUBLIC)
 
     #---------------------------------------------------------------------------
     def for_user(self, user):
